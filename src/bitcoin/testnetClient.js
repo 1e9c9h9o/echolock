@@ -74,26 +74,194 @@ export async function getTransaction(txid) {
 }
 
 /**
- * Broadcast a transaction to the network
+ * Validate transaction hex before broadcasting
  * @param {string} txHex - Raw transaction hex
- * @returns {Promise<string>} Transaction ID
+ * @returns {Object} Validation result
  */
-export async function broadcastTransaction(txHex) {
-  try {
-    const response = await fetch(`${BLOCKSTREAM_API}/tx`, {
-      method: 'POST',
-      body: txHex
-    });
+function validateTransactionHex(txHex) {
+  // Check if hex string is valid
+  if (typeof txHex !== 'string' || txHex.length === 0) {
+    return { valid: false, error: 'Transaction hex is empty or invalid type' };
+  }
 
-    if (!response.ok) {
-      const error = await response.text();
-      throw new Error(`Broadcast failed: ${error}`);
+  // Check if it's valid hex
+  if (!/^[0-9a-fA-F]+$/.test(txHex)) {
+    return { valid: false, error: 'Transaction hex contains invalid characters' };
+  }
+
+  // Check minimum length (a transaction should be at least 10 bytes = 20 hex chars)
+  if (txHex.length < 20) {
+    return { valid: false, error: 'Transaction hex is too short' };
+  }
+
+  // Try to decode the transaction
+  try {
+    const txBuffer = Buffer.from(txHex, 'hex');
+    const tx = bitcoin.Transaction.fromBuffer(txBuffer);
+
+    // Basic validation
+    if (tx.ins.length === 0) {
+      return { valid: false, error: 'Transaction has no inputs' };
+    }
+    if (tx.outs.length === 0) {
+      return { valid: false, error: 'Transaction has no outputs' };
     }
 
-    return await response.text(); // Returns txid
+    return {
+      valid: true,
+      tx,
+      inputs: tx.ins.length,
+      outputs: tx.outs.length,
+      locktime: tx.locktime
+    };
   } catch (error) {
-    throw new Error(`Failed to broadcast: ${error.message}`);
+    return { valid: false, error: `Failed to decode transaction: ${error.message}` };
   }
+}
+
+/**
+ * Broadcast a transaction to the network with retry logic
+ * @param {string} txHex - Raw transaction hex
+ * @param {Object} options - Broadcasting options
+ * @param {number} options.maxRetries - Maximum number of retry attempts (default: 3)
+ * @param {number} options.initialDelay - Initial delay in ms before first retry (default: 1000)
+ * @returns {Promise<Object>} Transaction broadcast result
+ */
+export async function broadcastTransaction(txHex, options = {}) {
+  const { maxRetries = 3, initialDelay = 1000 } = options;
+
+  // Validate transaction hex before attempting broadcast
+  const validation = validateTransactionHex(txHex);
+  if (!validation.valid) {
+    throw new Error(`Invalid transaction: ${validation.error}`);
+  }
+
+  let lastError;
+  let attempt = 0;
+
+  while (attempt < maxRetries) {
+    try {
+      const response = await fetch(`${BLOCKSTREAM_API}/tx`, {
+        method: 'POST',
+        body: txHex,
+        headers: {
+          'Content-Type': 'text/plain'
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`HTTP ${response.status}: ${error}`);
+      }
+
+      const txid = await response.text();
+
+      return {
+        success: true,
+        txid,
+        confirmationUrl: `https://blockstream.info/testnet/tx/${txid}`,
+        network: 'testnet',
+        broadcastedAt: new Date().toISOString(),
+        attempt: attempt + 1
+      };
+    } catch (error) {
+      lastError = error;
+      attempt++;
+
+      // Don't retry on validation errors
+      if (error.message.includes('bad-txns-inputs-missingorspent') ||
+          error.message.includes('txn-already-in-mempool') ||
+          error.message.includes('txn-mempool-conflict')) {
+        throw new Error(`Broadcast failed (non-retryable): ${error.message}`);
+      }
+
+      if (attempt < maxRetries) {
+        // Exponential backoff: initialDelay * 2^attempt
+        const delay = initialDelay * Math.pow(2, attempt - 1);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+  }
+
+  throw new Error(`Broadcast failed after ${maxRetries} attempts: ${lastError.message}`);
+}
+
+/**
+ * Wait for transaction confirmation
+ * @param {string} txid - Transaction ID to monitor
+ * @param {number} minConfirmations - Minimum confirmations to wait for (default: 1)
+ * @param {number} pollInterval - Polling interval in ms (default: 30000)
+ * @param {number} maxWaitTime - Maximum wait time in ms (default: 3600000 = 1 hour)
+ * @returns {Promise<Object>} Confirmation status
+ */
+export async function waitForConfirmation(txid, minConfirmations = 1, pollInterval = 30000, maxWaitTime = 3600000) {
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < maxWaitTime) {
+    const tx = await getTransaction(txid);
+
+    if (!tx.found) {
+      throw new Error(`Transaction ${txid} not found`);
+    }
+
+    const confirmations = tx.status?.confirmed ? (tx.status.block_height ? 1 : 0) : 0;
+    const isConfirmed = tx.status?.confirmed || false;
+
+    if (isConfirmed && confirmations >= minConfirmations) {
+      return {
+        confirmed: true,
+        confirmations,
+        blockHeight: tx.status.block_height,
+        blockHash: tx.status.block_hash,
+        blockTime: tx.status.block_time
+      };
+    }
+
+    // Wait before polling again
+    await new Promise(resolve => setTimeout(resolve, pollInterval));
+  }
+
+  throw new Error(`Transaction ${txid} not confirmed after ${maxWaitTime / 1000}s`);
+}
+
+/**
+ * Get transaction status
+ * @param {string} txid - Transaction ID
+ * @returns {Promise<Object>} Transaction status
+ */
+export async function getTransactionStatus(txid) {
+  const tx = await getTransaction(txid);
+
+  if (!tx.found) {
+    return { status: 'not_found', txid };
+  }
+
+  const isConfirmed = tx.status?.confirmed || false;
+  const confirmations = isConfirmed && tx.status.block_height
+    ? await getCurrentBlockHeight() - tx.status.block_height + 1
+    : 0;
+
+  let status;
+  if (!isConfirmed) {
+    status = 'pending';
+  } else if (confirmations >= 6) {
+    status = 'confirmed';
+  } else {
+    status = 'confirming';
+  }
+
+  return {
+    status,
+    txid,
+    confirmed: isConfirmed,
+    confirmations,
+    blockHeight: tx.status?.block_height,
+    blockHash: tx.status?.block_hash,
+    blockTime: tx.status?.block_time,
+    fee: tx.fee,
+    size: tx.size,
+    weight: tx.weight
+  };
 }
 
 /**

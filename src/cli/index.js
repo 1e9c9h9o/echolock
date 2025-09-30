@@ -21,15 +21,16 @@ let currentSwitchId = null;
 function showHelp() {
   console.log(bright('\nAvailable Commands:'));
   console.log(dim('─'.repeat(60)));
-  console.log(green('  create') + '        Create a new dead man\'s switch');
-  console.log(green('  check-in') + '      Reset the timer (perform check-in)');
-  console.log(green('  status') + '        Show current status');
-  console.log(green('  list') + '          List all switches');
-  console.log(green('  select <id>') + '   Select a switch by ID');
-  console.log(green('  test-release') + '  Manually trigger release (for testing)');
-  console.log(green('  delete') + '        Delete current switch');
-  console.log(green('  help') + '          Show this help message');
-  console.log(green('  exit') + '          Quit the program');
+  console.log(green('  create') + '             Create a new dead man\'s switch');
+  console.log(green('  check-in') + '           Reset the timer (perform check-in)');
+  console.log(green('  status') + '             Show current status');
+  console.log(green('  list') + '               List all switches');
+  console.log(green('  select <id>') + '        Select a switch by ID');
+  console.log(green('  test-release') + '       Manually trigger release (for testing)');
+  console.log(green('  show-bitcoin-tx') + '    Preview Bitcoin transaction (unsigned)');
+  console.log(green('  delete') + '             Delete current switch');
+  console.log(green('  help') + '               Show this help message');
+  console.log(green('  exit') + '               Quit the program');
   console.log(dim('─'.repeat(60)));
   console.log();
 }
@@ -52,10 +53,28 @@ async function handleCreate() {
 
   const hours = parseInt(hoursStr) || 72;
 
+  const useBitcoinStr = await new Promise(resolve => {
+    rl.question(bright('Enable Bitcoin timelock? (yes/no) [yes]: '), resolve);
+  });
+
+  const useBitcoin = !useBitcoinStr || useBitcoinStr.toLowerCase() !== 'no';
+
+  let password = null;
+  if (useBitcoin) {
+    password = await new Promise(resolve => {
+      rl.question(bright('Enter password for Bitcoin key encryption: '), resolve);
+    });
+
+    if (!password) {
+      console.log(red('✗ Password is required for Bitcoin timelock mode\n'));
+      return;
+    }
+  }
+
   console.log(dim('\n⏳ Creating switch...'));
 
   try {
-    const result = await dms.createSwitch(message, hours);
+    const result = await dms.createSwitch(message, hours, useBitcoin, password);
     currentSwitchId = result.switchId;
 
     console.log(green('\n✓ Dead man\'s switch created successfully!\n'));
@@ -63,6 +82,13 @@ async function handleCreate() {
     console.log(bright('Fragments: ') + `${result.requiredFragments}-of-${result.fragmentCount} threshold`);
     console.log(bright('Check-in: ') + `Every ${hours} hours`);
     console.log(bright('Expires: ') + new Date(result.expiryTime).toLocaleString());
+
+    if (result.bitcoin?.enabled) {
+      console.log(bright('Bitcoin:   ') + green('Enabled'));
+      console.log(bright('  Address: ') + cyan(result.bitcoin.address));
+      console.log(bright('  Timelock: ') + `Block ${result.bitcoin.timelockHeight}`);
+    }
+
     console.log(dim('\n💡 Use "status" to monitor or "check-in" to reset timer\n'));
   } catch (error) {
     console.log(red(`\n✗ Failed to create switch: ${error.message}\n`));
@@ -181,12 +207,22 @@ async function handleTestRelease() {
     return;
   }
 
+  const status = await dms.getStatus(currentSwitchId);
+  const hasBitcoin = status.bitcoin?.enabled;
+
+  let password = null;
+  if (hasBitcoin) {
+    password = await new Promise(resolve => {
+      rl.question(bright('Enter password to decrypt Bitcoin key (or press Enter to skip): '), resolve);
+    });
+  }
+
   console.log(yellow('\n🔓 Initiating test release...\n'));
   console.log(dim('1. Fetching encrypted fragments...'));
   console.log(dim('2. Reconstructing encryption key using Shamir SSS...'));
   console.log(dim('3. Decrypting message with AES-256-GCM...\n'));
 
-  const result = await dms.testRelease(currentSwitchId);
+  const result = await dms.testRelease(currentSwitchId, password, true);
 
   if (result.success) {
     console.log(green('✓ Message successfully reconstructed!\n'));
@@ -195,9 +231,86 @@ async function handleTestRelease() {
     console.log(cyan(result.reconstructedMessage));
     console.log(dim('\n─'.repeat(60)));
     console.log(dim(`\nUsed ${result.sharesUsed} of ${result.totalShares} fragments\n`));
+
+    if (result.bitcoinTx) {
+      console.log(bright('🪙 Bitcoin Transaction:\n'));
+      if (result.bitcoinTx.success) {
+        console.log(green('✓ Transaction created (dry run)\n'));
+        console.log(bright('  Inputs:  ') + result.bitcoinTx.details.inputs);
+        console.log(bright('  Amount:  ') + result.bitcoinTx.details.outputAmount + ' sats');
+        console.log(bright('  Fee:     ') + result.bitcoinTx.details.fee + ' sats');
+        console.log(bright('  PSBT:    ') + cyan(result.bitcoinTx.psbt.substring(0, 40)) + '...');
+        console.log(dim('\n💡 Use "show-bitcoin-tx" to see full transaction details\n'));
+      } else {
+        console.log(red(`✗ Bitcoin tx failed: ${result.bitcoinTx.error}\n`));
+      }
+    }
   } else {
     console.log(red(`✗ Release failed: ${result.message}\n`));
   }
+}
+
+async function handleShowBitcoinTx() {
+  if (!currentSwitchId) {
+    console.log(red('\n✗ No switch selected. Use "list" and "select <id>"\n'));
+    return;
+  }
+
+  const status = await dms.getStatus(currentSwitchId, true);
+
+  if (!status.bitcoin?.enabled) {
+    console.log(red('\n✗ This switch does not have Bitcoin timelock enabled\n'));
+    return;
+  }
+
+  console.log(yellow('\n🪙 Bitcoin Timelock Transaction\n'));
+  console.log(dim('─'.repeat(60)));
+  console.log(bright('Address:       ') + cyan(status.bitcoin.address));
+  console.log(bright('Script:        ') + status.bitcoin.scriptAsm);
+  console.log(bright('Timelock:      ') + `Block ${status.bitcoin.timelockHeight}`);
+  console.log(bright('Current Block: ') + status.bitcoin.currentHeight);
+  console.log(bright('Blocks Left:   ') + Math.max(0, status.bitcoin.blocksUntilValid));
+
+  if (status.bitcoin.isValid) {
+    console.log(bright('Status:        ') + green('✓ Valid - can spend'));
+  } else {
+    console.log(bright('Status:        ') + yellow('⏳ Not yet valid'));
+  }
+
+  console.log(dim('─'.repeat(60)));
+
+  const password = await new Promise(resolve => {
+    rl.question(bright('\nEnter password to create transaction preview (or press Enter to skip): '), resolve);
+  });
+
+  if (password) {
+    console.log(dim('\n⏳ Creating transaction preview...\n'));
+
+    try {
+      const result = await dms.testRelease(currentSwitchId, password, true);
+
+      if (result.bitcoinTx?.success) {
+        console.log(green('✓ Transaction created successfully (unsigned)\n'));
+        console.log(bright('Details:'));
+        console.log(bright('  Inputs:       ') + result.bitcoinTx.details.inputs);
+        console.log(bright('  Total Input:  ') + result.bitcoinTx.details.totalInput + ' sats');
+        console.log(bright('  Output:       ') + result.bitcoinTx.details.outputAmount + ' sats');
+        console.log(bright('  Fee:          ') + result.bitcoinTx.details.fee + ' sats');
+        console.log(bright('  Fee Rate:     ') + result.bitcoinTx.details.feeRate + ' sat/vbyte');
+        console.log(bright('  Size:         ') + result.bitcoinTx.details.estimatedSize + ' vbytes');
+        console.log(bright('  Locktime:     ') + result.bitcoinTx.details.locktime);
+        console.log(bright('\nPSBT (Base64):'));
+        console.log(cyan(result.bitcoinTx.psbt));
+        console.log(dim('\n⚠️  This is a dry run - transaction not signed or broadcast\n'));
+      } else {
+        console.log(red(`✗ Failed: ${result.bitcoinTx?.error || 'Unknown error'}\n`));
+      }
+    } catch (error) {
+      console.log(red(`✗ Error: ${error.message}\n`));
+    }
+  }
+
+  console.log();
 }
 
 async function handleDelete() {
@@ -242,6 +355,11 @@ async function processCommand(line) {
     case 'test-release':
     case 'release':
       await handleTestRelease();
+      break;
+    case 'show-bitcoin-tx':
+    case 'bitcoin-tx':
+    case 'btc':
+      await handleShowBitcoinTx();
       break;
     case 'delete':
       await handleDelete();

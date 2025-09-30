@@ -1,0 +1,59 @@
+{
+  "testName": "broadcast-success",
+  "recordedAt": "2025-01-15T12:00:00.000Z",
+  "calls": [
+    {
+      "function": "getCurrentBlockHeight",
+      "args": [],
+      "result": 2500100,
+      "timestamp": "2025-01-15T12:00:00.000Z"
+    },
+    {
+      "function": "broadcastTransaction",
+      "args": [
+        "020000000001012d4e3f6c8b1a2f5e9d7c8b3a4f2e1d0c9b8a7f6e5d4c3b2a1f0e9d8c7b6a5f4e0000000000feffffff0110270000000000001600147a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0247304402201a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b02203c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d012102a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c00000000"
+      ],
+      "result": {
+        "success": true,
+        "txid": "abc123def456789abc123def456789abc123def456789abc123def456789abc1",
+        "confirmationUrl": "https://blockstream.info/testnet/tx/abc123def456789abc123def456789abc123def456789abc123def456789abc1",
+        "network": "testnet",
+        "broadcastedAt": "2025-01-15T12:00:05.000Z",
+        "attempt": 1
+      },
+      "timestamp": "2025-01-15T12:00:05.000Z"
+    },
+    {
+      "function": "getTransactionStatus",
+      "args": [
+        "abc123def456789abc123def456789abc123def456789abc123def456789abc1"
+      ],
+      "result": {
+        "status": "pending",
+        "txid": "abc123def456789abc123def456789abc123def456789abc123def456789abc1",
+        "confirmed": false,
+        "confirmations": 0
+      },
+      "timestamp": "2025-01-15T12:00:10.000Z"
+    },
+    {
+      "function": "getTransactionStatus",
+      "args": [
+        "abc123def456789abc123def456789abc123def456789abc123def456789abc1"
+      ],
+      "result": {
+        "status": "confirmed",
+        "txid": "abc123def456789abc123def456789abc123def456789abc123def456789abc1",
+        "confirmed": true,
+        "confirmations": 1,
+        "blockHeight": 2500101,
+        "blockHash": "0000000000000001234567890abcdef0000000000000001234567890abcdef0",
+        "blockTime": 1705320600,
+        "fee": 1000,
+        "size": 200,
+        "weight": 500
+      },
+      "timestamp": "2025-01-15T12:10:00.000Z"
+    }
+  ]
+}

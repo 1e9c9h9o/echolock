@@ -13,11 +13,20 @@
     "demo": "node src/cli/demo.js",
     "bitcoin-demo": "node src/cli/bitcoinDemo.js",
     "nostr-demo": "node src/cli/nostrDemo.js",
+    "test-release": "node src/cli/testRelease.js",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
-    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
+    "test:unit": "NODE_OPTIONS='--experimental-vm-modules' jest tests/unit",
+    "test:integration": "NODE_OPTIONS='--experimental-vm-modules' jest tests/integration --runInBand",
+    "test:all": "NODE_OPTIONS='--experimental-vm-modules' jest tests/",
+    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage --collectCoverageFrom='src/**/*.js' --coveragePathIgnorePatterns='/node_modules/' --coverageReporters=text --coverageReporters=html --coverageReporters=lcov --coverageReporters=json-summary",
+    "test:coverage:check": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage --coverageThreshold='{\"global\":{\"lines\":75,\"statements\":75}}'",
+    "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
+    "test:network": "ECHOLOCK_USE_REAL_NETWORK=true NODE_OPTIONS='--experimental-vm-modules' jest tests/integration",
+    "test:broadcast": "NODE_OPTIONS='--experimental-vm-modules' jest tests/integration/broadcasting.test.js",
     "dev": "node --watch src/cli/index.js"
   },
   "devDependencies": {
+    "fast-check": "^4.3.0",
     "jest": "^30.2.0"
   },
   "dependencies": {

@@ -70,9 +70,10 @@ function saveFragments(fragments) {
  * @param {string} message - The secret message to protect
  * @param {number} checkInHours - Hours until release (default 72)
  * @param {boolean} useBitcoinTimelock - Enable Bitcoin timelock integration (default true)
+ * @param {string} password - Password for encrypting Bitcoin private key (required if useBitcoinTimelock is true)
  * @returns {Object} { switchId, expiryTime, fragmentCount, bitcoin }
  */
-export async function createSwitch(message, checkInHours = 72, useBitcoinTimelock = true) {
+export async function createSwitch(message, checkInHours = 72, useBitcoinTimelock = true, password = null) {
   const config = loadConfig();
   const switchId = crypto.randomBytes(16).toString('hex');
   const now = Date.now();
@@ -92,6 +93,11 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
   // 4. Create Bitcoin timelock (if enabled)
   let bitcoinTimelock = null;
   if (useBitcoinTimelock) {
+    // Validate password is provided
+    if (!password) {
+      throw new Error('Password is required for Bitcoin timelock mode');
+    }
+
     try {
       const currentHeight = await getCurrentBlockHeight();
 
@@ -99,11 +105,19 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
       const hoursToBlocks = Math.ceil((checkInHours * 60) / 10);
       const timelockHeight = currentHeight + hoursToBlocks;
 
-      // Generate a random 33-byte public key for demo
-      // In production, this would come from a proper wallet
+      // Generate Bitcoin keypair
       const randomPrivateKey = crypto.randomBytes(32);
       const keyPair = ECPair.fromPrivateKey(randomPrivateKey, { network: bitcoin.networks.testnet });
       const publicKey = keyPair.publicKey;
+
+      // Derive master key from password using PBKDF2
+      const salt = crypto.randomBytes(16);
+      const masterKey = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
+
+      // Encrypt the private key
+      const privateKeyBuffer = Buffer.from(randomPrivateKey);
+      const { ciphertext: encryptedPrivateKey, iv: privateKeyIV, authTag: privateKeyAuthTag } =
+        encrypt(privateKeyBuffer, masterKey);
 
       // Create timelock transaction structure
       const timelockTx = createTimelockTransaction(timelockHeight, publicKey);
@@ -117,6 +131,11 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
         script: timelockTx.script,
         scriptAsm: timelockTx.scriptAsm,
         publicKey: publicKey.toString('hex'),
+        // Store encrypted private key
+        encryptedPrivateKey: encryptedPrivateKey.toString('base64'),
+        privateKeyIV: privateKeyIV.toString('base64'),
+        privateKeyAuthTag: privateKeyAuthTag.toString('base64'),
+        privateKeySalt: salt.toString('base64'),
         status: 'pending',
         createdAt: now
       };
@@ -354,9 +373,11 @@ export async function getStatus(switchId, includeBitcoinStatus = false) {
 /**
  * Test release - reconstruct and decrypt message
  * @param {string} switchId - The switch ID
- * @returns {Object} { success, message, reconstructedMessage }
+ * @param {string} password - Password for decrypting Bitcoin private key (optional)
+ * @param {boolean} dryRun - If true, create Bitcoin tx but don't sign (default: true)
+ * @returns {Object} { success, message, reconstructedMessage, bitcoinTx }
  */
-export async function testRelease(switchId) {
+export async function testRelease(switchId, password = null, dryRun = true) {
   const config = loadConfig();
   const switches = loadSwitches();
   const sw = switches[switchId];
@@ -373,9 +394,58 @@ export async function testRelease(switchId) {
   }
 
   try {
+    let bitcoinTxResult = null;
+
+    // 1. Check Bitcoin timelock validity FIRST (if enabled)
+    if (sw.bitcoinTimelock?.enabled) {
+      const { verifyTimelockValidity, createTimelockSpendingTx, decryptPrivateKey } =
+        await import('../bitcoin/timelockSpender.js');
+
+      // Verify timelock is valid
+      const timelockCheck = await verifyTimelockValidity(sw.bitcoinTimelock.timelockHeight);
+
+      if (!timelockCheck.isValid) {
+        return {
+          success: false,
+          message: `Bitcoin timelock not yet valid: ${timelockCheck.reason}`,
+          bitcoinStatus: timelockCheck
+        };
+      }
+
+      // If password provided, attempt to create spending transaction
+      if (password) {
+        try {
+          // Decrypt private key
+          const privateKey = await decryptPrivateKey(sw.bitcoinTimelock, password);
+          const publicKey = Buffer.from(sw.bitcoinTimelock.publicKey, 'hex');
+
+          // Create spending transaction (dry run by default)
+          bitcoinTxResult = await createTimelockSpendingTx({
+            timelockAddress: sw.bitcoinTimelock.address,
+            timelockScript: sw.bitcoinTimelock.script,
+            locktime: sw.bitcoinTimelock.timelockHeight,
+            privateKey,
+            publicKey,
+            destinationAddress: sw.bitcoinTimelock.address, // Send back to same address for demo
+            dryRun
+          });
+
+          console.log('Bitcoin transaction created successfully (dry run)');
+        } catch (btcError) {
+          console.warn('Bitcoin transaction creation failed:', btcError.message);
+          bitcoinTxResult = {
+            success: false,
+            error: btcError.message
+          };
+        }
+      } else {
+        console.log('No password provided - skipping Bitcoin transaction creation');
+      }
+    }
+
     let shares;
 
-    // 1. Retrieve fragments from Nostr or local storage
+    // 2. Retrieve fragments from Nostr or local storage
     if (fragmentInfo.distributionStatus === 'NOSTR') {
       console.log('Retrieving fragments from Nostr relays...');
       const relays = fragmentInfo.relays || config.nostr.relays;
@@ -401,11 +471,11 @@ export async function testRelease(switchId) {
         .map(shareB64 => new Uint8Array(Buffer.from(shareB64, 'base64')));
     }
 
-    // 2. Reconstruct encryption key from shares
+    // 3. Reconstruct encryption key from shares
     const reconstructedKeyArray = await combine(shares);
     const reconstructedKey = Buffer.from(reconstructedKeyArray);
 
-    // 3. Decrypt the message
+    // 4. Decrypt the message
     const ciphertext = Buffer.from(sw.encryptedMessage.ciphertext, 'base64');
     const iv = Buffer.from(sw.encryptedMessage.iv, 'base64');
     const authTag = Buffer.from(sw.encryptedMessage.authTag, 'base64');
@@ -413,7 +483,7 @@ export async function testRelease(switchId) {
     const decryptedMessage = decrypt(ciphertext, reconstructedKey, iv, authTag);
     const message = decryptedMessage.toString('utf8');
 
-    // 4. Update status
+    // 5. Update status
     sw.status = 'RELEASED';
     sw.releasedAt = Date.now();
     saveSwitches(switches);
@@ -424,7 +494,8 @@ export async function testRelease(switchId) {
       reconstructedMessage: message,
       sharesUsed: 3,
       totalShares: 5,
-      distributionMethod: fragmentInfo.distributionStatus
+      distributionMethod: fragmentInfo.distributionStatus,
+      bitcoinTx: bitcoinTxResult
     };
   } catch (error) {
     return {

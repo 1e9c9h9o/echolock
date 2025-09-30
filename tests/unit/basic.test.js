@@ -245,8 +245,10 @@ describe('Configuration Safety', () => {
   });
 
   test('config module validates relay count', async () => {
-    // Set insufficient relay count
+    // Set insufficient relay count with Nostr distribution enabled
+    process.env.USE_NOSTR_DISTRIBUTION = 'true';
     process.env.NOSTR_RELAYS = 'wss://relay1.com,wss://relay2.com';
+    process.env.MIN_RELAY_COUNT = '3';
 
     const { loadConfig } = await import('../../src/core/config.js');
 
@@ -255,6 +257,8 @@ describe('Configuration Safety', () => {
     }).toThrow('Insufficient relays configured');
 
     // Clean up
+    delete process.env.USE_NOSTR_DISTRIBUTION;
     delete process.env.NOSTR_RELAYS;
+    delete process.env.MIN_RELAY_COUNT;
   });
 });
