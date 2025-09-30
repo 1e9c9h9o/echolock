@@ -217,7 +217,15 @@ export async function getStatus(switchId, includeBitcoinStatus = false) {
   const sw = switches[switchId];
 
   if (!sw) {
-    return { found: false, message: 'Switch not found' };
+    return {
+      found: false,
+      message: 'Switch not found',
+      status: 'UNKNOWN',
+      timeRemaining: 0,
+      checkInCount: 0,
+      checkInHours: 0,
+      distributionStatus: 'UNKNOWN'
+    };
   }
 
   const now = Date.now();
@@ -234,7 +242,7 @@ export async function getStatus(switchId, includeBitcoinStatus = false) {
   const fragmentInfo = fragments[switchId];
 
   // Fetch live Bitcoin timelock status if requested
-  let bitcoinStatus = sw.bitcoinTimelock;
+  let bitcoinStatus = sw.bitcoinTimelock || null;
   if (includeBitcoinStatus && sw.bitcoinTimelock?.enabled) {
     try {
       const liveStatus = await getTimelockStatus(sw.bitcoinTimelock.timelockHeight);
@@ -254,16 +262,16 @@ export async function getStatus(switchId, includeBitcoinStatus = false) {
   return {
     found: true,
     switchId: sw.id,
-    status: sw.status,
-    createdAt: sw.createdAt,
-    expiryTime: sw.expiryTime,
+    status: sw.status || 'UNKNOWN',
+    createdAt: sw.createdAt || Date.now(),
+    expiryTime: sw.expiryTime || Date.now(),
     timeRemaining,
     isExpired,
-    lastCheckIn: sw.lastCheckIn,
-    checkInCount: sw.checkInCount,
-    checkInHours: sw.checkInHours,
-    fragmentCount: sw.fragmentCount,
-    requiredFragments: sw.requiredFragments,
+    lastCheckIn: sw.lastCheckIn || Date.now(),
+    checkInCount: sw.checkInCount || 0,
+    checkInHours: sw.checkInHours || 72,
+    fragmentCount: sw.fragmentCount || 5,
+    requiredFragments: sw.requiredFragments || 3,
     distributionStatus: fragmentInfo?.distributionStatus || 'UNKNOWN',
     bitcoin: bitcoinStatus
   };

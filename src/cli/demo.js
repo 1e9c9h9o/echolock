@@ -18,10 +18,16 @@ async function showCountdown(switchId, duration) {
   process.stdout.write('\n');
 
   while (Date.now() < endTime) {
-    const status = dms.getStatus(switchId);
-    const timeLeft = status.timeRemaining;
-    const totalTime = status.checkInHours * 60 * 60 * 1000;
-    const percentage = (timeLeft / totalTime) * 100;
+    const status = await dms.getStatus(switchId);
+
+    // Defensive programming: check for valid status
+    if (!status || !status.found) {
+      break;
+    }
+
+    const timeLeft = status.timeRemaining || 0;
+    const totalTime = (status.checkInHours || 0.00278) * 60 * 60 * 1000; // fallback to 10 seconds
+    const percentage = totalTime > 0 ? (timeLeft / totalTime) * 100 : 0;
 
     // Clear line and show countdown
     process.stdout.write('\r' + ' '.repeat(80) + '\r');
@@ -31,7 +37,7 @@ async function showCountdown(switchId, duration) {
       ' │ ' +
       progressBar(percentage, 30) +
       ' │ ' +
-      statusBadge(status.status)
+      statusBadge(status.status || 'UNKNOWN')
     );
 
     await sleep(100);
@@ -59,7 +65,8 @@ async function demo() {
     "and automatically released when the timer expired.\n\n" +
     "🔐 ECHOLOCK successfully protected and released your secret.";
 
-  const result = await dms.createSwitch(secretMessage, 10 / 3600); // 10 seconds
+  // Disable Bitcoin timelock for faster demo (crypto-only)
+  const result = await dms.createSwitch(secretMessage, 10 / 3600, false); // 10 seconds
 
   await sleep(1000);
 
@@ -85,12 +92,12 @@ async function demo() {
 
   // Step 3: Show status
   console.log(yellow('📍 STEP 3: Monitoring Status\n'));
-  const status1 = dms.getStatus(result.switchId);
+  const status1 = await dms.getStatus(result.switchId);
   console.log(dim('   Current Status:'));
-  console.log(bright('   • State:         ') + statusBadge(status1.status));
-  console.log(bright('   • Time Left:     ') + formatTime(status1.timeRemaining));
-  console.log(bright('   • Check-ins:     ') + status1.checkInCount);
-  console.log(bright('   • Distribution:  ') + status1.distributionStatus);
+  console.log(bright('   • State:         ') + statusBadge(status1.status || 'UNKNOWN'));
+  console.log(bright('   • Time Left:     ') + formatTime(status1.timeRemaining || 0));
+  console.log(bright('   • Check-ins:     ') + (status1.checkInCount || 0));
+  console.log(bright('   • Distribution:  ') + (status1.distributionStatus || 'LOCAL'));
   console.log();
 
   await sleep(2000);
