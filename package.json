@@ -1,0 +1,27 @@
+{
+  "name": "echolock",
+  "version": "0.1.0",
+  "description": "Cryptographic dead man's switch using Bitcoin timelocks and Nostr",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node src/cli/index.js",
+    "cli": "node src/cli/index.js",
+    "demo": "node src/cli/demo.js",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
+    "test:coverage": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage",
+    "dev": "node --watch src/cli/index.js"
+  },
+  "devDependencies": {
+    "jest": "^30.2.0"
+  },
+  "dependencies": {
+    "bitcoinjs-lib": "^6.1.7",
+    "dotenv": "^17.2.3",
+    "nostr-tools": "^2.17.0",
+    "shamir-secret-sharing": "^0.0.4"
+  }
+}
