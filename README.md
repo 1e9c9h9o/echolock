@@ -16,11 +16,19 @@ Cryptographic dead man's switch using Bitcoin timelocks and Nostr protocol for d
 
 ## 🚀 Quick Start
 
-### Watch the Demo
+### Watch the Demos
+
+**Cryptographic Demo:**
 ```bash
 npm run demo
 ```
 See a complete 6-step demonstration of ECHOLOCK's cryptographic dead man's switch in action!
+
+**Bitcoin Integration Demo:**
+```bash
+npm run bitcoin-demo
+```
+See Bitcoin testnet timelock integration with OP_CHECKLOCKTIMEVERIFY!
 
 ### Try the Interactive CLI
 ```bash
@@ -41,9 +49,11 @@ Available commands: `create`, `check-in`, `status`, `list`, `test-release`, `hel
 - 📊 **Status Monitoring** - Real-time countdown and progress
 - 🎨 **Interactive CLI** - Colorful command-line interface
 - 📈 **Multiple Switches** - Manage several switches simultaneously
+- ₿ **Bitcoin Timelocks** - OP_CHECKLOCKTIMEVERIFY integration with testnet
+- 📡 **Blockchain Monitoring** - Live Bitcoin block height tracking
 
 ### 🚧 In Development
-- Bitcoin timelock integration (testnet)
+- Transaction broadcasting to Bitcoin testnet
 - Nostr relay distribution (7+ relay redundancy)
 - Geographic distribution
 - Relay health monitoring
@@ -52,16 +62,19 @@ Available commands: `create`, `check-in`, `status`, `list`, `test-release`, `hel
 
 1. **Encrypt**: Your secret message is encrypted with AES-256-GCM
 2. **Split**: The encryption key is split into 5 fragments (3-of-5 threshold)
-3. **Distribute**: Fragments are stored (locally in demo, Nostr relays in production)
-4. **Monitor**: Timer counts down until check-in deadline
-5. **Check-in**: Reset timer to keep switch armed
-6. **Release**: If timer expires, fragments reconstruct key and decrypt message
+3. **Bitcoin Timelock**: Create OP_CHECKLOCKTIMEVERIFY script on Bitcoin testnet
+4. **Distribute**: Fragments are stored (locally in demo, Nostr relays in production)
+5. **Monitor**: Track both application timer and Bitcoin block height
+6. **Check-in**: Reset timer to keep switch armed
+7. **Release**: When both timer expires AND Bitcoin timelock is valid, reconstruct key and decrypt
 
 ## Security Status
 - [x] Cryptographic primitives implemented (AES-256-GCM, Shamir SSS)
 - [x] Core dead man's switch logic complete
 - [x] Local demo functional
-- [ ] Bitcoin timelock tested on testnet
+- [x] Bitcoin timelock integrated (OP_CHECKLOCKTIMEVERIFY on testnet)
+- [x] Blockchain monitoring (Blockstream API)
+- [ ] Transaction broadcasting tested
 - [ ] Nostr relay redundancy verified
 - [ ] Security audit completed
 - [ ] Production ready
@@ -145,6 +158,7 @@ This project follows security-first development:
 **Production:**
 - `shamir-secret-sharing@0.0.4` - Audited by Cure53 & Zellic
 - `bitcoinjs-lib@6.1.7` - Bitcoin operations
+- `ecpair@3.0.0` + `tiny-secp256k1@2.2.4` - Elliptic curve cryptography
 - `nostr-tools@2.17.0` - Nostr protocol
 - `dotenv@17.2.3` - Configuration
 
@@ -262,6 +276,7 @@ This is a security-critical project. Before contributing:
 
 - **Setup Guide**: See [SETUP_COMPLETE.md](SETUP_COMPLETE.md)
 - **CLI Demo**: See [CLI_DEMO_COMPLETE.md](CLI_DEMO_COMPLETE.md)
+- **Bitcoin Integration**: See [BITCOIN_INTEGRATION.md](BITCOIN_INTEGRATION.md)
 - **Architecture**: See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Development**: See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
 

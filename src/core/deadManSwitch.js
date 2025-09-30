@@ -9,6 +9,16 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { split, combine } from 'shamir-secret-sharing';
 import { encrypt, decrypt } from '../crypto/encryption.js';
+import * as bitcoin from 'bitcoinjs-lib';
+import * as ecc from 'tiny-secp256k1';
+import { ECPairFactory } from 'ecpair';
+import {
+  getCurrentBlockHeight,
+  createTimelockTransaction,
+  getTimelockStatus
+} from '../bitcoin/testnetClient.js';
+
+const ECPair = ECPairFactory(ecc);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,9 +65,10 @@ function saveFragments(fragments) {
  * Create a new dead man's switch
  * @param {string} message - The secret message to protect
  * @param {number} checkInHours - Hours until release (default 72)
- * @returns {Object} { switchId, expiryTime, fragmentCount }
+ * @param {boolean} useBitcoinTimelock - Enable Bitcoin timelock integration (default true)
+ * @returns {Object} { switchId, expiryTime, fragmentCount, bitcoin }
  */
-export async function createSwitch(message, checkInHours = 72) {
+export async function createSwitch(message, checkInHours = 72, useBitcoinTimelock = true) {
   const switchId = crypto.randomBytes(16).toString('hex');
   const now = Date.now();
   const expiryTime = now + (checkInHours * 60 * 60 * 1000);
@@ -72,7 +83,47 @@ export async function createSwitch(message, checkInHours = 72) {
   // 3. Split encryption key using Shamir (3-of-5)
   const keyShares = await split(new Uint8Array(encryptionKey), 5, 3);
 
-  // 4. Store encrypted message and metadata
+  // 4. Create Bitcoin timelock (if enabled)
+  let bitcoinTimelock = null;
+  if (useBitcoinTimelock) {
+    try {
+      const currentHeight = await getCurrentBlockHeight();
+
+      // Calculate blocks until expiry (~10 min per block)
+      const hoursToBlocks = Math.ceil((checkInHours * 60) / 10);
+      const timelockHeight = currentHeight + hoursToBlocks;
+
+      // Generate a random 33-byte public key for demo
+      // In production, this would come from a proper wallet
+      const randomPrivateKey = crypto.randomBytes(32);
+      const keyPair = ECPair.fromPrivateKey(randomPrivateKey, { network: bitcoin.networks.testnet });
+      const publicKey = keyPair.publicKey;
+
+      // Create timelock transaction structure
+      const timelockTx = createTimelockTransaction(timelockHeight, publicKey);
+
+      bitcoinTimelock = {
+        enabled: true,
+        currentHeight,
+        timelockHeight,
+        blocksUntilValid: timelockHeight - currentHeight,
+        address: timelockTx.address,
+        script: timelockTx.script,
+        scriptAsm: timelockTx.scriptAsm,
+        publicKey: publicKey.toString('hex'),
+        status: 'pending',
+        createdAt: now
+      };
+    } catch (error) {
+      console.warn('Bitcoin timelock creation failed:', error.message);
+      bitcoinTimelock = {
+        enabled: false,
+        error: error.message
+      };
+    }
+  }
+
+  // 5. Store encrypted message and metadata
   const switches = loadSwitches();
   switches[switchId] = {
     id: switchId,
@@ -88,11 +139,12 @@ export async function createSwitch(message, checkInHours = 72) {
       authTag: authTag.toString('base64')
     },
     fragmentCount: 5,
-    requiredFragments: 3
+    requiredFragments: 3,
+    bitcoinTimelock: bitcoinTimelock
   };
   saveSwitches(switches);
 
-  // 5. Store fragments separately
+  // 6. Store fragments separately
   const fragments = loadFragments();
   fragments[switchId] = {
     shares: keyShares.map(share => Buffer.from(share).toString('base64')),
@@ -106,7 +158,8 @@ export async function createSwitch(message, checkInHours = 72) {
     expiryTime,
     fragmentCount: 5,
     requiredFragments: 3,
-    checkInHours
+    checkInHours,
+    bitcoin: bitcoinTimelock
   };
 }
 
@@ -156,9 +209,10 @@ export function checkIn(switchId) {
 /**
  * Get status of a switch
  * @param {string} switchId - The switch ID
- * @returns {Object} Status information
+ * @param {boolean} includeBitcoinStatus - Fetch live Bitcoin status (default false)
+ * @returns {Promise<Object>} Status information
  */
-export function getStatus(switchId) {
+export async function getStatus(switchId, includeBitcoinStatus = false) {
   const switches = loadSwitches();
   const sw = switches[switchId];
 
@@ -179,6 +233,24 @@ export function getStatus(switchId) {
   const fragments = loadFragments();
   const fragmentInfo = fragments[switchId];
 
+  // Fetch live Bitcoin timelock status if requested
+  let bitcoinStatus = sw.bitcoinTimelock;
+  if (includeBitcoinStatus && sw.bitcoinTimelock?.enabled) {
+    try {
+      const liveStatus = await getTimelockStatus(sw.bitcoinTimelock.timelockHeight);
+      bitcoinStatus = {
+        ...sw.bitcoinTimelock,
+        ...liveStatus,
+        lastChecked: Date.now()
+      };
+    } catch (error) {
+      bitcoinStatus = {
+        ...sw.bitcoinTimelock,
+        error: `Status check failed: ${error.message}`
+      };
+    }
+  }
+
   return {
     found: true,
     switchId: sw.id,
@@ -192,7 +264,8 @@ export function getStatus(switchId) {
     checkInHours: sw.checkInHours,
     fragmentCount: sw.fragmentCount,
     requiredFragments: sw.requiredFragments,
-    distributionStatus: fragmentInfo?.distributionStatus || 'UNKNOWN'
+    distributionStatus: fragmentInfo?.distributionStatus || 'UNKNOWN',
+    bitcoin: bitcoinStatus
   };
 }
 
