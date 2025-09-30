@@ -30,6 +30,12 @@ npm run bitcoin-demo
 ```
 See Bitcoin testnet timelock integration with OP_CHECKLOCKTIMEVERIFY!
 
+**Nostr Distribution Demo:**
+```bash
+npm run nostr-demo
+```
+See Nostr-based fragment distribution to geographically distributed relays!
+
 ### Try the Interactive CLI
 ```bash
 npm run cli
@@ -51,22 +57,34 @@ Available commands: `create`, `check-in`, `status`, `list`, `test-release`, `hel
 - 📈 **Multiple Switches** - Manage several switches simultaneously
 - ₿ **Bitcoin Timelocks** - OP_CHECKLOCKTIMEVERIFY integration with testnet
 - 📡 **Blockchain Monitoring** - Live Bitcoin block height tracking
+- 🌐 **Nostr Distribution** - Fragment distribution to 7+ relays with redundancy
+- 🏥 **Relay Health Checking** - Exponential backoff for failed relays
+- 🔄 **Automatic Fallback** - Falls back to local storage if Nostr unavailable
 
 ### 🚧 In Development
 - Transaction broadcasting to Bitcoin testnet
-- Nostr relay distribution (7+ relay redundancy)
-- Geographic distribution
-- Relay health monitoring
+- NIP-65 relay discovery
+- Advanced relay reputation scoring
 
 ## How It Works
 
 1. **Encrypt**: Your secret message is encrypted with AES-256-GCM
 2. **Split**: The encryption key is split into 5 fragments (3-of-5 threshold)
 3. **Bitcoin Timelock**: Create OP_CHECKLOCKTIMEVERIFY script on Bitcoin testnet
-4. **Distribute**: Fragments are stored (locally in demo, Nostr relays in production)
+4. **Distribute**: Fragments published to 7+ geographically distributed Nostr relays (or local storage in demo mode)
 5. **Monitor**: Track both application timer and Bitcoin block height
 6. **Check-in**: Reset timer to keep switch armed
-7. **Release**: When both timer expires AND Bitcoin timelock is valid, reconstruct key and decrypt
+7. **Release**: When timer expires, retrieve fragments from Nostr relays, reconstruct key, and decrypt message
+
+### Nostr Distribution
+
+When `USE_NOSTR_DISTRIBUTION=true`:
+- Generates Nostr keypair for event signing
+- Filters to 7+ healthy relays using exponential backoff
+- Publishes each fragment as NIP-78 (application-specific data) event
+- Requires minimum 5 successful publishes
+- Retrieves fragments with deduplication and signature verification
+- Falls back to local storage on failure
 
 ## Security Status
 - [x] Cryptographic primitives implemented (AES-256-GCM, Shamir SSS)
@@ -74,8 +92,11 @@ Available commands: `create`, `check-in`, `status`, `list`, `test-release`, `hel
 - [x] Local demo functional
 - [x] Bitcoin timelock integrated (OP_CHECKLOCKTIMEVERIFY on testnet)
 - [x] Blockchain monitoring (Blockstream API)
+- [x] Nostr relay distribution implemented (7+ relay redundancy)
+- [x] Relay health checking with exponential backoff
+- [x] NIP-78 event format for fragments
 - [ ] Transaction broadcasting tested
-- [ ] Nostr relay redundancy verified
+- [ ] Nostr distribution tested with live relays
 - [ ] Security audit completed
 - [ ] Production ready
 
@@ -124,6 +145,10 @@ echolock/
 │   │   └── keyDerivation.js    # PBKDF2
 │   ├── bitcoin/         # Bitcoin timelock (testnet only)
 │   ├── nostr/           # Nostr relay operations
+│   │   ├── multiRelayClient.js      # WebSocket connections & fragment publishing
+│   │   ├── relayHealthCheck.js      # Health monitoring with backoff
+│   │   ├── websocketPolyfill.js     # Node.js WebSocket support
+│   │   └── constants.js             # Relay configuration
 │   ├── core/            # Dead man's switch orchestration
 │   │   ├── coordinator.js
 │   │   ├── config.js
@@ -131,8 +156,11 @@ echolock/
 │   └── cli/             # Command-line interface
 │       ├── index.js            # Interactive CLI
 │       ├── demo.js             # Automated demo
+│       ├── nostrDemo.js        # Nostr distribution demo
 │       └── colors.js           # Visual components
-├── tests/               # Test suite (41/41 passing)
+├── tests/               # Test suite
+│   ├── unit/            # Unit tests (41/41 passing)
+│   └── integration/     # Integration tests (Nostr)
 ├── security/            # Security documentation
 └── data/                # Local storage (demo only)
 ```
@@ -159,7 +187,8 @@ This project follows security-first development:
 - `shamir-secret-sharing@0.0.4` - Audited by Cure53 & Zellic
 - `bitcoinjs-lib@6.1.7` - Bitcoin operations
 - `ecpair@3.0.0` + `tiny-secp256k1@2.2.4` - Elliptic curve cryptography
-- `nostr-tools@2.17.0` - Nostr protocol
+- `nostr-tools@2.17.0` - Nostr protocol with WebSocket support
+- `ws@8.18.3` - WebSocket client for Node.js
 - `dotenv@17.2.3` - Configuration
 
 **Development:**
@@ -267,16 +296,43 @@ This is a security-critical project. Before contributing:
 - Comprehensive testing required
 
 ⚠️ **DEVELOPMENT STATUS**
-- Core functionality implemented and working
-- Demo mode fully functional
-- Bitcoin and Nostr integration pending
-- Not production ready
+- Core functionality implemented and working ✅
+- Demo mode fully functional ✅
+- Bitcoin timelock integration complete ✅
+- Nostr distribution system implemented ✅
+- Integration testing with live relays in progress 🚧
+- Production deployment not ready
+
+## Configuration
+
+### Environment Variables
+
+```bash
+# Enable Nostr distribution (default: false - uses local storage)
+export USE_NOSTR_DISTRIBUTION=true
+
+# Custom relay list (comma-separated)
+export NOSTR_RELAYS="wss://relay.damus.io,wss://nos.lol,wss://relay.nostr.band"
+
+# Minimum healthy relays required (default: 7)
+export MIN_RELAY_COUNT=7
+
+# Bitcoin network (locked to testnet)
+export BITCOIN_NETWORK=testnet
+
+# Check-in interval in hours (default: 72)
+export CHECK_IN_HOURS=72
+
+# Debug mode
+export DEBUG=true
+```
 
 ## Support
 
 - **Setup Guide**: See [SETUP_COMPLETE.md](SETUP_COMPLETE.md)
 - **CLI Demo**: See [CLI_DEMO_COMPLETE.md](CLI_DEMO_COMPLETE.md)
 - **Bitcoin Integration**: See [BITCOIN_INTEGRATION.md](BITCOIN_INTEGRATION.md)
+- **Nostr Implementation**: See [NOSTR_IMPLEMENTATION.md](NOSTR_IMPLEMENTATION.md)
 - **Architecture**: See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Development**: See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
 
