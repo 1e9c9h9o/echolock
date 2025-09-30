@@ -17,6 +17,10 @@ import {
   createTimelockTransaction,
   getTimelockStatus
 } from '../bitcoin/testnetClient.js';
+import { loadConfig } from './config.js';
+import { publishFragment, retrieveFragments } from '../nostr/multiRelayClient.js';
+import { filterHealthyRelays } from '../nostr/relayHealthCheck.js';
+import { generateSecretKey, getPublicKey } from 'nostr-tools';
 
 const ECPair = ECPairFactory(ecc);
 
@@ -69,9 +73,11 @@ function saveFragments(fragments) {
  * @returns {Object} { switchId, expiryTime, fragmentCount, bitcoin }
  */
 export async function createSwitch(message, checkInHours = 72, useBitcoinTimelock = true) {
+  const config = loadConfig();
   const switchId = crypto.randomBytes(16).toString('hex');
   const now = Date.now();
   const expiryTime = now + (checkInHours * 60 * 60 * 1000);
+  const expiryTimestamp = Math.floor(expiryTime / 1000);
 
   // 1. Generate encryption key (256 bits)
   const encryptionKey = crypto.randomBytes(32);
@@ -144,14 +150,60 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
   };
   saveSwitches(switches);
 
-  // 6. Store fragments separately
-  const fragments = loadFragments();
-  fragments[switchId] = {
-    shares: keyShares.map(share => Buffer.from(share).toString('base64')),
-    distributionStatus: 'LOCAL', // In production, would be distributed to Nostr relays
-    relayCount: 0 // Would be 7+ in production
-  };
-  saveFragments(fragments);
+  // 6. Distribute fragments to Nostr relays or store locally
+  let distributionInfo;
+  if (config.nostr.useNostrDistribution) {
+    try {
+      // Generate Nostr keypair for signing events
+      const nostrPrivateKey = generateSecretKey();
+      const nostrPublicKey = getPublicKey(nostrPrivateKey);
+
+      // Filter healthy relays
+      const healthyRelays = await filterHealthyRelays(config.nostr.relays);
+
+      // Publish each fragment to multiple relays
+      const publishResults = [];
+      for (let i = 0; i < keyShares.length; i++) {
+        const fragmentData = Buffer.from(keyShares[i]);
+        const result = await publishFragment(
+          switchId,
+          i,
+          fragmentData,
+          { privkey: nostrPrivateKey, pubkey: nostrPublicKey },
+          healthyRelays,
+          expiryTimestamp
+        );
+        publishResults.push(result);
+      }
+
+      distributionInfo = {
+        distributionStatus: 'NOSTR',
+        relayCount: healthyRelays.length,
+        publishResults,
+        nostrPublicKey: Buffer.from(nostrPublicKey).toString('hex')
+      };
+
+      // Store Nostr metadata
+      const fragments = loadFragments();
+      fragments[switchId] = {
+        distributionStatus: 'NOSTR',
+        relayCount: healthyRelays.length,
+        relays: healthyRelays,
+        nostrPublicKey: Buffer.from(nostrPublicKey).toString('hex'),
+        nostrPrivateKey: Buffer.from(nostrPrivateKey).toString('hex')
+      };
+      saveFragments(fragments);
+
+      console.log(`Fragments published to ${healthyRelays.length} Nostr relays`);
+    } catch (error) {
+      console.warn('Nostr distribution failed, falling back to local storage:', error.message);
+      // Fallback to local storage
+      distributionInfo = await storeFragmentsLocally(switchId, keyShares);
+    }
+  } else {
+    // Store locally
+    distributionInfo = await storeFragmentsLocally(switchId, keyShares);
+  }
 
   return {
     switchId,
@@ -159,7 +211,29 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
     fragmentCount: 5,
     requiredFragments: 3,
     checkInHours,
-    bitcoin: bitcoinTimelock
+    bitcoin: bitcoinTimelock,
+    distribution: distributionInfo
+  };
+}
+
+/**
+ * Store fragments locally (fallback or demo mode)
+ * @param {string} switchId - The switch ID
+ * @param {Array} keyShares - The Shamir shares
+ * @returns {Object} Distribution info
+ */
+async function storeFragmentsLocally(switchId, keyShares) {
+  const fragments = loadFragments();
+  fragments[switchId] = {
+    shares: keyShares.map(share => Buffer.from(share).toString('base64')),
+    distributionStatus: 'LOCAL',
+    relayCount: 0
+  };
+  saveFragments(fragments);
+
+  return {
+    distributionStatus: 'LOCAL',
+    relayCount: 0
   };
 }
 
@@ -283,6 +357,7 @@ export async function getStatus(switchId, includeBitcoinStatus = false) {
  * @returns {Object} { success, message, reconstructedMessage }
  */
 export async function testRelease(switchId) {
+  const config = loadConfig();
   const switches = loadSwitches();
   const sw = switches[switchId];
 
@@ -298,15 +373,39 @@ export async function testRelease(switchId) {
   }
 
   try {
-    // 1. Reconstruct encryption key from shares (using any 3 of 5)
-    const shares = fragmentInfo.shares
-      .slice(0, 3) // Use first 3 shares
-      .map(shareB64 => new Uint8Array(Buffer.from(shareB64, 'base64')));
+    let shares;
 
+    // 1. Retrieve fragments from Nostr or local storage
+    if (fragmentInfo.distributionStatus === 'NOSTR') {
+      console.log('Retrieving fragments from Nostr relays...');
+      const relays = fragmentInfo.relays || config.nostr.relays;
+      const retrievedFragments = await retrieveFragments(switchId, relays);
+
+      if (retrievedFragments.length < 3) {
+        return {
+          success: false,
+          message: `Insufficient fragments retrieved. Required: 3, Found: ${retrievedFragments.length}`
+        };
+      }
+
+      // Use first 3 fragments
+      shares = retrievedFragments
+        .slice(0, 3)
+        .map(frag => new Uint8Array(frag.data));
+
+      console.log(`Retrieved ${retrievedFragments.length} fragments from Nostr relays`);
+    } else {
+      // Local storage
+      shares = fragmentInfo.shares
+        .slice(0, 3)
+        .map(shareB64 => new Uint8Array(Buffer.from(shareB64, 'base64')));
+    }
+
+    // 2. Reconstruct encryption key from shares
     const reconstructedKeyArray = await combine(shares);
     const reconstructedKey = Buffer.from(reconstructedKeyArray);
 
-    // 2. Decrypt the message
+    // 3. Decrypt the message
     const ciphertext = Buffer.from(sw.encryptedMessage.ciphertext, 'base64');
     const iv = Buffer.from(sw.encryptedMessage.iv, 'base64');
     const authTag = Buffer.from(sw.encryptedMessage.authTag, 'base64');
@@ -314,7 +413,7 @@ export async function testRelease(switchId) {
     const decryptedMessage = decrypt(ciphertext, reconstructedKey, iv, authTag);
     const message = decryptedMessage.toString('utf8');
 
-    // 3. Update status
+    // 4. Update status
     sw.status = 'RELEASED';
     sw.releasedAt = Date.now();
     saveSwitches(switches);
@@ -324,7 +423,8 @@ export async function testRelease(switchId) {
       message: 'Message successfully reconstructed',
       reconstructedMessage: message,
       sharesUsed: 3,
-      totalShares: 5
+      totalShares: 5,
+      distributionMethod: fragmentInfo.distributionStatus
     };
   } catch (error) {
     return {

@@ -26,7 +26,8 @@ export function loadConfig() {
       relays: process.env.NOSTR_RELAYS
         ? process.env.NOSTR_RELAYS.split(',').map(r => r.trim())
         : RELIABLE_RELAYS,
-      minRelayCount: parseInt(process.env.MIN_RELAY_COUNT) || RELAY_REQUIREMENTS.MIN_RELAY_COUNT
+      minRelayCount: parseInt(process.env.MIN_RELAY_COUNT) || RELAY_REQUIREMENTS.MIN_RELAY_COUNT,
+      useNostrDistribution: process.env.USE_NOSTR_DISTRIBUTION === 'true'
     },
 
     // Timelock configuration
@@ -56,8 +57,8 @@ function validateConfig(config) {
     );
   }
 
-  // Validate relay count
-  if (config.nostr.relays.length < config.nostr.minRelayCount) {
+  // Validate relay count (only if Nostr distribution is enabled)
+  if (config.nostr.useNostrDistribution && config.nostr.relays.length < config.nostr.minRelayCount) {
     throw new Error(
       `Insufficient relays configured. Required: ${config.nostr.minRelayCount}, Found: ${config.nostr.relays.length}`
     );
@@ -70,10 +71,12 @@ function validateConfig(config) {
     );
   }
 
-  // Validate relay URLs
-  for (const relay of config.nostr.relays) {
-    if (!relay.startsWith('wss://') && !relay.startsWith('ws://')) {
-      throw new Error(`Invalid relay URL: ${relay}. Must use ws:// or wss://`);
+  // Validate relay URLs (only if Nostr distribution is enabled)
+  if (config.nostr.useNostrDistribution) {
+    for (const relay of config.nostr.relays) {
+      if (!relay.startsWith('wss://') && !relay.startsWith('ws://')) {
+        throw new Error(`Invalid relay URL: ${relay}. Must use ws:// or wss://`);
+      }
     }
   }
 }
