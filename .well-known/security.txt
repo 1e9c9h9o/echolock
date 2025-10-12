@@ -1,0 +1,84 @@
+# Canonical: https://github.com/[username]/echolock/.well-known/security.txt
+# Preferred-Languages: en
+# Expires: 2026-10-02T00:00:00.000Z
+
+Contact: mailto:security@example.com
+Contact: https://github.com/[username]/echolock/security/advisories/new
+Acknowledgments: https://github.com/[username]/echolock/blob/main/security/AUDIT_LOG.md
+Policy: https://github.com/[username]/echolock/blob/main/SECURITY.md
+
+# Security Information for ECHOLOCK
+#
+# ECHOLOCK is a cryptographic dead man's switch combining Bitcoin timelocks,
+# Nostr-based distributed storage, and Shamir Secret Sharing.
+#
+# Current Status: Development - NOT PRODUCTION READY
+# Version: 0.1.0
+# Last Security Audit: None (pre-audit development phase)
+#
+# WARNING: This software is experimental and has not undergone a professional
+# security audit. DO NOT use for actual sensitive data until audit is complete.
+#
+# IMPORTANT: This project handles cryptographic operations and user secrets.
+# Vulnerabilities could result in:
+#   - Premature secret disclosure (confidentiality breach)
+#   - Permanent data loss (availability failure)
+#   - Incorrect timelock operation (integrity failure)
+#
+# If you discover a security vulnerability, please report it responsibly:
+#
+# 1. DO NOT open a public GitHub issue for security vulnerabilities
+# 2. DO report via GitHub Security Advisory (link above) or email
+# 3. Provide detailed information about the vulnerability
+# 4. Allow reasonable time for response and patch development
+# 5. Coordinate public disclosure timing with maintainers
+#
+# Bug Bounty: No bug bounty program currently (pre-production software)
+#
+# Scope of Security Reports:
+#
+# IN SCOPE (please report):
+#   - Cryptographic implementation vulnerabilities
+#   - Timelock bypass or manipulation
+#   - Secret reconstruction with insufficient shares
+#   - Premature secret disclosure mechanisms
+#   - Key generation weaknesses or predictability
+#   - Authentication/integrity bypass in AES-GCM
+#   - Dependency vulnerabilities with security impact
+#   - Nostr relay attack vectors affecting confidentiality
+#   - Bitcoin transaction manipulation risks
+#   - Memory leaks or sensitive data exposure
+#   - Timing attacks or side-channel vulnerabilities
+#   - Logic errors in check-in or release mechanisms
+#
+# OUT OF SCOPE (lower priority):
+#   - DoS attacks (acknowledged risk for distributed systems)
+#   - UI/UX issues without security impact
+#   - Social engineering scenarios
+#   - Physical device security
+#   - Bitcoin network-wide attacks (51%, etc.)
+#   - Issues only exploitable with full device compromise
+#   - Theoretical attacks requiring nation-state resources
+#
+# Vulnerability Disclosure Timeline:
+#   1. Report received - Acknowledged within 72 hours
+#   2. Initial triage - Risk assessment within 7 days
+#   3. Fix development - Timeline varies by severity
+#   4. Fix review and testing - Comprehensive validation
+#   5. Security advisory publication - Coordinated disclosure
+#   6. Credit - Reporter acknowledged (if desired)
+#
+# Security Expectations:
+#   - CRITICAL vulnerabilities: Immediate response, patch within 7 days
+#   - HIGH vulnerabilities: Response within 7 days, patch within 30 days
+#   - MEDIUM vulnerabilities: Response within 14 days, patch within 60 days
+#   - LOW vulnerabilities: Response within 30 days, patch with next release
+#
+# Recognition:
+# Security researchers who report valid vulnerabilities will be acknowledged
+# in security/AUDIT_LOG.md (unless anonymity requested).
+#
+# Encryption:
+# You may encrypt security reports using PGP (key to be published when available).
+#
+# Thank you for helping improve ECHOLOCK's security!

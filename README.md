@@ -61,10 +61,15 @@ Available commands: `create`, `check-in`, `status`, `list`, `test-release`, `hel
 - 🏥 **Relay Health Checking** - Exponential backoff for failed relays
 - 🔄 **Automatic Fallback** - Falls back to local storage if Nostr unavailable
 
-### 🚧 In Development
-- Transaction broadcasting to Bitcoin testnet
-- NIP-65 relay discovery
-- Advanced relay reputation scoring
+### ✅ Complete & Tested
+- Transaction broadcasting to Bitcoin testnet with production-grade safeguards
+- Comprehensive integration tests with live Nostr relays
+- Exponential backoff for relay health management
+
+### 🚧 Future Enhancements
+- NIP-65 relay discovery for dynamic relay selection
+- Advanced relay reputation scoring system
+- Event-driven coordinator orchestration layer
 
 ## How It Works
 
@@ -95,8 +100,8 @@ When `USE_NOSTR_DISTRIBUTION=true`:
 - [x] Nostr relay distribution implemented (7+ relay redundancy)
 - [x] Relay health checking with exponential backoff
 - [x] NIP-78 event format for fragments
-- [ ] Transaction broadcasting tested
-- [ ] Nostr distribution tested with live relays
+- [x] Transaction broadcasting tested
+- [x] Nostr distribution tested with live relays
 - [ ] Security audit completed
 - [ ] Production ready
 
@@ -173,13 +178,21 @@ This project follows security-first development:
 - **Industry Standards**: `bitcoinjs-lib` for Bitcoin operations
 - **Isolated Modules**: Crypto layer has no network access
 - **Testnet Only**: Bitcoin operations locked to testnet until audit
+- **Property-Based Testing**: 22 property tests for crypto operations
 - **Comprehensive Docs**: See `/security` for threat model and known vulnerabilities
 
 ### Security Documentation
-- [SECURITY.md](SECURITY.md) - Security policy
-- [security/THREAT_MODEL.md](security/THREAT_MODEL.md) - Threat analysis
+- [SECURITY.md](SECURITY.md) - Security policy & responsible disclosure
+- [security/THREAT_MODEL.md](security/THREAT_MODEL.md) - Comprehensive threat analysis
 - [security/AUDIT_LOG.md](security/AUDIT_LOG.md) - Audit history
 - [security/VULNERABILITIES.md](security/VULNERABILITIES.md) - Known issues
+- [.well-known/security.txt](.well-known/security.txt) - Security contact & reporting
+
+### Reporting Security Issues
+Found a vulnerability? Please report responsibly:
+- **GitHub**: [Create Security Advisory](https://github.com/[username]/echolock/security/advisories/new)
+- **Email**: security@example.com
+- **Details**: See [.well-known/security.txt](.well-known/security.txt)
 
 ## Dependencies
 

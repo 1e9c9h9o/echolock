@@ -107,53 +107,73 @@ describe('Bitcoin Testnet Client', () => {
   });
 
   describe('broadcastTransaction', () => {
+    // Valid minimal Bitcoin transaction hex (version 2, 1 input, 1 output, locktime 0)
+    // This is a structurally valid transaction (though not spendable without proper signatures)
+    const validTxHex = '020000000100000000000000000000000000000000000000000000000000000000000000000000000000ffffffff01e803000000000000015100000000';
+
     test('should broadcast transaction successfully', async () => {
       fetch.mockResolvedValue({
         ok: true,
         text: async () => 'abc123txid'
       });
 
-      const txid = await testnetClient.broadcastTransaction('0200000001...');
-      expect(txid).toBe('abc123txid');
+      const result = await testnetClient.broadcastTransaction(validTxHex);
+      expect(result.success).toBe(true);
+      expect(result.txid).toBe('abc123txid');
     });
 
     test('should handle broadcast rejection (insufficient fee)', async () => {
       fetch.mockResolvedValue({
         ok: false,
+        status: 400,
         text: async () => 'insufficient fee'
       });
 
-      await expect(testnetClient.broadcastTransaction('0200000001...')).rejects.toThrow('Broadcast failed: insufficient fee');
+      await expect(testnetClient.broadcastTransaction(validTxHex)).rejects.toThrow('insufficient fee');
     });
 
     test('should handle broadcast rejection (bad-txns-inputs-missingorspent)', async () => {
       fetch.mockResolvedValue({
         ok: false,
+        status: 400,
         text: async () => 'bad-txns-inputs-missingorspent'
       });
 
-      await expect(testnetClient.broadcastTransaction('0200000001...')).rejects.toThrow('Broadcast failed: bad-txns-inputs-missingorspent');
+      await expect(testnetClient.broadcastTransaction(validTxHex)).rejects.toThrow('bad-txns-inputs-missingorspent');
     });
 
     test('should handle broadcast rejection (non-BIP68-final)', async () => {
       fetch.mockResolvedValue({
         ok: false,
+        status: 400,
         text: async () => 'non-BIP68-final (code 64)'
       });
 
-      await expect(testnetClient.broadcastTransaction('0200000001...')).rejects.toThrow('Broadcast failed: non-BIP68-final');
+      await expect(testnetClient.broadcastTransaction(validTxHex)).rejects.toThrow('non-BIP68-final');
     });
 
     test('should handle network error during broadcast', async () => {
       fetch.mockRejectedValue(new Error('Network error'));
 
-      await expect(testnetClient.broadcastTransaction('0200000001...')).rejects.toThrow('Failed to broadcast: Network error');
+      await expect(testnetClient.broadcastTransaction(validTxHex)).rejects.toThrow('Network error');
     });
 
     test('should handle timeout during broadcast', async () => {
       fetch.mockRejectedValue(new Error('Request timeout'));
 
-      await expect(testnetClient.broadcastTransaction('0200000001...')).rejects.toThrow('Failed to broadcast: Request timeout');
+      await expect(testnetClient.broadcastTransaction(validTxHex)).rejects.toThrow('Request timeout');
+    });
+
+    test('should reject invalid transaction hex (non-hex characters)', async () => {
+      await expect(testnetClient.broadcastTransaction('0200000001...')).rejects.toThrow('Transaction hex contains invalid characters');
+    });
+
+    test('should reject empty transaction hex', async () => {
+      await expect(testnetClient.broadcastTransaction('')).rejects.toThrow('Transaction hex is empty');
+    });
+
+    test('should reject transaction hex that is too short', async () => {
+      await expect(testnetClient.broadcastTransaction('0200')).rejects.toThrow('Transaction hex is too short');
     });
   });
 

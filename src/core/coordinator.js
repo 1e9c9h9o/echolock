@@ -2,6 +2,11 @@
 
 // ORCHESTRATION LAYER - NO CRYPTOGRAPHIC OPERATIONS HERE
 //
+// STATUS: This module is currently unused. All orchestration is handled by
+// src/core/deadManSwitch.js which directly coordinates crypto, bitcoin, and
+// nostr operations. This remains as a placeholder for future refactoring if
+// event-driven architecture becomes necessary.
+//
 // Event-driven architecture coordinator
 // Coordinates between crypto, bitcoin, and nostr modules
 //

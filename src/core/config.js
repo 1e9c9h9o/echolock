@@ -23,10 +23,12 @@ export function loadConfig() {
 
     // Nostr configuration
     nostr: {
-      relays: process.env.NOSTR_RELAYS
-        ? process.env.NOSTR_RELAYS.split(',').map(r => r.trim())
+      relays: process.env.NOSTR_RELAYS !== undefined
+        ? process.env.NOSTR_RELAYS.split(',').map(r => r.trim()).filter(r => r.length > 0)
         : RELIABLE_RELAYS,
-      minRelayCount: parseInt(process.env.MIN_RELAY_COUNT) || RELAY_REQUIREMENTS.MIN_RELAY_COUNT,
+      minRelayCount: process.env.MIN_RELAY_COUNT !== undefined
+        ? parseInt(process.env.MIN_RELAY_COUNT)
+        : RELAY_REQUIREMENTS.MIN_RELAY_COUNT,
       useNostrDistribution: process.env.USE_NOSTR_DISTRIBUTION === 'true'
     },
 
@@ -58,10 +60,15 @@ function validateConfig(config) {
   }
 
   // Validate relay count (only if Nostr distribution is enabled)
-  if (config.nostr.useNostrDistribution && config.nostr.relays.length < config.nostr.minRelayCount) {
-    throw new Error(
-      `Insufficient relays configured. Required: ${config.nostr.minRelayCount}, Found: ${config.nostr.relays.length}`
-    );
+  if (config.nostr.useNostrDistribution) {
+    if (config.nostr.relays.length === 0) {
+      throw new Error('No valid relay URLs provided');
+    }
+    if (config.nostr.relays.length < config.nostr.minRelayCount) {
+      throw new Error(
+        `Insufficient relays configured. Required: ${config.nostr.minRelayCount}, Found: ${config.nostr.relays.length}`
+      );
+    }
   }
 
   // Validate check-in interval

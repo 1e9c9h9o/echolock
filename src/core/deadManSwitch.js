@@ -42,10 +42,13 @@ function loadSwitches() {
 }
 
 /**
- * Save switches database
+ * Save switches database (atomic write to prevent corruption)
  */
 function saveSwitches(switches) {
-  fs.writeFileSync(SWITCHES_FILE, JSON.stringify(switches, null, 2));
+  const tmpFile = SWITCHES_FILE + '.tmp';
+  const data = JSON.stringify(switches, null, 2);
+  fs.writeFileSync(tmpFile, data, 'utf8');
+  fs.renameSync(tmpFile, SWITCHES_FILE);
 }
 
 /**
@@ -59,10 +62,13 @@ function loadFragments() {
 }
 
 /**
- * Save fragments database
+ * Save fragments database (atomic write to prevent corruption)
  */
 function saveFragments(fragments) {
-  fs.writeFileSync(FRAGMENTS_FILE, JSON.stringify(fragments, null, 2));
+  const tmpFile = FRAGMENTS_FILE + '.tmp';
+  const data = JSON.stringify(fragments, null, 2);
+  fs.writeFileSync(tmpFile, data, 'utf8');
+  fs.renameSync(tmpFile, FRAGMENTS_FILE);
 }
 
 /**
