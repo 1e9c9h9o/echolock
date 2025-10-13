@@ -21,9 +21,12 @@
  * - Error boundaries
  */
 
-// Load environment variables from .env file
+// Load environment variables from .env file (only in development)
+// In production (Railway, etc.), env vars are injected directly
 import dotenv from 'dotenv';
-dotenv.config();
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
+}
 
 import express from 'express';
 import helmet from 'helmet';
