@@ -44,15 +44,15 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-lg">
         {/* Header */}
-        <div className="text-center mb-12">
-          <Image src="/logo.png" alt="EchoLock" width={240} height={240} className="w-48 h-auto mx-auto mb-8" />
-          <h1 className="text-4xl font-bold">Sign Up</h1>
+        <div className="text-center mb-16">
+          <Image src="/logo.png" alt="EchoLock" width={160} height={160} className="w-40 h-auto mx-auto mb-8" />
+          <h1 className="text-5xl font-extrabold">Sign Up</h1>
         </div>
 
         {/* Form */}
-        <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(33,33,33,1)] p-8">
+        <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(33,33,33,1)] p-10">
           <form onSubmit={handleSubmit} className="space-y-6">
             <Input
               label="Email"

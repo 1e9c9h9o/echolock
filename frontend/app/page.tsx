@@ -2,37 +2,34 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import Button from '@/components/ui/Button'
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-      <div className="text-center max-w-2xl">
+    <div className="min-h-screen bg-cream flex items-center justify-center p-8">
+      <div className="text-center max-w-3xl">
         <Image
           src="/logo.png"
           alt="EchoLock"
-          width={300}
-          height={120}
-          className="w-64 h-auto mx-auto mb-12"
+          width={200}
+          height={200}
+          className="w-48 h-auto mx-auto mb-16"
         />
 
-        <h1 className="text-5xl font-bold mb-6">
-          Cryptographic Dead Man's Switch
+        <h1 className="text-6xl font-extrabold mb-8 leading-tight">
+          Cryptographic<br />Dead Man's Switch
         </h1>
 
-        <p className="text-xl mb-12 text-gray-700">
+        <p className="text-xl mb-16 font-mono leading-relaxed">
           Time-locked secret distribution using Bitcoin and Nostr
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-16">
           <Link href="/auth/login">
-            <button className="bg-blue text-white px-10 py-4 text-base font-bold border-2 border-black shadow-[4px_4px_0px_0px_rgba(33,33,33,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
-              Login
-            </button>
+            <Button variant="primary">Login</Button>
           </Link>
           <Link href="/auth/signup">
-            <button className="bg-white text-black px-10 py-4 text-base font-bold border-2 border-black shadow-[4px_4px_0px_0px_rgba(33,33,33,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all">
-              Sign Up
-            </button>
+            <Button variant="secondary">Sign Up</Button>
           </Link>
         </div>
 
@@ -40,7 +37,7 @@ export default function HomePage() {
           href="https://www.echolock.xyz/"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-blue hover:underline text-sm font-bold"
+          className="text-blue hover:underline font-mono font-bold"
         >
           Learn more about EchoLock →
         </a>

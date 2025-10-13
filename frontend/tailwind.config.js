@@ -22,8 +22,11 @@ module.exports = {
         surface: '#FFFFFF',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['IBM Plex Mono', 'Courier New', 'monospace'],
+        sans: ['Syne', 'sans-serif'],
+        mono: ['Space Mono', 'monospace'],
+      },
+      fontSize: {
+        base: ['18px', '1.6'],
       },
     },
   },

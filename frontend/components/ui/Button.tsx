@@ -12,14 +12,14 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const variants = {
-    primary: 'bg-blue text-white border-2 border-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none',
-    secondary: 'bg-white text-black border-2 border-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none',
-    danger: 'bg-red text-white border-2 border-black hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none',
+    primary: 'bg-blue text-cream border-2 border-black hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none',
+    secondary: 'bg-cream text-blue border-2 border-black hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none',
+    danger: 'bg-red text-cream border-2 border-black hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none',
   }
 
   return (
     <button
-      className={`px-6 py-3 font-bold text-sm transition-all shadow-[4px_4px_0px_0px_rgba(33,33,33,1)] ${variants[variant]} ${className}`}
+      className={`px-8 py-4 font-bold uppercase text-sm transition-all shadow-[6px_6px_0px_0px_rgba(33,33,33,1)] font-sans ${variants[variant]} ${className}`}
       {...props}
     >
       {children}
