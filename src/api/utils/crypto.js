@@ -21,8 +21,21 @@ import { logger } from './logger.js';
 // Service master key for encrypting sensitive data in database
 // CRITICAL: This must be set as environment variable and NEVER committed to git
 const SERVICE_MASTER_KEY = process.env.SERVICE_MASTER_KEY;
+const NODE_ENV = process.env.NODE_ENV;
+const IS_PRODUCTION = NODE_ENV === 'production';
 
-if (!SERVICE_MASTER_KEY && process.env.NODE_ENV === 'production') {
+// Log environment for debugging Railway deployment
+if (IS_PRODUCTION) {
+  console.log('Environment check:', {
+    NODE_ENV,
+    HAS_SERVICE_MASTER_KEY: !!SERVICE_MASTER_KEY,
+    SERVICE_MASTER_KEY_LENGTH: SERVICE_MASTER_KEY ? SERVICE_MASTER_KEY.length : 0
+  });
+}
+
+if (!SERVICE_MASTER_KEY && IS_PRODUCTION) {
+  console.error('FATAL: SERVICE_MASTER_KEY environment variable is required in production');
+  console.error('Available environment variables:', Object.keys(process.env).filter(k => !k.includes('SECRET') && !k.includes('KEY')));
   throw new Error('SERVICE_MASTER_KEY environment variable is required in production');
 }
 
