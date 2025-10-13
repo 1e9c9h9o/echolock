@@ -7,8 +7,13 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { split, combine } from 'shamir-secret-sharing';
+import {
+  splitAndAuthenticateSecret,
+  combineAuthenticatedShares,
+  deriveAuthenticationKey
+} from '../crypto/secretSharing.js';
 import { encrypt, decrypt } from '../crypto/encryption.js';
+import { deriveKey } from '../crypto/keyDerivation.js';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { ECPairFactory } from 'ecpair';
@@ -93,8 +98,12 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
   const messageBuffer = Buffer.from(message, 'utf8');
   const { ciphertext, iv, authTag } = encrypt(messageBuffer, encryptionKey);
 
-  // 3. Split encryption key using Shamir (3-of-5)
-  const keyShares = await split(new Uint8Array(encryptionKey), 5, 3);
+  // 3. Split encryption key using Shamir and authenticate with HMAC (3-of-5)
+  const { shares: authenticatedShares, authKey } = await splitAndAuthenticateSecret(
+    encryptionKey,
+    5,
+    3
+  );
 
   // 4. Create Bitcoin timelock (if enabled)
   let bitcoinTimelock = null;
@@ -186,14 +195,42 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
       // Filter healthy relays
       const healthyRelays = await filterHealthyRelays(config.nostr.relays);
 
-      // Publish each fragment to multiple relays
+      // Generate encryption key for fragments (derived from password or random)
+      let fragmentEncryptionSalt;
+      let fragmentEncryptionKey;
+
+      if (password) {
+        // Derive fragment encryption key from password
+        const derivation = deriveKey(password);
+        fragmentEncryptionKey = derivation.key;
+        fragmentEncryptionSalt = derivation.salt;
+      } else {
+        // Use random key if no password provided
+        fragmentEncryptionKey = crypto.randomBytes(32);
+        fragmentEncryptionSalt = crypto.randomBytes(32);
+      }
+
+      // Publish each authenticated share (encrypted) to multiple relays
       const publishResults = [];
-      for (let i = 0; i < keyShares.length; i++) {
-        const fragmentData = Buffer.from(keyShares[i]);
+      for (let i = 0; i < authenticatedShares.length; i++) {
+        const authShare = authenticatedShares[i];
+
+        // Serialize authenticated share (share + HMAC + index)
+        const shareData = Buffer.concat([
+          authShare.share,
+          authShare.hmac,
+          Buffer.from([authShare.index])
+        ]);
+
+        // Encrypt the authenticated share
+        const encryptedShare = encrypt(shareData, fragmentEncryptionKey);
+
+        // Publish with atomic storage format
         const result = await publishFragment(
           switchId,
           i,
-          fragmentData,
+          encryptedShare, // { ciphertext, iv, authTag }
+          { salt: fragmentEncryptionSalt, iterations: 600000 }, // metadata
           { privkey: nostrPrivateKey, pubkey: nostrPublicKey },
           healthyRelays,
           expiryTimestamp
@@ -208,14 +245,24 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
         nostrPublicKey: Buffer.from(nostrPublicKey).toString('hex')
       };
 
-      // Store Nostr metadata
+      // Store Nostr metadata including encryption info
+      const encryptedAuthKeyData = encrypt(authKey, fragmentEncryptionKey);
+
       const fragments = loadFragments();
       fragments[switchId] = {
         distributionStatus: 'NOSTR',
         relayCount: healthyRelays.length,
         relays: healthyRelays,
         nostrPublicKey: Buffer.from(nostrPublicKey).toString('hex'),
-        nostrPrivateKey: Buffer.from(nostrPrivateKey).toString('hex')
+        nostrPrivateKey: Buffer.from(nostrPrivateKey).toString('hex'),
+        // Store encrypted authKey for HMAC verification during retrieval
+        encryptedAuthKey: {
+          ciphertext: encryptedAuthKeyData.ciphertext.toString('base64'),
+          iv: encryptedAuthKeyData.iv.toString('base64'),
+          authTag: encryptedAuthKeyData.authTag.toString('base64')
+        },
+        fragmentEncryptionSalt: fragmentEncryptionSalt.toString('base64'),
+        hasPassword: !!password
       };
       saveFragments(fragments);
 
@@ -223,11 +270,11 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
     } catch (error) {
       console.warn('Nostr distribution failed, falling back to local storage:', error.message);
       // Fallback to local storage
-      distributionInfo = await storeFragmentsLocally(switchId, keyShares);
+      distributionInfo = await storeFragmentsLocally(switchId, authenticatedShares, authKey);
     }
   } else {
     // Store locally
-    distributionInfo = await storeFragmentsLocally(switchId, keyShares);
+    distributionInfo = await storeFragmentsLocally(switchId, authenticatedShares, authKey);
   }
 
   return {
@@ -244,13 +291,19 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
 /**
  * Store fragments locally (fallback or demo mode)
  * @param {string} switchId - The switch ID
- * @param {Array} keyShares - The Shamir shares
+ * @param {Array} authenticatedShares - The authenticated Shamir shares
+ * @param {Buffer} authKey - Authentication key for HMAC verification
  * @returns {Object} Distribution info
  */
-async function storeFragmentsLocally(switchId, keyShares) {
+async function storeFragmentsLocally(switchId, authenticatedShares, authKey) {
   const fragments = loadFragments();
   fragments[switchId] = {
-    shares: keyShares.map(share => Buffer.from(share).toString('base64')),
+    shares: authenticatedShares.map(authShare => ({
+      share: authShare.share.toString('base64'),
+      hmac: authShare.hmac.toString('base64'),
+      index: authShare.index
+    })),
+    authKey: authKey.toString('base64'),
     distributionStatus: 'LOCAL',
     relayCount: 0
   };
@@ -449,9 +502,10 @@ export async function testRelease(switchId, password = null, dryRun = true) {
       }
     }
 
-    let shares;
+    let authenticatedShares;
+    let authKey;
 
-    // 2. Retrieve fragments from Nostr or local storage
+    // 2. Retrieve and decrypt fragments from Nostr or local storage
     if (fragmentInfo.distributionStatus === 'NOSTR') {
       console.log('Retrieving fragments from Nostr relays...');
       const relays = fragmentInfo.relays || config.nostr.relays;
@@ -464,22 +518,70 @@ export async function testRelease(switchId, password = null, dryRun = true) {
         };
       }
 
-      // Use first 3 fragments
-      shares = retrievedFragments
-        .slice(0, 3)
-        .map(frag => new Uint8Array(frag.data));
-
       console.log(`Retrieved ${retrievedFragments.length} fragments from Nostr relays`);
+
+      // Derive/reconstruct fragment encryption key
+      let fragmentEncryptionKey;
+      if (fragmentInfo.hasPassword) {
+        if (!password) {
+          return {
+            success: false,
+            message: 'Password required to decrypt fragments'
+          };
+        }
+        const fragmentSalt = Buffer.from(fragmentInfo.fragmentEncryptionSalt, 'base64');
+        fragmentEncryptionKey = deriveKey(password, fragmentSalt).key;
+      } else {
+        return {
+          success: false,
+          message: 'Fragment encryption not yet implemented for passwordless mode'
+        };
+      }
+
+      // Decrypt authKey
+      const encryptedAuthKey = fragmentInfo.encryptedAuthKey;
+      authKey = decrypt(
+        Buffer.from(encryptedAuthKey.ciphertext, 'base64'),
+        fragmentEncryptionKey,
+        Buffer.from(encryptedAuthKey.iv, 'base64'),
+        Buffer.from(encryptedAuthKey.authTag, 'base64')
+      );
+
+      // Decrypt and deserialize authenticated shares
+      authenticatedShares = [];
+      for (let i = 0; i < Math.min(3, retrievedFragments.length); i++) {
+        const frag = retrievedFragments[i];
+
+        // Decrypt share data
+        const decryptedShareData = decrypt(
+          frag.encryptedData.ciphertext,
+          fragmentEncryptionKey,
+          frag.encryptedData.iv,
+          frag.encryptedData.authTag
+        );
+
+        // Deserialize: share (32 bytes) + hmac (32 bytes) + index (1 byte)
+        const share = decryptedShareData.slice(0, 32);
+        const hmac = decryptedShareData.slice(32, 64);
+        const index = decryptedShareData[64];
+
+        authenticatedShares.push({ share, hmac, index });
+      }
     } else {
-      // Local storage
-      shares = fragmentInfo.shares
+      // Local storage - shares are already authenticated
+      authKey = Buffer.from(fragmentInfo.authKey, 'base64');
+      authenticatedShares = fragmentInfo.shares
         .slice(0, 3)
-        .map(shareB64 => new Uint8Array(Buffer.from(shareB64, 'base64')));
+        .map(s => ({
+          share: Buffer.from(s.share, 'base64'),
+          hmac: Buffer.from(s.hmac, 'base64'),
+          index: s.index
+        }));
     }
 
-    // 3. Reconstruct encryption key from shares
-    const reconstructedKeyArray = await combine(shares);
-    const reconstructedKey = Buffer.from(reconstructedKeyArray);
+    // 3. Verify HMAC and reconstruct encryption key from authenticated shares
+    const reconstructedKey = await combineAuthenticatedShares(authenticatedShares, authKey);
+    console.log('✓ Share HMAC verification passed');
 
     // 4. Decrypt the message
     const ciphertext = Buffer.from(sw.encryptedMessage.ciphertext, 'base64');

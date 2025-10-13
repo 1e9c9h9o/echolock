@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECHOLOCK Cryptographic Core Demonstration</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: #333;
+      background: #f2f2f2;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 60px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 48px;
+    }
+
+    .step {
+      margin-bottom: 48px;
+      padding-bottom: 48px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .step:last-child {
+      border-bottom: none;
+    }
+
+    .step-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #999;
+      margin-bottom: 12px;
+    }
+
+    .step-label.active {
+      color: #0066cc;
+    }
+
+    .step-label.complete {
+      color: #00a86b;
+    }
+
+    .step-description {
+      font-size: 16px;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    textarea, input[type="text"] {
+      width: 100%;
+      padding: 16px;
+      font-family: "IBM Plex Mono", Monaco, "Courier New", monospace;
+      font-size: 14px;
+      border: 2px solid #ccc;
+      border-radius: 0;
+      background: #fff;
+      resize: vertical;
+    }
+
+    textarea:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: #0066cc;
+    }
+
+    button {
+      padding: 14px 28px;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #fff;
+      background: #0066cc;
+      border: 2px solid #0066cc;
+      border-radius: 1px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    button:hover {
+      background: #0052a3;
+      border-color: #0052a3;
+    }
+
+    button:disabled {
+      background: #ccc;
+      border-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    button.secondary {
+      background: #fff;
+      color: #333;
+      border-color: #999;
+    }
+
+    button.secondary:hover {
+      background: #f2f2f2;
+    }
+
+    .output-box {
+      padding: 20px;
+      background: #f8f8f8;
+      border: 1px solid #e5e5e5;
+      margin-top: 20px;
+      font-family: "IBM Plex Mono", Monaco, "Courier New", monospace;
+      font-size: 13px;
+      word-break: break-all;
+      color: #333;
+    }
+
+    .tech-detail {
+      font-family: "IBM Plex Mono", Monaco, "Courier New", monospace;
+      font-size: 12px;
+      color: #999;
+      margin-top: 8px;
+    }
+
+    .fragments {
+      margin-top: 24px;
+    }
+
+    .fragment {
+      margin-bottom: 16px;
+      padding: 16px;
+      background: #f8f8f8;
+      border: 2px solid #e5e5e5;
+    }
+
+    .fragment.selected {
+      border-color: #0066cc;
+      background: #f0f7ff;
+    }
+
+    .fragment-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .fragment-checkbox {
+      width: 18px;
+      height: 18px;
+      margin-right: 12px;
+      cursor: pointer;
+    }
+
+    .fragment-label {
+      font-family: "IBM Plex Mono", Monaco, "Courier New", monospace;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .fragment-data {
+      font-family: "IBM Plex Mono", Monaco, "Courier New", monospace;
+      font-size: 11px;
+      color: #666;
+      word-break: break-all;
+      margin-left: 30px;
+    }
+
+    .disclaimer {
+      margin-top: 48px;
+      padding: 24px;
+      background: #fff8e5;
+      border: 2px solid #ffd966;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .disclaimer strong {
+      color: #333;
+      font-weight: 600;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border: 2px solid #ccc;
+      border-radius: 0;
+      margin-right: 8px;
+    }
+
+    .status-indicator.active {
+      background: #0066cc;
+      border-color: #0066cc;
+    }
+
+    .status-indicator.complete {
+      background: #00a86b;
+      border-color: #00a86b;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ECHOLOCK Cryptographic Core</h1>
+    <p class="subtitle">Experience distributed encryption: AES-256-GCM with Shamir's Secret Sharing</p>
+
+    <div class="step" id="step1">
+      <div class="step-label">
+        <span class="status-indicator active"></span>
+        Step 1: Input Message
+      </div>
+      <p class="step-description">Enter a message to encrypt and distribute across fragments</p>
+      <textarea id="messageInput" rows="4" placeholder="Enter your message here...">Hello, this is a secret message.</textarea>
+      <p class="tech-detail">Message will be encrypted using AES-256-GCM</p>
+    </div>
+
+    <div class="step" id="step2">
+      <div class="step-label">
+        <span class="status-indicator"></span>
+        Step 2: Encrypt & Split
+      </div>
+      <p class="step-description">Generate encryption key, encrypt message, then split key into 5 fragments (3 required for reconstruction)</p>
+      <div class="button-group">
+        <button id="encryptBtn">Encrypt & Split</button>
+      </div>
+      <div id="encryptedOutput" style="display:none;">
+        <div class="output-box" id="encryptedData"></div>
+        <p class="tech-detail">Algorithm: AES-256-GCM | IV: 96 bits | Auth Tag: 128 bits | Key: 256 bits (split 5/3)</p>
+      </div>
+    </div>
+
+    <div class="step" id="step3">
+      <div class="step-label">
+        <span class="status-indicator"></span>
+        Step 3: Key Fragments
+      </div>
+      <p class="step-description">Five fragments generated. Select any 3 to reconstruct the decryption key</p>
+      <div class="fragments" id="fragmentsContainer"></div>
+      <p class="tech-detail">Shamir's Secret Sharing Scheme: threshold 3-of-5</p>
+    </div>
+
+    <div class="step" id="step4">
+      <div class="step-label">
+        <span class="status-indicator"></span>
+        Step 4: Reconstruct & Decrypt
+      </div>
+      <p class="step-description">Combine selected fragments to reconstruct key and decrypt message</p>
+      <div class="button-group">
+        <button id="decryptBtn" disabled>Reconstruct & Decrypt</button>
+      </div>
+      <div id="decryptedOutput" style="display:none;">
+        <div class="output-box" id="decryptedData"></div>
+        <p class="tech-detail">Key reconstructed from selected fragments | Message authenticated and decrypted</p>
+      </div>
+    </div>
+
+    <div class="button-group">
+      <button id="resetBtn" class="secondary">Reset</button>
+    </div>
+
+    <div class="disclaimer">
+      <p><strong>Demonstration only</strong> — Not for real secrets</p>
+      <p style="margin-top: 8px;">Keys generated in browser. Nothing sent to server. This demo uses client-side Web Crypto API and Shamir's Secret Sharing.</p>
+    </div>
+  </div>
+
+  <script type="module">
+    // Import Shamir's Secret Sharing from CDN
+    import { split, combine } from 'https://cdn.jsdelivr.net/npm/shamir-secret-sharing@1.0.1/+esm';
+
+    // State
+    let encryptionKey = null;
+    let encryptedData = null;
+    let fragments = [];
+    let selectedFragments = new Set();
+
+    // DOM elements
+    const messageInput = document.getElementById('messageInput');
+    const encryptBtn = document.getElementById('encryptBtn');
+    const decryptBtn = document.getElementById('decryptBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const encryptedOutput = document.getElementById('encryptedOutput');
+    const encryptedDataEl = document.getElementById('encryptedData');
+    const fragmentsContainer = document.getElementById('fragmentsContainer');
+    const decryptedOutput = document.getElementById('decryptedOutput');
+    const decryptedDataEl = document.getElementById('decryptedData');
+
+    // Constants matching encryption.js
+    const IV_LENGTH = 12; // 96 bits
+    const KEY_LENGTH = 32; // 256 bits
+    const TOTAL_SHARES = 5;
+    const THRESHOLD = 3;
+
+    // Utility: Convert between ArrayBuffer and base64
+    function arrayBufferToBase64(buffer) {
+      const bytes = new Uint8Array(buffer);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    }
+
+    function base64ToArrayBuffer(base64) {
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    // Utility: Convert hex to Uint8Array
+    function hexToUint8Array(hex) {
+      const bytes = new Uint8Array(hex.length / 2);
+      for (let i = 0; i < hex.length; i += 2) {
+        bytes[i / 2] = parseInt(hex.substr(i, 2), 16);
+      }
+      return bytes;
+    }
+
+    function uint8ArrayToHex(bytes) {
+      return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // AES-256-GCM encryption using Web Crypto API
+    async function encryptMessage(plaintext, key) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(plaintext);
+
+      // Generate random IV
+      const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
+
+      // Import key for Web Crypto API
+      const cryptoKey = await crypto.subtle.importKey(
+        'raw',
+        key,
+        { name: 'AES-GCM' },
+        false,
+        ['encrypt']
+      );
+
+      // Encrypt
+      const ciphertext = await crypto.subtle.encrypt(
+        {
+          name: 'AES-GCM',
+          iv: iv,
+          tagLength: 128 // 128-bit auth tag
+        },
+        cryptoKey,
+        data
+      );
+
+      // GCM returns ciphertext with auth tag appended
+      return {
+        ciphertext: new Uint8Array(ciphertext),
+        iv: iv
+      };
+    }
+
+    // AES-256-GCM decryption using Web Crypto API
+    async function decryptMessage(ciphertext, key, iv) {
+      // Import key for Web Crypto API
+      const cryptoKey = await crypto.subtle.importKey(
+        'raw',
+        key,
+        { name: 'AES-GCM' },
+        false,
+        ['decrypt']
+      );
+
+      // Decrypt
+      const plaintext = await crypto.subtle.decrypt(
+        {
+          name: 'AES-GCM',
+          iv: iv,
+          tagLength: 128
+        },
+        cryptoKey,
+        ciphertext
+      );
+
+      const decoder = new TextDecoder();
+      return decoder.decode(plaintext);
+    }
+
+    // Update step status indicators
+    function updateStepStatus(stepNum, status) {
+      const step = document.getElementById(`step${stepNum}`);
+      const indicator = step.querySelector('.status-indicator');
+      const label = step.querySelector('.step-label');
+
+      indicator.classList.remove('active', 'complete');
+      label.classList.remove('active', 'complete');
+
+      if (status === 'active') {
+        indicator.classList.add('active');
+        label.classList.add('active');
+      } else if (status === 'complete') {
+        indicator.classList.add('complete');
+        label.classList.add('complete');
+      }
+    }
+
+    // Encrypt and split handler
+    encryptBtn.addEventListener('click', async () => {
+      const message = messageInput.value.trim();
+      if (!message) {
+        alert('Please enter a message');
+        return;
+      }
+
+      try {
+        // Generate random 256-bit key
+        encryptionKey = crypto.getRandomValues(new Uint8Array(KEY_LENGTH));
+
+        // Encrypt message
+        const { ciphertext, iv } = await encryptMessage(message, encryptionKey);
+
+        // Store encrypted data
+        encryptedData = { ciphertext, iv };
+
+        // Display encrypted data
+        encryptedDataEl.textContent = `Ciphertext: ${arrayBufferToBase64(ciphertext)}\n\nIV: ${arrayBufferToBase64(iv)}`;
+        encryptedOutput.style.display = 'block';
+
+        // Split key using Shamir's Secret Sharing
+        const shares = await split(encryptionKey, TOTAL_SHARES, THRESHOLD);
+        fragments = shares;
+
+        // Display fragments
+        fragmentsContainer.innerHTML = '';
+        fragments.forEach((fragment, index) => {
+          const fragmentDiv = document.createElement('div');
+          fragmentDiv.className = 'fragment';
+          fragmentDiv.innerHTML = `
+            <div class="fragment-header">
+              <input type="checkbox" class="fragment-checkbox" id="fragment${index}" data-index="${index}">
+              <label class="fragment-label" for="fragment${index}">Fragment ${index + 1}</label>
+            </div>
+            <div class="fragment-data">${uint8ArrayToHex(fragment)}</div>
+          `;
+          fragmentsContainer.appendChild(fragmentDiv);
+        });
+
+        // Add checkbox listeners
+        document.querySelectorAll('.fragment-checkbox').forEach(checkbox => {
+          checkbox.addEventListener('change', handleFragmentSelection);
+        });
+
+        // Update status
+        updateStepStatus(1, 'complete');
+        updateStepStatus(2, 'complete');
+        updateStepStatus(3, 'active');
+
+        encryptBtn.disabled = true;
+      } catch (error) {
+        alert('Encryption failed: ' + error.message);
+      }
+    });
+
+    // Handle fragment selection
+    function handleFragmentSelection(event) {
+      const index = parseInt(event.target.dataset.index);
+      const fragmentDiv = event.target.closest('.fragment');
+
+      if (event.target.checked) {
+        selectedFragments.add(index);
+        fragmentDiv.classList.add('selected');
+      } else {
+        selectedFragments.delete(index);
+        fragmentDiv.classList.remove('selected');
+      }
+
+      // Enable decrypt button if enough fragments selected
+      decryptBtn.disabled = selectedFragments.size < THRESHOLD;
+
+      if (selectedFragments.size >= THRESHOLD) {
+        updateStepStatus(3, 'complete');
+        updateStepStatus(4, 'active');
+      } else {
+        updateStepStatus(3, 'active');
+        updateStepStatus(4, '');
+      }
+    }
+
+    // Decrypt handler
+    decryptBtn.addEventListener('click', async () => {
+      try {
+        // Get selected fragment indices
+        const selectedIndices = Array.from(selectedFragments).sort((a, b) => a - b);
+        const selectedShares = selectedIndices.map(i => fragments[i]);
+
+        // Reconstruct key
+        const reconstructedKey = await combine(selectedShares);
+
+        // Decrypt message
+        const decryptedMessage = await decryptMessage(
+          encryptedData.ciphertext,
+          reconstructedKey,
+          encryptedData.iv
+        );
+
+        // Display decrypted message
+        decryptedDataEl.textContent = decryptedMessage;
+        decryptedOutput.style.display = 'block';
+
+        // Update status
+        updateStepStatus(4, 'complete');
+
+        decryptBtn.disabled = true;
+      } catch (error) {
+        alert('Decryption failed: ' + error.message);
+      }
+    });
+
+    // Reset handler
+    resetBtn.addEventListener('click', () => {
+      // Clear state
+      encryptionKey = null;
+      encryptedData = null;
+      fragments = [];
+      selectedFragments.clear();
+
+      // Reset UI
+      messageInput.value = 'Hello, this is a secret message.';
+      encryptedOutput.style.display = 'none';
+      decryptedOutput.style.display = 'none';
+      fragmentsContainer.innerHTML = '';
+
+      // Reset buttons
+      encryptBtn.disabled = false;
+      decryptBtn.disabled = true;
+
+      // Reset status indicators
+      updateStepStatus(1, 'active');
+      updateStepStatus(2, '');
+      updateStepStatus(3, '');
+      updateStepStatus(4, '');
+    });
+  </script>
+</body>
+</html>

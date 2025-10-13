@@ -1,6 +1,7 @@
 node_modules/
 .env
 .env.local
+.env.production
 *.log
 .DS_Store
 data/*.json
@@ -8,3 +9,27 @@ data/*.json
 coverage/
 *.key
 *.secret
+*.pem
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+
+# Testing
+.coverage
+.nyc_output
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Railway
+.railway/
+
+# Deployment
+.vercel
+.fly

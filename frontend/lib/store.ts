@@ -1,0 +1,56 @@
+import { create } from 'zustand'
+
+interface User {
+  id: string
+  email: string
+}
+
+interface Switch {
+  id: string
+  title: string
+  checkInHours: number
+  nextCheckInAt: string
+  status: 'active' | 'expired' | 'cancelled'
+  createdAt: string
+  recipientCount: number
+}
+
+interface AuthState {
+  user: User | null
+  isAuthenticated: boolean
+  setUser: (user: User | null) => void
+  logout: () => void
+}
+
+interface SwitchState {
+  switches: Switch[]
+  setSwitches: (switches: Switch[]) => void
+  addSwitch: (sw: Switch) => void
+  updateSwitch: (id: string, sw: Partial<Switch>) => void
+  removeSwitch: (id: string) => void
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  isAuthenticated: false,
+  setUser: (user) => set({ user, isAuthenticated: !!user }),
+  logout: () => {
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    set({ user: null, isAuthenticated: false })
+  },
+}))
+
+export const useSwitchStore = create<SwitchState>((set) => ({
+  switches: [],
+  setSwitches: (switches) => set({ switches }),
+  addSwitch: (sw) => set((state) => ({ switches: [...state.switches, sw] })),
+  updateSwitch: (id, sw) =>
+    set((state) => ({
+      switches: state.switches.map((s) => (s.id === id ? { ...s, ...sw } : s)),
+    })),
+  removeSwitch: (id) =>
+    set((state) => ({
+      switches: state.switches.filter((s) => s.id !== id),
+    })),
+}))

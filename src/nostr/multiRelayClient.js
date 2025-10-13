@@ -13,6 +13,7 @@
 import './websocketPolyfill.js';
 import { finalizeEvent, validateEvent, verifyEvent } from 'nostr-tools';
 import { SimplePool } from 'nostr-tools/pool';
+import { createFragmentPayload, serializePayload, deserializeAndVerify } from './fragmentFormat.js';
 
 /**
  * Publish an event to multiple Nostr relays with redundancy
@@ -157,30 +158,46 @@ export function calculateRelayDistribution(totalFragments, availableRelays) {
  * Publish a Shamir fragment to Nostr relays as NIP-78 event
  * @param {string} switchId - The dead man's switch ID
  * @param {number} fragmentIndex - Index of the fragment (0-based)
- * @param {Buffer} fragmentData - The encrypted fragment data
+ * @param {Object} encryptedData - { ciphertext, iv, authTag } from encryption
+ * @param {Object} metadata - { salt, iterations } for key derivation
  * @param {Object} privateKey - Nostr private key for signing
  * @param {Array<string>} relayUrls - Array of relay URLs
  * @param {number} expiryTimestamp - Unix timestamp for fragment expiry
+ * @param {string} [bitcoinTxid] - Optional Bitcoin transaction ID for linkage
  * @returns {Object} { eventId, successCount, failures }
  */
 export async function publishFragment(
   switchId,
   fragmentIndex,
-  fragmentData,
+  encryptedData,
+  metadata,
   privateKey,
   relayUrls,
-  expiryTimestamp
+  expiryTimestamp,
+  bitcoinTxid = null
 ) {
+  // SECURITY: Bundle ALL cryptographic state atomically
+  const fragmentPayload = createFragmentPayload(encryptedData, metadata);
+
   // Create NIP-78 parameterized replaceable event (kind 30078)
+  const tags = [
+    ['d', `${switchId}-${fragmentIndex}`], // Unique identifier for each fragment
+    ['switch', switchId],
+    ['fragment_index', fragmentIndex.toString()],
+    ['expiration', expiryTimestamp.toString()], // NIP-40 expiration
+    ['version', '1']
+  ];
+
+  // Link to Bitcoin transaction if provided (two-phase commit)
+  if (bitcoinTxid) {
+    tags.push(['bitcoin_txid', bitcoinTxid]);
+  }
+
   const event = {
     kind: 30078,
     created_at: Math.floor(Date.now() / 1000),
-    tags: [
-      ['d', switchId], // Identifier tag for replaceable events
-      ['fragmentIndex', fragmentIndex.toString()],
-      ['expiry', expiryTimestamp.toString()]
-    ],
-    content: fragmentData.toString('base64'), // Base64-encoded fragment
+    tags,
+    content: serializePayload(fragmentPayload), // Atomic payload as JSON
     pubkey: privateKey.pubkey
   };
 
@@ -202,32 +219,61 @@ export async function publishFragment(
 }
 
 /**
- * Retrieve fragments for a switch from Nostr relays
+ * Retrieve fragments for a switch from Nostr relays with integrity verification
  * @param {string} switchId - The dead man's switch ID
  * @param {Array<string>} relayUrls - Array of relay URLs
- * @returns {Array<Object>} Array of fragments with { index, data }
+ * @returns {Array<Object>} Array of verified fragments with { index, encryptedData, metadata }
  */
 export async function retrieveFragments(switchId, relayUrls) {
   const filter = {
     kinds: [30078],
-    '#d': [switchId]
+    '#switch': [switchId] // Updated to match new tag structure
   };
 
   const events = await fetchFromRelays(filter, relayUrls);
 
-  // Parse and sort fragments by index
-  const fragments = events
-    .map(event => {
-      const indexTag = event.tags.find(tag => tag[0] === 'fragmentIndex');
-      if (!indexTag) return null;
+  // Parse, verify integrity, and sort fragments by index
+  const fragments = [];
 
-      const index = parseInt(indexTag[1]);
-      const data = Buffer.from(event.content, 'base64');
+  for (const event of events) {
+    const indexTag = event.tags.find(tag => tag[0] === 'fragment_index');
+    if (!indexTag) {
+      console.warn(`Event ${event.id} missing fragment_index tag - skipping`);
+      continue;
+    }
 
-      return { index, data, eventId: event.id };
-    })
-    .filter(f => f !== null)
-    .sort((a, b) => a.index - b.index);
+    const index = parseInt(indexTag[1]);
+
+    try {
+      // SECURITY: Verify integrity before accepting fragment
+      const verifiedData = deserializeAndVerify(event.content);
+
+      fragments.push({
+        index,
+        encryptedData: {
+          ciphertext: verifiedData.ciphertext,
+          iv: verifiedData.iv,
+          authTag: verifiedData.authTag
+        },
+        metadata: {
+          salt: verifiedData.salt,
+          iterations: verifiedData.iterations,
+          algorithm: verifiedData.algorithm,
+          timestamp: verifiedData.timestamp
+        },
+        eventId: event.id
+      });
+
+      console.log(`✓ Fragment ${index} integrity verified`);
+    } catch (error) {
+      console.error(`Fragment ${index} verification failed (event ${event.id}): ${error.message}`);
+      // Skip corrupted fragment - will try to get it from another relay
+      continue;
+    }
+  }
+
+  // Sort by index
+  fragments.sort((a, b) => a.index - b.index);
 
   return fragments;
 }

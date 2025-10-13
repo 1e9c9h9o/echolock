@@ -18,6 +18,8 @@ import {
   filterHealthyRelays
 } from '../../src/nostr/relayHealthCheck.js';
 import { generateSecretKey, getPublicKey, finalizeEvent } from 'nostr-tools';
+import { encrypt, decrypt } from '../../src/crypto/encryption.js';
+import crypto from 'crypto';
 
 // Test relays - geographically distributed
 const TEST_RELAYS = [
@@ -100,14 +102,23 @@ describe('Nostr Fragment Publishing', () => {
     }
   }, 30000);
 
-  test('should publish a fragment with NIP-78 format', async () => {
+  test('should publish a fragment with NIP-78 format and atomic storage', async () => {
+    // NEW API: Encrypt the fragment data first
     const fragmentData = Buffer.from('test_fragment_data_12345');
+    const encryptionKey = crypto.randomBytes(32);
+    const encryptedData = encrypt(fragmentData, encryptionKey);
+
+    const metadata = {
+      salt: crypto.randomBytes(32),
+      iterations: 600000
+    };
     const expiryTimestamp = Math.floor(Date.now() / 1000) + 3600;
 
     const result = await publishFragment(
       testSwitchId,
       0,
-      fragmentData,
+      encryptedData, // NEW: { ciphertext, iv, authTag }
+      metadata,      // NEW: { salt, iterations }
       { privkey: testPrivateKey, pubkey: testPublicKey },
       TEST_RELAYS,
       expiryTimestamp
@@ -118,20 +129,26 @@ describe('Nostr Fragment Publishing', () => {
     console.log(`Fragment published with event ID: ${result.eventId}`);
   }, 30000);
 
-  test('should publish multiple fragments', async () => {
+  test('should publish multiple fragments with encryption', async () => {
     const fragments = [
       Buffer.from('fragment_0'),
       Buffer.from('fragment_1'),
       Buffer.from('fragment_2')
     ];
+    const encryptionKey = crypto.randomBytes(32);
+    const salt = crypto.randomBytes(32);
     const expiryTimestamp = Math.floor(Date.now() / 1000) + 3600;
 
     const results = [];
     for (let i = 0; i < fragments.length; i++) {
+      const encryptedData = encrypt(fragments[i], encryptionKey);
+      const metadata = { salt, iterations: 600000 };
+
       const result = await publishFragment(
         testSwitchId,
         i,
-        fragments[i],
+        encryptedData,
+        metadata,
         { privkey: testPrivateKey, pubkey: testPublicKey },
         TEST_RELAYS,
         expiryTimestamp
@@ -157,21 +174,27 @@ describe('Nostr Fragment Retrieval', () => {
     testSwitchId = 'test_retrieve_' + Date.now();
   });
 
-  test('should retrieve published fragments', async () => {
-    // First, publish some fragments
+  test('should retrieve published fragments with integrity verification', async () => {
+    // First, publish some fragments with encryption
     const fragments = [
       Buffer.from('retrieve_test_fragment_0'),
       Buffer.from('retrieve_test_fragment_1'),
       Buffer.from('retrieve_test_fragment_2')
     ];
+    const encryptionKey = crypto.randomBytes(32);
+    const salt = crypto.randomBytes(32);
     const expiryTimestamp = Math.floor(Date.now() / 1000) + 3600;
 
     console.log(`Publishing fragments for switch ${testSwitchId}...`);
     for (let i = 0; i < fragments.length; i++) {
+      const encryptedData = encrypt(fragments[i], encryptionKey);
+      const metadata = { salt, iterations: 600000 };
+
       await publishFragment(
         testSwitchId,
         i,
-        fragments[i],
+        encryptedData,
+        metadata,
         { privkey: testPrivateKey, pubkey: testPublicKey },
         TEST_RELAYS,
         expiryTimestamp
@@ -187,9 +210,24 @@ describe('Nostr Fragment Retrieval', () => {
 
     expect(retrieved.length).toBeGreaterThanOrEqual(3);
     expect(retrieved[0].index).toBe(0);
-    expect(retrieved[0].data.toString()).toBe('retrieve_test_fragment_0');
 
-    console.log(`Retrieved ${retrieved.length} fragments`);
+    // NEW: Verify the structure includes encrypted data and metadata
+    expect(retrieved[0].encryptedData).toHaveProperty('ciphertext');
+    expect(retrieved[0].encryptedData).toHaveProperty('iv');
+    expect(retrieved[0].encryptedData).toHaveProperty('authTag');
+    expect(retrieved[0].metadata).toHaveProperty('salt');
+    expect(retrieved[0].metadata).toHaveProperty('iterations');
+
+    // Decrypt and verify content
+    const decrypted = decrypt(
+      retrieved[0].encryptedData.ciphertext,
+      encryptionKey,
+      retrieved[0].encryptedData.iv,
+      retrieved[0].encryptedData.authTag
+    );
+    expect(decrypted.toString()).toBe('retrieve_test_fragment_0');
+
+    console.log(`Retrieved ${retrieved.length} fragments with integrity verification ✓`);
   }, 90000);
 
   test('should handle fragment retrieval with relay failures', async () => {
@@ -206,14 +244,20 @@ describe('Nostr Fragment Retrieval', () => {
       Buffer.from('fail_test_1'),
       Buffer.from('fail_test_2')
     ];
+    const encryptionKey = crypto.randomBytes(32);
+    const salt = crypto.randomBytes(32);
     const expiryTimestamp = Math.floor(Date.now() / 1000) + 3600;
 
     // Publish to good relays
     for (let i = 0; i < fragments.length; i++) {
+      const encryptedData = encrypt(fragments[i], encryptionKey);
+      const metadata = { salt, iterations: 600000 };
+
       await publishFragment(
         testSwitchIdFail,
         i,
-        fragments[i],
+        encryptedData,
+        metadata,
         { privkey: testPrivateKey, pubkey: testPublicKey },
         TEST_RELAYS.slice(0, 5),
         expiryTimestamp
@@ -226,7 +270,7 @@ describe('Nostr Fragment Retrieval', () => {
     try {
       const retrieved = await retrieveFragments(testSwitchIdFail, mixedRelays);
       expect(retrieved.length).toBeGreaterThanOrEqual(3);
-      console.log('Fragment retrieval succeeded despite relay failures');
+      console.log('Fragment retrieval succeeded despite relay failures ✓');
     } catch (error) {
       console.log('Expected behavior: Some relays failed but retrieval may still work');
     }
