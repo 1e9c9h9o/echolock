@@ -8,14 +8,19 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Ulm School inspired - functional color system
-        primary: '#0066CC',      // Clear blue for primary actions
-        secondary: '#333333',    // Dark gray for text
-        accent: '#FF6B35',       // Orange for warnings/alerts
-        success: '#2D9B4E',      // Green for success states
-        background: '#FFFFFF',   // Pure white
-        surface: '#F5F5F5',      // Light gray for surfaces
-        border: '#CCCCCC',       // Border gray
+        // EchoLock brand colors from logo
+        echo: '#C73E3A',        // Red from ECHO
+        lock: '#2D8B3C',        // Green from LOCK
+        accent: '#2B7B9E',      // Blue accent
+
+        // Functional colors
+        primary: '#2B7B9E',     // Blue for primary actions
+        secondary: '#333333',   // Dark gray for text
+        success: '#2D8B3C',     // Green for success states
+        warning: '#C73E3A',     // Red for warnings/alerts
+        background: '#FFFFFF',  // Pure white
+        surface: '#F5F5F5',     // Light gray for surfaces
+        border: '#CCCCCC',      // Border gray
         text: {
           primary: '#333333',
           secondary: '#666666',

@@ -3,7 +3,8 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Shield, Home, Plus, Settings, LogOut } from 'lucide-react'
+import Image from 'next/image'
+import { Home, Plus, Settings, LogOut } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
 import { authAPI } from '@/lib/api'
 
@@ -41,9 +42,8 @@ export default function DashboardLayout({
       <aside className="w-64 bg-white border-r border-border flex flex-col">
         {/* Logo */}
         <div className="p-grid-4 border-b border-border">
-          <Link href="/dashboard" className="flex items-center space-x-grid-2">
-            <Shield className="h-8 w-8 text-primary" strokeWidth={1.5} />
-            <span className="text-xl font-bold text-secondary">EchoLock</span>
+          <Link href="/dashboard">
+            <Image src="/logo.png" alt="EchoLock" width={120} height={40} className="h-10 w-auto" />
           </Link>
         </div>
 
@@ -71,7 +71,7 @@ export default function DashboardLayout({
             onClick={handleLogout}
             className="flex items-center space-x-grid text-text-secondary hover:text-secondary text-sm w-full"
           >
-            <LogOut className="h-4 w-4" strokeWidth={1.5} />
+            <LogOut className="h-4 w-4" strokeWidth={2} />
             <span>Log out</span>
           </button>
         </div>
@@ -101,7 +101,7 @@ function NavLink({
       href={href}
       className="flex items-center space-x-grid-2 px-grid-3 py-grid-2 text-text-secondary hover:text-secondary hover:bg-surface transition-colors mb-grid"
     >
-      <Icon className="h-5 w-5" strokeWidth={1.5} />
+      <Icon className="h-5 w-5" strokeWidth={2} />
       <span className="text-sm font-medium">{children}</span>
     </Link>
   )

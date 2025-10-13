@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Shield } from 'lucide-react'
+import Image from 'next/image'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { authAPI } from '@/lib/api'
@@ -38,10 +38,9 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-grid-6">
-          <div className="flex items-center justify-center mb-grid-3">
-            <Shield className="h-12 w-12 text-primary" strokeWidth={1.5} />
+          <div className="flex items-center justify-center mb-grid-4">
+            <Image src="/logo.png" alt="EchoLock" width={160} height={160} className="w-40 h-auto" />
           </div>
-          <h1 className="text-3xl font-bold text-secondary mb-grid">EchoLock</h1>
           <p className="text-text-secondary">Cryptographic dead man's switch</p>
         </div>
 
@@ -69,7 +68,7 @@ export default function LoginPage() {
             />
 
             {error && (
-              <div className="bg-accent bg-opacity-10 border border-accent p-grid-2 text-accent text-sm">
+              <div className="bg-warning bg-opacity-10 border border-warning p-grid-2 text-warning text-sm">
                 {error}
               </div>
             )}
