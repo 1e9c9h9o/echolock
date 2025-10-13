@@ -37,23 +37,23 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-surface flex">
+    <div className="min-h-screen bg-white flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-border flex flex-col">
+      <aside className="w-64 bg-white border-r-2 border-black flex flex-col">
         {/* Logo */}
-        <div className="p-grid-4 border-b border-border">
+        <div className="p-6 border-b-2 border-black">
           <Link href="/dashboard">
             <Image src="/logo.png" alt="EchoLock" width={120} height={40} className="h-10 w-auto" />
           </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-grid-3">
+        <nav className="flex-1 p-4">
           <NavLink href="/dashboard" icon={Home}>
             Dashboard
           </NavLink>
           <NavLink href="/dashboard/create" icon={Plus}>
-            Create switch
+            Create Switch
           </NavLink>
           <NavLink href="/dashboard/settings" icon={Settings}>
             Settings
@@ -61,25 +61,25 @@ export default function DashboardLayout({
         </nav>
 
         {/* User info */}
-        <div className="p-grid-4 border-t border-border">
-          <div className="mb-grid-2">
-            <p className="text-sm font-medium text-secondary truncate">
+        <div className="p-6 border-t-2 border-black">
+          <div className="mb-3">
+            <p className="text-xs uppercase font-bold text-black truncate">
               {user?.email}
             </p>
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center space-x-grid text-text-secondary hover:text-secondary text-sm w-full"
+            className="flex items-center text-black hover:text-warning text-xs uppercase font-bold tracking-wider w-full transition-colors"
           >
-            <LogOut className="h-4 w-4" strokeWidth={2} />
-            <span>Log out</span>
+            <LogOut className="h-4 w-4 mr-2" strokeWidth={2} />
+            <span>Log Out</span>
           </button>
         </div>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-auto">
-        <div className="max-w-6xl mx-auto p-grid-6">
+      <main className="flex-1 overflow-auto bg-white">
+        <div className="max-w-6xl mx-auto p-8">
           {children}
         </div>
       </main>
@@ -99,10 +99,10 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="flex items-center space-x-grid-2 px-grid-3 py-grid-2 text-text-secondary hover:text-secondary hover:bg-surface transition-colors mb-grid"
+      className="flex items-center px-4 py-3 text-black hover:bg-black hover:text-white transition-colors mb-1 border-2 border-transparent hover:border-black uppercase text-xs font-bold tracking-wider"
     >
-      <Icon className="h-5 w-5" strokeWidth={2} />
-      <span className="text-sm font-medium">{children}</span>
+      <Icon className="h-5 w-5 mr-3" strokeWidth={2} />
+      <span>{children}</span>
     </Link>
   )
 }

@@ -89,58 +89,58 @@ export default function CreateSwitchPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-grid-6">
+      <div className="mb-8 border-b-2 border-black pb-6">
         <Link
           href="/dashboard"
-          className="inline-flex items-center text-text-secondary hover:text-secondary text-sm mb-grid-3"
+          className="inline-flex items-center text-black hover:text-warning text-xs uppercase font-bold tracking-wider mb-4 transition-colors"
         >
-          <ArrowLeft className="h-4 w-4 mr-grid" strokeWidth={1.5} />
-          Back to dashboard
+          <ArrowLeft className="h-4 w-4 mr-2" strokeWidth={2} />
+          Back to Dashboard
         </Link>
-        <h1 className="text-3xl font-bold text-secondary mb-grid-2">
-          Create dead man's switch
+        <h1 className="text-4xl font-bold uppercase mb-2">
+          Create Switch
         </h1>
-        <p className="text-text-secondary">
-          Configure your switch and add recipients
+        <p className="text-xs uppercase tracking-wide">
+          Configure switch parameters and recipients
         </p>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit}>
-        <div className="space-y-grid-6">
+        <div className="space-y-8">
           {/* Basic information */}
           <Card>
-            <h2 className="text-xl font-bold text-secondary mb-grid-4">
-              Basic information
+            <h2 className="text-2xl font-bold uppercase mb-6">
+              Switch Configuration
             </h2>
-            <div className="space-y-grid-4">
+            <div className="space-y-6">
               <Input
                 label="Title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="My important secrets"
+                placeholder="Enter switch title"
                 required
               />
 
               <div>
-                <label className="block text-sm font-medium text-secondary mb-grid">
+                <label className="block text-xs font-bold uppercase tracking-wider mb-2">
                   Message
                 </label>
                 <textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Enter your secret message..."
+                  placeholder="Enter secret message..."
                   rows={6}
-                  className="w-full px-grid-2 py-grid-2 border border-border bg-white text-secondary focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-3 border-2 border-black bg-white focus:outline-none focus:ring-2 focus:ring-black text-sm"
                   required
                 />
-                <p className="mt-grid text-sm text-text-secondary">
-                  This message will be encrypted and delivered if the timer expires
+                <p className="mt-2 text-xs uppercase tracking-wide">
+                  Encrypted and delivered if timer expires
                 </p>
               </div>
 
               <Input
-                label="Check-in interval (hours)"
+                label="Check-in Interval (Hours)"
                 type="number"
                 value={checkInHours}
                 onChange={(e) => setCheckInHours(e.target.value)}
@@ -151,7 +151,7 @@ export default function CreateSwitchPage() {
               />
 
               <Input
-                label="Encryption password"
+                label="Encryption Password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -164,36 +164,35 @@ export default function CreateSwitchPage() {
 
           {/* Recipients */}
           <Card>
-            <div className="flex items-center justify-between mb-grid-4">
-              <h2 className="text-xl font-bold text-secondary">Recipients</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold uppercase">Recipients</h2>
               <Button
                 type="button"
                 variant="secondary"
-                size="sm"
                 onClick={addRecipient}
               >
-                <Plus className="h-4 w-4 mr-grid" strokeWidth={1.5} />
-                Add recipient
+                <Plus className="h-4 w-4 mr-2" strokeWidth={2} />
+                Add Recipient
               </Button>
             </div>
 
-            <div className="space-y-grid-4">
+            <div className="space-y-4">
               {recipients.map((recipient, index) => (
                 <div
                   key={index}
-                  className="border border-border p-grid-3 relative"
+                  className="border-2 border-black p-4 relative"
                 >
                   {recipients.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeRecipient(index)}
-                      className="absolute top-grid-2 right-grid-2 text-text-secondary hover:text-accent"
+                      className="absolute top-3 right-3 text-black hover:text-warning transition-colors"
                     >
-                      <X className="h-5 w-5" strokeWidth={1.5} />
+                      <X className="h-5 w-5" strokeWidth={2} />
                     </button>
                   )}
 
-                  <div className="space-y-grid-3 pr-grid-6">
+                  <div className="space-y-4 pr-10">
                     <Input
                       label="Name"
                       value={recipient.name}
@@ -217,23 +216,22 @@ export default function CreateSwitchPage() {
 
           {/* Error */}
           {error && (
-            <div className="bg-accent bg-opacity-10 border border-accent p-grid-3 text-accent text-sm">
-              {error}
+            <div className="bg-warning text-white p-4 border-2 border-warning">
+              <p className="text-xs uppercase font-bold">{error}</p>
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex space-x-grid-3">
+          <div className="flex space-x-4">
             <Button
               type="submit"
               variant="primary"
-              size="lg"
               disabled={loading}
             >
-              {loading ? 'Creating...' : 'Create switch'}
+              {loading ? 'Creating...' : 'Create Switch'}
             </Button>
             <Link href="/dashboard">
-              <Button type="button" variant="secondary" size="lg">
+              <Button type="button" variant="secondary">
                 Cancel
               </Button>
             </Link>

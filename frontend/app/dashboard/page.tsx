@@ -52,7 +52,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-text-secondary">Loading...</p>
+        <p className="text-xs uppercase font-bold tracking-wider">Loading...</p>
       </div>
     )
   }
@@ -60,69 +60,73 @@ export default function DashboardPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-grid-6">
-        <div className="flex items-center justify-between mb-grid-3">
-          <h1 className="text-3xl font-bold text-secondary">Dashboard</h1>
+      <div className="mb-8 border-b-2 border-black pb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h1 className="text-4xl font-bold uppercase">Dashboard</h1>
           <Link href="/dashboard/create">
             <Button variant="primary">
-              <Plus className="h-5 w-5 inline mr-grid" strokeWidth={1.5} />
-              Create switch
+              <Plus className="h-5 w-5 inline mr-2" strokeWidth={2} />
+              Create Switch
             </Button>
           </Link>
         </div>
-        <p className="text-text-secondary">
-          Manage your dead man's switches
+        <p className="text-sm uppercase tracking-wide">
+          Active switches and check-in status
         </p>
       </div>
 
       {/* Error */}
       {error && (
-        <div className="bg-accent bg-opacity-10 border border-accent p-grid-3 mb-grid-4 flex items-start">
-          <AlertCircle className="h-5 w-5 text-accent mr-grid-2 flex-shrink-0 mt-0.5" strokeWidth={1.5} />
-          <p className="text-accent text-sm">{error}</p>
+        <div className="bg-warning text-white p-4 mb-6 border-2 border-warning">
+          <div className="flex items-start">
+            <AlertCircle className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5" strokeWidth={2} />
+            <p className="text-xs uppercase font-bold">{error}</p>
+          </div>
         </div>
       )}
 
       {/* Empty state */}
       {switches.length === 0 && !error && (
-        <Card className="text-center py-grid-6">
-          <Shield className="h-16 w-16 text-text-disabled mx-auto mb-grid-3" strokeWidth={1.5} />
-          <h3 className="text-xl font-bold text-secondary mb-grid-2">
-            No switches yet
+        <Card className="text-center py-12">
+          <div className="w-20 h-20 bg-black mx-auto mb-6 flex items-center justify-center">
+            <Plus className="h-12 w-12 text-white" strokeWidth={2} />
+          </div>
+          <h3 className="text-2xl font-bold uppercase mb-3">
+            No Switches Active
           </h3>
-          <p className="text-text-secondary mb-grid-4">
-            Create your first dead man's switch to get started
+          <p className="text-sm uppercase mb-6 tracking-wide">
+            Create your first dead man's switch
           </p>
           <Link href="/dashboard/create">
-            <Button variant="primary">Create your first switch</Button>
+            <Button variant="primary">Create Switch</Button>
           </Link>
         </Card>
       )}
 
       {/* Switches list */}
       {switches.length > 0 && (
-        <div className="grid gap-grid-4">
+        <div className="space-y-4">
           {switches.map((sw) => (
             <Card key={sw.id}>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center space-x-grid-3 mb-grid-2">
-                    <h3 className="text-lg font-bold text-secondary">
+                  <div className="flex items-center space-x-4 mb-4">
+                    <h3 className="text-xl font-bold uppercase">
                       {sw.title}
                     </h3>
                     <StatusBadge status={sw.status} />
                   </div>
 
-                  <div className="space-y-grid text-sm text-text-secondary">
+                  <div className="space-y-2 text-xs uppercase tracking-wide">
                     <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-grid" strokeWidth={1.5} />
+                      <Clock className="h-4 w-4 mr-2" strokeWidth={2} />
                       <span>
                         Check-in every {sw.checkInHours} hours
                       </span>
                     </div>
                     {sw.status === 'active' && (
                       <div className="flex items-center">
-                        <AlertCircle className="h-4 w-4 mr-grid" strokeWidth={1.5} />
+                        <AlertCircle className="h-4 w-4 mr-2" strokeWidth={2} />
                         <span>
                           Next check-in due{' '}
                           {formatDistanceToNow(new Date(sw.nextCheckInAt), {
@@ -135,18 +139,17 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="flex space-x-grid-2 ml-grid-4">
+                <div className="flex space-x-3 ml-6">
                   {sw.status === 'active' && (
                     <Button
                       variant="primary"
-                      size="sm"
                       onClick={() => handleCheckIn(sw.id)}
                     >
-                      Check in
+                      Check In
                     </Button>
                   )}
                   <Link href={`/dashboard/switches/${sw.id}`}>
-                    <Button variant="secondary" size="sm">
+                    <Button variant="secondary">
                       View
                     </Button>
                   </Link>
