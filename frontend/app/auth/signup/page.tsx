@@ -47,8 +47,8 @@ export default function SignupPage() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-12">
-          <Image src="/logo.png" alt="EchoLock" width={160} height={160} className="w-32 h-auto mx-auto mb-6" />
-          <h1 className="text-2xl font-bold uppercase">Register Account</h1>
+          <Image src="/logo.png" alt="EchoLock" width={240} height={240} className="w-48 h-auto mx-auto mb-8" />
+          <h1 className="text-4xl font-bold uppercase">Register Account</h1>
         </div>
 
         {/* Form */}

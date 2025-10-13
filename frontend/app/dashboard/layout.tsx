@@ -43,7 +43,7 @@ export default function DashboardLayout({
         {/* Logo */}
         <div className="p-6 border-b-2 border-black">
           <Link href="/dashboard">
-            <Image src="/logo.png" alt="EchoLock" width={120} height={40} className="h-10 w-auto" />
+            <Image src="/logo.png" alt="EchoLock" width={180} height={80} className="h-14 w-auto" />
           </Link>
         </div>
 
