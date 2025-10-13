@@ -20,14 +20,13 @@ export default function SignupPage() {
     e.preventDefault()
     setError('')
 
-    // Validation
     if (password.length < 8) {
-      setError('Password must be at least 8 characters')
+      setError('Minimum 8 characters required')
       return
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match')
+      setError('Password mismatch')
       return
     }
 
@@ -35,30 +34,26 @@ export default function SignupPage() {
 
     try {
       await authAPI.signup(email, password)
-      router.push('/auth/login?message=Account created. Please log in.')
+      router.push('/auth/login?message=Account created')
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Signup failed')
+      setError(err.response?.data?.message || 'Registration failed')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center p-grid-3">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
-        <div className="text-center mb-grid-6">
-          <div className="flex items-center justify-center mb-grid-4">
-            <Image src="/logo.png" alt="EchoLock" width={160} height={160} className="w-40 h-auto" />
-          </div>
-          <p className="text-text-secondary">Cryptographic dead man's switch</p>
+        <div className="text-center mb-12">
+          <Image src="/logo.png" alt="EchoLock" width={160} height={160} className="w-32 h-auto mx-auto mb-6" />
+          <h1 className="text-2xl font-bold uppercase">Register Account</h1>
         </div>
 
         {/* Form */}
-        <div className="bg-white border border-border p-grid-6">
-          <h2 className="text-xl font-bold text-secondary mb-grid-4">Create account</h2>
-
-          <form onSubmit={handleSubmit} className="space-y-grid-4">
+        <div className="border-2 border-black p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <Input
               label="Email"
               type="email"
@@ -73,51 +68,49 @@ export default function SignupPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              helperText="Minimum 8 characters"
+              placeholder="Min. 8 characters"
               required
             />
 
             <Input
-              label="Confirm password"
+              label="Confirm"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="Re-enter password"
               required
             />
 
             {error && (
-              <div className="bg-warning bg-opacity-10 border border-warning p-grid-2 text-warning text-sm">
-                {error}
+              <div className="bg-warning text-white p-3 border-2 border-warning">
+                <p className="text-xs font-bold uppercase">{error}</p>
               </div>
             )}
 
             <Button
               type="submit"
               variant="primary"
-              size="lg"
               className="w-full"
               disabled={loading}
             >
-              {loading ? 'Creating account...' : 'Create account'}
+              {loading ? 'Processing...' : 'Register'}
             </Button>
           </form>
 
-          <div className="mt-grid-4 pt-grid-4 border-t border-border">
-            <p className="text-sm text-text-secondary text-center">
-              Already have an account?{' '}
-              <Link href="/auth/login" className="text-primary hover:underline">
-                Log in
+          <div className="mt-6 pt-6 border-t-2 border-black">
+            <p className="text-xs uppercase text-center">
+              Have account?{' '}
+              <Link href="/auth/login" className="underline hover:no-underline">
+                Access here
               </Link>
             </p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-grid-4 text-center">
-          <Link href="/" className="text-sm text-text-secondary hover:text-secondary">
-            ← Back to home
+        <div className="mt-6 text-center">
+          <Link href="/" className="text-xs uppercase hover:underline">
+            ← Return
           </Link>
         </div>
       </div>

@@ -27,28 +27,24 @@ export default function LoginPage() {
       setUser(user)
       router.push('/dashboard')
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed')
+      setError(err.response?.data?.message || 'Authentication failed')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center p-grid-3">
+    <div className="min-h-screen bg-white flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
-        <div className="text-center mb-grid-6">
-          <div className="flex items-center justify-center mb-grid-4">
-            <Image src="/logo.png" alt="EchoLock" width={160} height={160} className="w-40 h-auto" />
-          </div>
-          <p className="text-text-secondary">Cryptographic dead man's switch</p>
+        <div className="text-center mb-12">
+          <Image src="/logo.png" alt="EchoLock" width={160} height={160} className="w-32 h-auto mx-auto mb-6" />
+          <h1 className="text-2xl font-bold uppercase">System Access</h1>
         </div>
 
         {/* Form */}
-        <div className="bg-white border border-border p-grid-6">
-          <h2 className="text-xl font-bold text-secondary mb-grid-4">Log in</h2>
-
-          <form onSubmit={handleSubmit} className="space-y-grid-4">
+        <div className="border-2 border-black p-8">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <Input
               label="Email"
               type="email"
@@ -63,41 +59,40 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="Enter password"
               required
             />
 
             {error && (
-              <div className="bg-warning bg-opacity-10 border border-warning p-grid-2 text-warning text-sm">
-                {error}
+              <div className="bg-warning text-white p-3 border-2 border-warning">
+                <p className="text-xs font-bold uppercase">{error}</p>
               </div>
             )}
 
             <Button
               type="submit"
               variant="primary"
-              size="lg"
               className="w-full"
               disabled={loading}
             >
-              {loading ? 'Logging in...' : 'Log in'}
+              {loading ? 'Authenticating...' : 'Access'}
             </Button>
           </form>
 
-          <div className="mt-grid-4 pt-grid-4 border-t border-border">
-            <p className="text-sm text-text-secondary text-center">
-              Don't have an account?{' '}
-              <Link href="/auth/signup" className="text-primary hover:underline">
-                Sign up
+          <div className="mt-6 pt-6 border-t-2 border-black">
+            <p className="text-xs uppercase text-center">
+              No account?{' '}
+              <Link href="/auth/signup" className="underline hover:no-underline">
+                Register here
               </Link>
             </p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="mt-grid-4 text-center">
-          <Link href="/" className="text-sm text-text-secondary hover:text-secondary">
-            ← Back to home
+        <div className="mt-6 text-center">
+          <Link href="/" className="text-xs uppercase hover:underline">
+            ← Return
           </Link>
         </div>
       </div>

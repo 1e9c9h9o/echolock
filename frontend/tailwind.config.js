@@ -8,37 +8,31 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // EchoLock brand colors from logo
-        echo: '#C73E3A',        // Red from ECHO
-        lock: '#2D8B3C',        // Green from LOCK
-        accent: '#2B7B9E',      // Blue accent
+        // Utilitarian + Kruger-inspired palette
+        echo: '#C73E3A',        // Red - urgent, direct
+        lock: '#2D8B3C',        // Green - active state
+        accent: '#000000',      // Black - bold statements
 
-        // Functional colors
-        primary: '#2B7B9E',     // Blue for primary actions
-        secondary: '#333333',   // Dark gray for text
-        success: '#2D8B3C',     // Green for success states
-        warning: '#C73E3A',     // Red for warnings/alerts
-        background: '#FFFFFF',  // Pure white
-        surface: '#F5F5F5',     // Light gray for surfaces
-        border: '#CCCCCC',      // Border gray
+        primary: '#000000',     // Black for primary actions
+        secondary: '#FFFFFF',   // White for contrast
+        success: '#2D8B3C',     // Green
+        warning: '#C73E3A',     // Red
+        background: '#FFFFFF',
+        surface: '#F0F0F0',     // Light gray
+        border: '#000000',      // Black borders
         text: {
-          primary: '#333333',
+          primary: '#000000',
           secondary: '#666666',
-          disabled: '#999999',
+          inverse: '#FFFFFF',
         },
       },
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        mono: ['SF Mono', 'Monaco', 'Inconsolata', 'Courier New', 'monospace'],
+        sans: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
+        mono: ['Courier New', 'Courier', 'monospace'],
       },
-      spacing: {
-        // Grid-based spacing (8px base)
-        'grid': '8px',
-        'grid-2': '16px',
-        'grid-3': '24px',
-        'grid-4': '32px',
-        'grid-5': '40px',
-        'grid-6': '48px',
+      fontSize: {
+        'civic': ['14px', '1.4'],
+        'statement': ['24px', '1.2'],
       },
     },
   },

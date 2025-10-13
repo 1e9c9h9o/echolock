@@ -3,59 +3,40 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
   body {
-    @apply bg-surface text-secondary;
-    font-feature-settings: "kern" 1, "liga" 1;
+    @apply bg-white text-black;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Ulm School inspired typography */
+  /* Bold, utilitarian typography */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-bold;
-    letter-spacing: -0.01em;
+    @apply font-bold uppercase tracking-tight;
+    line-height: 1.1;
   }
 
-  /* Form elements */
+  /* Direct, functional inputs */
   input, textarea, select {
-    @apply font-sans;
+    @apply border-2 border-black;
   }
 
-  /* Focus styles */
-  button:focus-visible,
-  input:focus-visible,
-  textarea:focus-visible,
-  select:focus-visible {
-    outline: 2px solid theme('colors.primary');
-    outline-offset: 2px;
+  input:focus, textarea:focus, select:focus {
+    @apply outline-none ring-2 ring-black;
   }
 
-  /* Remove default focus ring */
-  *:focus {
-    outline: none;
-  }
-
-  /* Links */
-  a {
-    @apply transition-colors;
+  /* High contrast buttons */
+  button {
+    @apply font-bold uppercase text-sm tracking-wide;
   }
 }
 
 @layer utilities {
-  /* Grid-based spacing utilities */
-  .grid-gap {
-    gap: 8px;
+  .statement {
+    @apply text-2xl font-bold uppercase;
+    line-height: 1.1;
   }
 
-  .grid-gap-2 {
-    gap: 16px;
-  }
-
-  .grid-gap-3 {
-    gap: 24px;
+  .civic-text {
+    @apply text-sm leading-relaxed;
   }
 }

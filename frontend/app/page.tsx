@@ -2,254 +2,155 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { Clock, Lock, Users, Zap, CheckCircle } from 'lucide-react'
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="border-b border-border sticky top-0 z-50 bg-white">
+      <header className="border-b-2 border-black">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center">
-            <Image src="/logo.png" alt="EchoLock" width={120} height={40} className="h-10 w-auto" />
-          </div>
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link href="#features" className="text-text-secondary hover:text-secondary">
-              Features
-            </Link>
-            <Link href="#how-it-works" className="text-text-secondary hover:text-secondary">
-              How It Works
-            </Link>
-            <Link href="/auth/login" className="bg-primary text-white px-6 py-2 hover:bg-accent transition">
-              Get Started
-            </Link>
-          </nav>
+          <Image src="/logo.png" alt="EchoLock" width={120} height={40} className="h-10 w-auto" />
+          <Link href="/auth/login" className="bg-black text-white px-6 py-2 text-xs font-bold uppercase tracking-wider hover:bg-white hover:text-black border-2 border-black transition">
+            Access System
+          </Link>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-20 text-center">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-bold text-secondary mb-6">
-            Your Digital Legacy,
-            <br />
-            <span className="text-primary">Protected by Cryptography</span>
-          </h1>
-          <p className="text-xl text-text-secondary mb-8 max-w-2xl mx-auto">
-            A cryptographic dead man's switch that ensures your secrets are delivered
-            to the right people at the right time, using Bitcoin timelocks and Nostr distribution.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/auth/signup"
-              className="bg-primary text-white px-8 py-4 text-lg font-medium hover:bg-accent transition"
-            >
-              Create Your First Switch
-            </Link>
-            <Link
-              href="#how-it-works"
-              className="border-2 border-border text-secondary px-8 py-4 text-lg font-medium hover:border-primary transition"
-            >
-              Learn More
+      {/* Hero */}
+      <section className="border-b-2 border-black">
+        <div className="container mx-auto px-4 py-20">
+          <div className="max-w-4xl">
+            <h1 className="text-6xl font-bold uppercase leading-none mb-6">
+              Your secrets.<br />
+              Your timeline.<br />
+              <span className="bg-black text-white px-2">Your control.</span>
+            </h1>
+            <p className="text-xl mb-8 max-w-2xl">
+              A cryptographic dead man's switch. Secure, automatic, decentralized. No corporation. No surveillance. Just mathematics.
+            </p>
+            <Link href="/auth/signup" className="inline-block bg-warning text-white px-8 py-4 text-sm font-bold uppercase tracking-wider hover:bg-white hover:text-warning border-2 border-warning transition">
+              Create Switch
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="bg-surface py-20">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-secondary mb-4">
-            Enterprise-Grade Security
-          </h2>
-          <p className="text-center text-text-secondary mb-12 max-w-2xl mx-auto">
-            Built on proven cryptographic primitives and decentralized technologies
-          </p>
-
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            <div className="bg-white border-2 border-warning p-8">
-              <div className="bg-warning w-14 h-14 flex items-center justify-center mb-4">
-                <Lock className="h-8 w-8 text-white" strokeWidth={2} />
-              </div>
-              <h3 className="text-xl font-bold text-secondary mb-3">
-                Shamir Secret Sharing
-              </h3>
-              <p className="text-text-secondary">
-                Your secrets are split into encrypted fragments. No single piece reveals anything.
+      {/* What it does */}
+      <section className="border-b-2 border-black">
+        <div className="container mx-auto px-4 py-16">
+          <div className="grid md:grid-cols-3 gap-0">
+            <div className="border-r-2 border-black p-8 md:border-r-2 md:border-b-0 border-b-2">
+              <h3 className="text-2xl font-bold uppercase mb-4">Store</h3>
+              <p className="text-sm leading-relaxed">
+                Encrypt your message. Split into fragments. Distribute across decentralized relays. Nobody can read it.
               </p>
             </div>
-
-            <div className="bg-white border-2 border-success p-8">
-              <div className="bg-success w-14 h-14 flex items-center justify-center mb-4">
-                <Clock className="h-8 w-8 text-white" strokeWidth={2} />
-              </div>
-              <h3 className="text-xl font-bold text-secondary mb-3">
-                Bitcoin Timelocks
-              </h3>
-              <p className="text-text-secondary">
-                Cryptographic proof of time passage using Bitcoin's OP_CHECKLOCKTIMEVERIFY.
+            <div className="border-r-2 border-black p-8 md:border-r-2 md:border-b-0 border-b-2">
+              <h3 className="text-2xl font-bold uppercase mb-4">Monitor</h3>
+              <p className="text-sm leading-relaxed">
+                Check in regularly. Simple. Direct. The system tracks time using Bitcoin's blockchain. Immutable proof.
               </p>
             </div>
-
-            <div className="bg-white border-2 border-primary p-8">
-              <div className="bg-primary w-14 h-14 flex items-center justify-center mb-4">
-                <Zap className="h-8 w-8 text-white" strokeWidth={2} />
-              </div>
-              <h3 className="text-xl font-bold text-secondary mb-3">
-                Nostr Distribution
-              </h3>
-              <p className="text-text-secondary">
-                Censorship-resistant delivery via the decentralized Nostr protocol.
+            <div className="p-8">
+              <h3 className="text-2xl font-bold uppercase mb-4">Release</h3>
+              <p className="text-sm leading-relaxed">
+                Miss a check-in? Your message automatically reconstructs and delivers. Mathematics, not trust.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section id="how-it-works" className="py-20">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-secondary mb-4">
-            How It Works
-          </h2>
-          <p className="text-center text-text-secondary mb-12 max-w-2xl mx-auto">
-            Simple to use, impossible to compromise
-          </p>
-
-          <div className="max-w-4xl mx-auto space-y-8">
-            <div className="flex items-start space-x-4">
-              <div className="bg-primary text-white w-12 h-12 flex items-center justify-center font-bold flex-shrink-0 text-lg">
-                1
-              </div>
+      {/* How it works */}
+      <section className="border-b-2 border-black bg-black text-white">
+        <div className="container mx-auto px-4 py-16">
+          <h2 className="text-4xl font-bold uppercase mb-12">System Architecture</h2>
+          <div className="space-y-6 max-w-3xl">
+            <div className="flex">
+              <div className="w-12 flex-shrink-0 font-mono font-bold">01</div>
               <div>
-                <h3 className="text-xl font-bold text-secondary mb-2">
-                  Create Your Switch
-                </h3>
-                <p className="text-text-secondary">
-                  Write your message, add recipients, and set your check-in interval.
-                  Your message is encrypted with military-grade AES-256.
-                </p>
+                <h3 className="font-bold uppercase mb-2">AES-256-GCM Encryption</h3>
+                <p className="text-sm opacity-90">Military-grade encryption. Your message is encrypted before it leaves your device.</p>
               </div>
             </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="bg-success text-white w-12 h-12 flex items-center justify-center font-bold flex-shrink-0 text-lg">
-                2
-              </div>
+            <div className="flex">
+              <div className="w-12 flex-shrink-0 font-mono font-bold">02</div>
               <div>
-                <h3 className="text-xl font-bold text-secondary mb-2">
-                  Fragments are Distributed
-                </h3>
-                <p className="text-text-secondary">
-                  Your encrypted message is split into fragments using Shamir Secret Sharing,
-                  then distributed across multiple Nostr relays.
-                </p>
+                <h3 className="font-bold uppercase mb-2">Shamir Secret Sharing</h3>
+                <p className="text-sm opacity-90">Key split into 5 fragments. Need 3 to decrypt. No single point of failure.</p>
               </div>
             </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="bg-accent text-white w-12 h-12 flex items-center justify-center font-bold flex-shrink-0 text-lg">
-                3
-              </div>
+            <div className="flex">
+              <div className="w-12 flex-shrink-0 font-mono font-bold">03</div>
               <div>
-                <h3 className="text-xl font-bold text-secondary mb-2">
-                  Check In Regularly
-                </h3>
-                <p className="text-text-secondary">
-                  Simply log in before your timer expires. Miss a check-in? Your recipients
-                  automatically receive their fragments.
-                </p>
+                <h3 className="font-bold uppercase mb-2">Bitcoin Timelocks</h3>
+                <p className="text-sm opacity-90">OP_CHECKLOCKTIMEVERIFY. Cryptographic proof of time. Can't be manipulated.</p>
               </div>
             </div>
-
-            <div className="flex items-start space-x-4">
-              <div className="bg-warning text-white w-12 h-12 flex items-center justify-center font-bold flex-shrink-0 text-lg">
-                4
-              </div>
+            <div className="flex">
+              <div className="w-12 flex-shrink-0 font-mono font-bold">04</div>
               <div>
-                <h3 className="text-xl font-bold text-secondary mb-2">
-                  Automatic Release
-                </h3>
-                <p className="text-text-secondary">
-                  If you don't check in, your message is automatically reassembled and
-                  delivered to your recipients via email.
-                </p>
+                <h3 className="font-bold uppercase mb-2">Nostr Distribution</h3>
+                <p className="text-sm opacity-90">Fragments published to decentralized relays. Censorship-resistant. No single authority.</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Use Cases Section */}
-      <section className="bg-surface py-20">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-secondary mb-12">
-            Use Cases
-          </h2>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            <div className="bg-white border border-border p-6">
-              <Users className="h-10 w-10 text-primary mb-4" strokeWidth={2} />
-              <h3 className="font-bold text-secondary mb-2">Family Legacy</h3>
-              <p className="text-text-secondary text-sm">
-                Share passwords, accounts, and important documents with loved ones.
-              </p>
+      {/* Use cases */}
+      <section className="border-b-2 border-black">
+        <div className="container mx-auto px-4 py-16">
+          <h2 className="text-4xl font-bold uppercase mb-12">Public Services</h2>
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl">
+            <div>
+              <h3 className="text-xl font-bold uppercase mb-3">Digital Inheritance</h3>
+              <p className="text-sm leading-relaxed mb-2">Bitcoin seed phrases. Account passwords. Critical access credentials.</p>
+              <p className="text-xs uppercase text-gray-600">For families</p>
             </div>
-
-            <div className="bg-white border border-border p-6">
-              <Lock className="h-10 w-10 text-success mb-4" strokeWidth={2} />
-              <h3 className="font-bold text-secondary mb-2">Cryptocurrency</h3>
-              <p className="text-text-secondary text-sm">
-                Ensure your crypto holdings aren't lost forever if something happens.
-              </p>
+            <div>
+              <h3 className="text-xl font-bold uppercase mb-3">Whistleblower Protection</h3>
+              <p className="text-sm leading-relaxed mb-2">Time-delayed document release. Insurance against retaliation.</p>
+              <p className="text-xs uppercase text-gray-600">For journalists</p>
             </div>
-
-            <div className="bg-white border border-border p-6">
-              <CheckCircle className="h-10 w-10 text-accent mb-4" strokeWidth={2} />
-              <h3 className="font-bold text-secondary mb-2">Business Continuity</h3>
-              <p className="text-text-secondary text-sm">
-                Share critical credentials with your team when needed.
-              </p>
+            <div>
+              <h3 className="text-xl font-bold uppercase mb-3">Business Continuity</h3>
+              <p className="text-sm leading-relaxed mb-2">Critical system access. Disaster recovery credentials.</p>
+              <p className="text-xs uppercase text-gray-600">For operators</p>
             </div>
-
-            <div className="bg-white border border-border p-6">
-              <Zap className="h-10 w-10 text-warning mb-4" strokeWidth={2} />
-              <h3 className="font-bold text-secondary mb-2">Personal Messages</h3>
-              <p className="text-text-secondary text-sm">
-                Leave final words, instructions, or memories for those you care about.
-              </p>
+            <div>
+              <h3 className="text-xl font-bold uppercase mb-3">Personal Archive</h3>
+              <p className="text-sm leading-relaxed mb-2">Final messages. Instructions. Digital legacy.</p>
+              <p className="text-xs uppercase text-gray-600">For everyone</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-primary">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Ready to Protect Your Digital Legacy?
+      {/* CTA */}
+      <section className="border-b-2 border-black bg-warning text-white">
+        <div className="container mx-auto px-4 py-16 text-center">
+          <h2 className="text-5xl font-bold uppercase mb-6">
+            Free. Open. Secure.
           </h2>
-          <p className="text-xl text-white text-opacity-90 mb-8 max-w-2xl mx-auto">
-            Join the beta and be among the first to experience next-generation secret sharing.
+          <p className="text-xl mb-8 max-w-2xl mx-auto">
+            No corporation controls your data. No ads. No tracking. Just cryptographic tools for digital autonomy.
           </p>
-          <Link
-            href="/auth/signup"
-            className="bg-white text-primary px-8 py-4 text-lg font-medium hover:bg-surface transition inline-block"
-          >
-            Get Started Free
+          <Link href="/auth/signup" className="inline-block bg-white text-warning px-8 py-4 text-sm font-bold uppercase tracking-wider hover:bg-black hover:text-white border-2 border-white transition">
+            Start Now
           </Link>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-secondary text-text-disabled py-12">
+      <footer className="bg-black text-white py-8">
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="mb-4 md:mb-0">
-              <Image src="/logo.png" alt="EchoLock" width={120} height={40} className="h-8 w-auto opacity-70" />
+            <div className="mb-4 md:mb-0 text-xs uppercase tracking-wider">
+              Built on Bitcoin & Nostr
             </div>
-            <div className="text-sm">
-              © 2025 EchoLock. Built on Bitcoin and Nostr.
+            <div className="text-xs">
+              Open Source • MIT License
             </div>
           </div>
         </div>

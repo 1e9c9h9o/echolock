@@ -1,35 +1,25 @@
 import React from 'react'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost'
-  size?: 'sm' | 'md' | 'lg'
+  variant?: 'primary' | 'secondary' | 'danger'
   children: React.ReactNode
 }
 
 export default function Button({
   variant = 'primary',
-  size = 'md',
   children,
   className = '',
   ...props
 }: ButtonProps) {
-  const baseStyles = 'font-medium transition-colors border'
-
   const variants = {
-    primary: 'bg-primary text-white border-primary hover:bg-[#0052A3]',
-    secondary: 'bg-white text-secondary border-border hover:bg-surface',
-    ghost: 'bg-transparent text-secondary border-transparent hover:bg-surface',
-  }
-
-  const sizes = {
-    sm: 'px-grid-2 py-grid text-sm',
-    md: 'px-grid-3 py-grid-2 text-base',
-    lg: 'px-grid-4 py-grid-3 text-lg',
+    primary: 'bg-black text-white border-2 border-black hover:bg-white hover:text-black',
+    secondary: 'bg-white text-black border-2 border-black hover:bg-black hover:text-white',
+    danger: 'bg-warning text-white border-2 border-warning hover:bg-white hover:text-warning',
   }
 
   return (
     <button
-      className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`px-6 py-3 font-bold uppercase text-xs tracking-wider transition-colors ${variants[variant]} ${className}`}
       {...props}
     >
       {children}
