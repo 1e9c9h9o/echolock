@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
+import Logo from '@/components/ui/Logo'
 import { Home, Plus, Settings, LogOut } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
 import { authAPI } from '@/lib/api'
@@ -42,8 +42,9 @@ export default function DashboardLayout({
       <aside className="w-64 bg-white border-r-2 border-black flex flex-col">
         {/* Logo */}
         <div className="p-6 border-b-2 border-gray-200">
-          <Link href="/dashboard">
-            <Image src="/logo.png" alt="EchoLock" width={180} height={80} className="h-14 w-auto" />
+          <Link href="/dashboard" className="flex items-center gap-3">
+            <Logo className="w-10 h-10" />
+            <span className="font-sans text-xl font-bold text-blue" style={{ textShadow: '1px 1px 0 #FF4D00' }}>ECHOLOCK</span>
           </Link>
         </div>
 

@@ -3,9 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import Logo from '@/components/ui/Logo'
 import { authAPI } from '@/lib/api'
 
 export default function SignupPage() {
@@ -47,7 +47,7 @@ export default function SignupPage() {
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-16">
-          <Image src="/logo.png" alt="EchoLock" width={160} height={160} className="w-40 h-auto mx-auto mb-8" />
+          <Logo className="w-20 h-20 mx-auto mb-8" />
           <h1 className="text-5xl font-extrabold">Sign Up</h1>
         </div>
 
