@@ -28,7 +28,7 @@ import { sendSwitchReleaseEmail } from '../services/emailService.js';
 import { testRelease } from '../../core/deadManSwitch.js';
 
 // Track processing to prevent duplicate releases
-const processingSwit ches = new Set();
+const processingSwitches = new Set();
 
 /**
  * Process a single expired switch
@@ -38,12 +38,12 @@ async function processExpiredSwitch(sw) {
   const switchId = sw.id;
 
   // Prevent duplicate processing
-  if (processingSwitch es.has(switchId)) {
+  if (processingSwitches.has(switchId)) {
     logger.debug('Switch already being processed', { switchId });
     return;
   }
 
-  processingSwitch es.add(switchId);
+  processingSwitches.add(switchId);
 
   try {
     logger.info('Processing expired switch', {
@@ -191,7 +191,7 @@ async function processExpiredSwitch(sw) {
     }
   } finally {
     // Remove from processing set
-    processingSwitch es.delete(switchId);
+    processingSwitches.delete(switchId);
   }
 }
 
