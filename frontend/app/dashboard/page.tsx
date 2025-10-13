@@ -52,7 +52,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-xs uppercase font-bold tracking-wider">Loading...</p>
+        <p className="text-base font-mono font-bold">Loading...</p>
       </div>
     )
   }
@@ -60,9 +60,9 @@ export default function DashboardPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-8 border-b-2 border-black pb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-4xl font-bold uppercase">Dashboard</h1>
+      <div className="mb-12">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-5xl font-bold">DASHBOARD</h1>
           <Link href="/dashboard/create">
             <Button variant="primary">
               <Plus className="h-5 w-5 inline mr-2" strokeWidth={2} />
@@ -70,31 +70,31 @@ export default function DashboardPage() {
             </Button>
           </Link>
         </div>
-        <p className="text-sm uppercase tracking-wide">
+        <p className="text-lg font-mono">
           Active switches and check-in status
         </p>
       </div>
 
       {/* Error */}
       {error && (
-        <div className="bg-warning text-white p-4 mb-6 border-2 border-warning">
+        <div className="bg-red text-cream p-6 mb-8 border-2 border-black">
           <div className="flex items-start">
             <AlertCircle className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5" strokeWidth={2} />
-            <p className="text-xs uppercase font-bold">{error}</p>
+            <p className="font-mono font-bold">{error}</p>
           </div>
         </div>
       )}
 
       {/* Empty state */}
       {switches.length === 0 && !error && (
-        <Card className="text-center py-12">
-          <div className="w-20 h-20 bg-black mx-auto mb-6 flex items-center justify-center">
-            <Plus className="h-12 w-12 text-white" strokeWidth={2} />
+        <Card className="text-center py-16">
+          <div className="w-24 h-24 bg-blue mx-auto mb-8 flex items-center justify-center border-2 border-black">
+            <Plus className="h-16 w-16 text-cream" strokeWidth={2} />
           </div>
-          <h3 className="text-2xl font-bold uppercase mb-3">
-            No Switches Active
+          <h3 className="text-3xl font-bold mb-4">
+            NO SWITCHES ACTIVE
           </h3>
-          <p className="text-sm uppercase mb-6 tracking-wide">
+          <p className="text-lg font-mono mb-8">
             Create your first dead man's switch
           </p>
           <Link href="/dashboard/create">
@@ -105,28 +105,28 @@ export default function DashboardPage() {
 
       {/* Switches list */}
       {switches.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {switches.map((sw) => (
             <Card key={sw.id}>
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center space-x-4 mb-4">
-                    <h3 className="text-xl font-bold uppercase">
+                  <div className="flex items-center gap-4 mb-6">
+                    <h3 className="text-2xl font-bold">
                       {sw.title}
                     </h3>
                     <StatusBadge status={sw.status} />
                   </div>
 
-                  <div className="space-y-2 text-xs uppercase tracking-wide">
+                  <div className="space-y-3 font-mono text-base">
                     <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-2" strokeWidth={2} />
+                      <Clock className="h-5 w-5 mr-3" strokeWidth={2} />
                       <span>
                         Check-in every {sw.checkInHours} hours
                       </span>
                     </div>
                     {sw.status === 'active' && (
                       <div className="flex items-center">
-                        <AlertCircle className="h-4 w-4 mr-2" strokeWidth={2} />
+                        <AlertCircle className="h-5 w-5 mr-3" strokeWidth={2} />
                         <span>
                           Next check-in due{' '}
                           {formatDistanceToNow(new Date(sw.nextCheckInAt), {
@@ -139,7 +139,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="flex space-x-3 ml-6">
+                <div className="flex gap-4 ml-8">
                   {sw.status === 'active' && (
                     <Button
                       variant="primary"

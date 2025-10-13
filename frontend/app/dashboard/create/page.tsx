@@ -46,7 +46,6 @@ export default function CreateSwitchPage() {
     e.preventDefault()
     setError('')
 
-    // Validation
     if (!title.trim()) {
       setError('Title is required')
       return
@@ -89,31 +88,31 @@ export default function CreateSwitchPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-8 border-b-2 border-black pb-6">
+      <div className="mb-12">
         <Link
           href="/dashboard"
-          className="inline-flex items-center text-black hover:text-warning text-xs uppercase font-bold tracking-wider mb-4 transition-colors"
+          className="inline-flex items-center text-blue hover:text-red text-base font-mono font-bold mb-6 transition-colors"
         >
-          <ArrowLeft className="h-4 w-4 mr-2" strokeWidth={2} />
+          <ArrowLeft className="h-5 w-5 mr-2" strokeWidth={2} />
           Back to Dashboard
         </Link>
-        <h1 className="text-4xl font-bold uppercase mb-2">
-          Create Switch
+        <h1 className="text-5xl font-bold mb-3">
+          CREATE SWITCH
         </h1>
-        <p className="text-xs uppercase tracking-wide">
+        <p className="text-lg font-mono">
           Configure switch parameters and recipients
         </p>
       </div>
 
       {/* Form */}
       <form onSubmit={handleSubmit}>
-        <div className="space-y-8">
+        <div className="space-y-10">
           {/* Basic information */}
           <Card>
-            <h2 className="text-2xl font-bold uppercase mb-6">
-              Switch Configuration
+            <h2 className="text-2xl font-bold mb-8">
+              SWITCH CONFIGURATION
             </h2>
-            <div className="space-y-6">
+            <div className="space-y-8">
               <Input
                 label="Title"
                 value={title}
@@ -123,7 +122,7 @@ export default function CreateSwitchPage() {
               />
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider mb-2">
+                <label className="block text-sm font-bold uppercase tracking-wider mb-3 font-sans">
                   Message
                 </label>
                 <textarea
@@ -131,10 +130,10 @@ export default function CreateSwitchPage() {
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Enter secret message..."
                   rows={6}
-                  className="w-full px-3 py-3 border-2 border-black bg-white focus:outline-none focus:ring-2 focus:ring-black text-sm"
+                  className="w-full px-4 py-4 border-2 border-black bg-white focus:outline-none focus:ring-2 focus:ring-blue text-base font-mono"
                   required
                 />
-                <p className="mt-2 text-xs uppercase tracking-wide">
+                <p className="mt-3 text-sm font-mono text-gray-700">
                   Encrypted and delivered if timer expires
                 </p>
               </div>
@@ -164,35 +163,35 @@ export default function CreateSwitchPage() {
 
           {/* Recipients */}
           <Card>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold uppercase">Recipients</h2>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl font-bold">RECIPIENTS</h2>
               <Button
                 type="button"
                 variant="secondary"
                 onClick={addRecipient}
               >
-                <Plus className="h-4 w-4 mr-2" strokeWidth={2} />
+                <Plus className="h-5 w-5 mr-2" strokeWidth={2} />
                 Add Recipient
               </Button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
               {recipients.map((recipient, index) => (
                 <div
                   key={index}
-                  className="border-2 border-black p-4 relative"
+                  className="border-2 border-black p-6 relative bg-white"
                 >
                   {recipients.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeRecipient(index)}
-                      className="absolute top-3 right-3 text-black hover:text-warning transition-colors"
+                      className="absolute top-4 right-4 text-black hover:text-red transition-colors"
                     >
-                      <X className="h-5 w-5" strokeWidth={2} />
+                      <X className="h-6 w-6" strokeWidth={2} />
                     </button>
                   )}
 
-                  <div className="space-y-4 pr-10">
+                  <div className="space-y-6 pr-12">
                     <Input
                       label="Name"
                       value={recipient.name}
@@ -216,13 +215,13 @@ export default function CreateSwitchPage() {
 
           {/* Error */}
           {error && (
-            <div className="bg-warning text-white p-4 border-2 border-warning">
-              <p className="text-xs uppercase font-bold">{error}</p>
+            <div className="bg-red text-cream p-6 border-2 border-black">
+              <p className="font-mono font-bold">{error}</p>
             </div>
           )}
 
           {/* Actions */}
-          <div className="flex space-x-4">
+          <div className="flex gap-6">
             <Button
               type="submit"
               variant="primary"
