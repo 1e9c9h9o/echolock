@@ -13,6 +13,10 @@
  * - Graceful shutdown on process termination
  */
 
+// Load environment variables
+import dotenv from 'dotenv';
+dotenv.config();
+
 import pg from 'pg';
 import { logger } from '../utils/logger.js';
 
@@ -24,7 +28,7 @@ const config = {
   port: parseInt(process.env.DB_PORT || '5432'),
   database: process.env.DB_NAME || 'echolock',
   user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD,
+  password: process.env.DB_PASSWORD || '',
 
   // Connection pool settings
   max: parseInt(process.env.DB_POOL_MAX || '20'), // Maximum connections

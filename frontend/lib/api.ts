@@ -84,6 +84,11 @@ export const authAPI = {
     const response = await api.post('/auth/reset-password', { token, newPassword })
     return response.data
   },
+
+  verifyEmail: async (token: string) => {
+    const response = await api.post('/auth/verify-email', { token })
+    return response.data
+  },
 }
 
 // Switches API
@@ -123,6 +128,11 @@ export const switchesAPI = {
     const response = await api.delete(`/switches/${id}`)
     return response.data
   },
+
+  getCheckIns: async (id: string) => {
+    const response = await api.get(`/switches/${id}/check-ins`)
+    return response.data.data
+  },
 }
 
 // User API
@@ -135,6 +145,13 @@ export const userAPI = {
   updateProfile: async (data: { email?: string; password?: string }) => {
     const response = await api.put('/user/profile', data)
     return response.data.data
+  },
+
+  deleteAccount: async (password: string) => {
+    const response = await api.delete('/users/me', {
+      data: { password }
+    })
+    return response.data
   },
 }
 

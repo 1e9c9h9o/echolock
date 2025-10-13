@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Clock, Users, AlertCircle, Trash2 } from 'lucide-react'
+import { ArrowLeft, Clock, Users, AlertCircle, Trash2, Activity } from 'lucide-react'
 import Link from 'next/link'
 import { formatDistanceToNow, format } from 'date-fns'
 import Button from '@/components/ui/Button'
@@ -25,12 +25,19 @@ interface SwitchDetail {
   }>
 }
 
+interface CheckIn {
+  id: string
+  timestamp: string
+  ip_address: string
+}
+
 export default function SwitchDetailPage() {
   const router = useRouter()
   const params = useParams()
   const id = params.id as string
 
   const [switchData, setSwitchData] = useState<SwitchDetail | null>(null)
+  const [checkIns, setCheckIns] = useState<CheckIn[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -42,6 +49,15 @@ export default function SwitchDetailPage() {
     try {
       const data = await switchesAPI.getOne(id)
       setSwitchData(data)
+
+      // Load check-in history
+      try {
+        const history = await switchesAPI.getCheckIns(id)
+        setCheckIns(history.checkIns || [])
+      } catch (historyErr) {
+        // Non-critical error, just log it
+        console.error('Failed to load check-in history:', historyErr)
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load switch')
     } finally {
@@ -201,6 +217,36 @@ export default function SwitchDetailPage() {
               </div>
             ))}
           </div>
+        </Card>
+
+        {/* Activity History */}
+        <Card>
+          <h2 className="text-xl font-bold text-secondary mb-grid-4">
+            <Activity className="h-5 w-5 inline mr-grid-2" strokeWidth={1.5} />
+            Activity history
+          </h2>
+          {checkIns.length === 0 ? (
+            <p className="text-text-secondary">No check-ins recorded yet</p>
+          ) : (
+            <div className="space-y-grid-3">
+              {checkIns.map((checkIn) => (
+                <div
+                  key={checkIn.id}
+                  className="flex items-center justify-between border border-border p-grid-3"
+                >
+                  <div>
+                    <p className="font-medium text-secondary">Check-in</p>
+                    <p className="text-sm text-text-secondary">
+                      {format(new Date(checkIn.timestamp), 'PPpp')}
+                    </p>
+                  </div>
+                  <p className="text-sm text-text-secondary">
+                    {formatDistanceToNow(new Date(checkIn.timestamp), { addSuffix: true })}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </Card>
 
         {/* Danger zone */}

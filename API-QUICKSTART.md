@@ -37,55 +37,113 @@ cp .env.example .env
 Edit `.env` - **minimum required**:
 
 ```bash
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/echolock
+# Server
+NODE_ENV=development
+PORT=3000
+
+# Database (use individual variables, not DATABASE_URL)
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=echolock
+DB_USER=postgres
+DB_PASSWORD=your_password_here
 
 # Security (generate random keys)
 JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(64).toString('hex'))")
 SERVICE_ENCRYPTION_KEY=$(node -e "console.log(require('crypto').randomBytes(32).toString('hex'))")
 
-# Email
+# Email (optional for development - will use mock if not set)
 RESEND_API_KEY=re_your_key_here
 FROM_EMAIL=EchoLock <noreply@yourdomain.com>
 
 # Frontend
 FRONTEND_URL=http://localhost:3001
 CORS_ORIGINS=http://localhost:3001
+
+# Development
+SKIP_EMAIL_VERIFICATION=true
+MOCK_EMAIL_SERVICE=true
 ```
 
 ### 3. Setup Database
 
-**Option A: Docker (Easiest)**
+**Option A: Install PostgreSQL on WSL2/Linux**
+
+```bash
+# Install PostgreSQL
+sudo apt update
+sudo apt install -y postgresql postgresql-contrib
+
+# Start PostgreSQL service
+sudo service postgresql start
+
+# Set postgres user password
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
+
+# Create database
+sudo -u postgres createdb echolock
+
+# Initialize schema
+sudo -u postgres psql -d echolock -f src/api/db/schema.sql
+```
+
+**Option B: Docker (Alternative)**
 
 ```bash
 docker run --name echolock-db \
-  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_PASSWORD=postgres \
   -e POSTGRES_DB=echolock \
   -p 5432:5432 \
   -d postgres:14
+
+# Initialize schema
+docker exec -i echolock-db psql -U postgres -d echolock < src/api/db/schema.sql
 ```
 
-**Option B: Local PostgreSQL**
+**Option C: macOS**
 
 ```bash
-psql -U postgres
-CREATE DATABASE echolock;
-\q
+# Install via Homebrew
+brew install postgresql@14
+brew services start postgresql@14
+
+# Create database and initialize
+createdb echolock
+psql -d echolock -f src/api/db/schema.sql
 ```
 
-### 4. Run Migrations
+### 4. Start Backend API
 
 ```bash
-npm run db:migrate
-```
-
-### 5. Start Server
-
-```bash
-npm run api:dev
+npm run api
 ```
 
 Server running at: http://localhost:3000/api
+
+You should see:
+```
+🚀 EchoLock API server started
+📡 API available at http://localhost:3000/api
+❤️  Health check at http://localhost:3000/health
+```
+
+### 5. Setup and Start Frontend (Optional)
+
+```bash
+# Navigate to frontend directory
+cd frontend
+
+# Install dependencies
+npm install
+
+# Configure API URL
+echo "NEXT_PUBLIC_API_URL=http://localhost:3000" > .env.local
+
+# Start frontend
+npm run dev
+```
+
+Frontend running at: http://localhost:3001
 
 ---
 

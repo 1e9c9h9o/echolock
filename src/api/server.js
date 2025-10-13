@@ -21,6 +21,10 @@
  * - Error boundaries
  */
 
+// Load environment variables from .env file
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
