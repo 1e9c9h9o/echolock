@@ -52,8 +52,8 @@ export default function SignupPage() {
         </div>
 
         {/* Form */}
-        <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(33,33,33,1)] p-10">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(33,33,33,1)] p-12">
+          <form onSubmit={handleSubmit} className="space-y-8">
             <Input
               label="Email"
               type="email"
@@ -93,12 +93,12 @@ export default function SignupPage() {
               className="w-full"
               disabled={loading}
             >
-              {loading ? 'Processing...' : 'Register'}
+              {loading ? 'Creating Account...' : 'Sign Up'}
             </Button>
           </form>
 
-          <div className="mt-6 pt-6 border-t-2 border-gray-200">
-            <p className="text-sm text-center">
+          <div className="mt-8 pt-8 border-t-2 border-gray-200">
+            <p className="text-base text-center font-mono">
               Have an account?{' '}
               <Link href="/auth/login" className="text-blue hover:underline font-bold">
                 Login
@@ -108,8 +108,8 @@ export default function SignupPage() {
         </div>
 
         {/* Footer */}
-        <div className="mt-6 text-center">
-          <Link href="/" className="text-sm text-blue hover:underline font-bold">
+        <div className="mt-8 text-center">
+          <Link href="/" className="text-base text-blue hover:underline font-bold font-mono">
             ← Back
           </Link>
         </div>
