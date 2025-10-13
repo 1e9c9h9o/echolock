@@ -9,6 +9,7 @@ import Card from '@/components/ui/Card'
 import StatusBadge from '@/components/ui/StatusBadge'
 import { switchesAPI } from '@/lib/api'
 import { useSwitchStore } from '@/lib/store'
+import { showToast } from '@/components/ui/ToastContainer'
 
 interface Switch {
   id: string
@@ -43,9 +44,11 @@ export default function DashboardPage() {
   const handleCheckIn = async (id: string) => {
     try {
       await switchesAPI.checkIn(id)
+      showToast('Check-in successful! Timer reset.', 'success')
       await loadSwitches()
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Check-in failed')
+      const msg = err.response?.data?.message || 'Check-in failed. Please try again.'
+      showToast(msg, 'error')
     }
   }
 

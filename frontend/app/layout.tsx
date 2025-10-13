@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import ToastContainer from '@/components/ui/ToastContainer'
 
 export const metadata: Metadata = {
   title: 'EchoLock - Cryptographic Dead Man Switch',
@@ -13,7 +14,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50">{children}</body>
+      <body className="bg-gray-50">
+        {children}
+        <ToastContainer />
+      </body>
     </html>
   )
 }
