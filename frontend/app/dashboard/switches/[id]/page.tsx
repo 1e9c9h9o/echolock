@@ -1,0 +1,245 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import { ArrowLeft, Clock, Users, AlertCircle, Trash2 } from 'lucide-react'
+import Link from 'next/link'
+import { formatDistanceToNow, format } from 'date-fns'
+import Button from '@/components/ui/Button'
+import Card from '@/components/ui/Card'
+import StatusBadge from '@/components/ui/StatusBadge'
+import { switchesAPI } from '@/lib/api'
+
+interface SwitchDetail {
+  id: string
+  title: string
+  checkInHours: number
+  nextCheckInAt: string
+  status: 'active' | 'expired' | 'cancelled'
+  createdAt: string
+  lastCheckInAt: string | null
+  recipients: Array<{
+    id: string
+    email: string
+    name: string
+  }>
+}
+
+export default function SwitchDetailPage() {
+  const router = useRouter()
+  const params = useParams()
+  const id = params.id as string
+
+  const [switchData, setSwitchData] = useState<SwitchDetail | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    loadSwitch()
+  }, [id])
+
+  const loadSwitch = async () => {
+    try {
+      const data = await switchesAPI.getOne(id)
+      setSwitchData(data)
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to load switch')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCheckIn = async () => {
+    try {
+      await switchesAPI.checkIn(id)
+      await loadSwitch()
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Check-in failed')
+    }
+  }
+
+  const handleCancel = async () => {
+    if (!confirm('Are you sure you want to cancel this switch?')) return
+
+    try {
+      await switchesAPI.cancel(id)
+      router.push('/dashboard')
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to cancel switch')
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this switch? This action cannot be undone.')) return
+
+    try {
+      await switchesAPI.delete(id)
+      router.push('/dashboard')
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to delete switch')
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-text-secondary">Loading...</p>
+      </div>
+    )
+  }
+
+  if (error || !switchData) {
+    return (
+      <div>
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center text-text-secondary hover:text-secondary text-sm mb-grid-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-grid" strokeWidth={1.5} />
+          Back to dashboard
+        </Link>
+        <Card className="text-center py-grid-6">
+          <AlertCircle className="h-16 w-16 text-accent mx-auto mb-grid-3" strokeWidth={1.5} />
+          <h3 className="text-xl font-bold text-secondary mb-grid-2">
+            Error loading switch
+          </h3>
+          <p className="text-text-secondary">{error || 'Switch not found'}</p>
+        </Card>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="mb-grid-6">
+        <Link
+          href="/dashboard"
+          className="inline-flex items-center text-text-secondary hover:text-secondary text-sm mb-grid-3"
+        >
+          <ArrowLeft className="h-4 w-4 mr-grid" strokeWidth={1.5} />
+          Back to dashboard
+        </Link>
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="flex items-center space-x-grid-3 mb-grid-2">
+              <h1 className="text-3xl font-bold text-secondary">
+                {switchData.title}
+              </h1>
+              <StatusBadge status={switchData.status} />
+            </div>
+            <p className="text-text-secondary">
+              Created {format(new Date(switchData.createdAt), 'PPP')}
+            </p>
+          </div>
+
+          {switchData.status === 'active' && (
+            <Button variant="primary" size="lg" onClick={handleCheckIn}>
+              Check in now
+            </Button>
+          )}
+        </div>
+      </div>
+
+      <div className="space-y-grid-6">
+        {/* Timer information */}
+        <Card>
+          <h2 className="text-xl font-bold text-secondary mb-grid-4">
+            Timer information
+          </h2>
+          <div className="space-y-grid-3">
+            <div className="flex items-center">
+              <Clock className="h-5 w-5 text-text-secondary mr-grid-2" strokeWidth={1.5} />
+              <span className="text-secondary">
+                Check-in interval: <strong>{switchData.checkInHours} hours</strong>
+              </span>
+            </div>
+
+            {switchData.status === 'active' && (
+              <>
+                <div className="flex items-center">
+                  <AlertCircle className="h-5 w-5 text-text-secondary mr-grid-2" strokeWidth={1.5} />
+                  <span className="text-secondary">
+                    Next check-in due:{' '}
+                    <strong>
+                      {formatDistanceToNow(new Date(switchData.nextCheckInAt), {
+                        addSuffix: true,
+                      })}
+                    </strong>
+                  </span>
+                </div>
+                <div className="text-sm text-text-secondary">
+                  Exact time: {format(new Date(switchData.nextCheckInAt), 'PPpp')}
+                </div>
+              </>
+            )}
+
+            {switchData.lastCheckInAt && (
+              <div className="text-sm text-text-secondary">
+                Last check-in: {format(new Date(switchData.lastCheckInAt), 'PPpp')}
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {/* Recipients */}
+        <Card>
+          <h2 className="text-xl font-bold text-secondary mb-grid-4">
+            <Users className="h-5 w-5 inline mr-grid-2" strokeWidth={1.5} />
+            Recipients ({switchData.recipients.length})
+          </h2>
+          <div className="space-y-grid-3">
+            {switchData.recipients.map((recipient) => (
+              <div
+                key={recipient.id}
+                className="flex items-center justify-between border border-border p-grid-3"
+              >
+                <div>
+                  <p className="font-medium text-secondary">{recipient.name}</p>
+                  <p className="text-sm text-text-secondary">{recipient.email}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Danger zone */}
+        <Card className="border-accent">
+          <h2 className="text-xl font-bold text-accent mb-grid-4">Danger zone</h2>
+          <div className="space-y-grid-3">
+            {switchData.status === 'active' && (
+              <div className="flex items-center justify-between pb-grid-3 border-b border-border">
+                <div>
+                  <h3 className="font-medium text-secondary mb-grid">Cancel switch</h3>
+                  <p className="text-sm text-text-secondary">
+                    Stop the timer and prevent message delivery
+                  </p>
+                </div>
+                <Button variant="secondary" onClick={handleCancel}>
+                  Cancel switch
+                </Button>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-medium text-secondary mb-grid">Delete switch</h3>
+                <p className="text-sm text-text-secondary">
+                  Permanently delete this switch and all data
+                </p>
+              </div>
+              <Button
+                variant="secondary"
+                onClick={handleDelete}
+                className="border-accent text-accent hover:bg-accent hover:text-white"
+              >
+                <Trash2 className="h-4 w-4 mr-grid" strokeWidth={1.5} />
+                Delete
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </div>
+    </div>
+  )
+}

@@ -8,18 +8,32 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+        // Ulm School inspired - functional color system
+        primary: '#0066CC',      // Clear blue for primary actions
+        secondary: '#333333',    // Dark gray for text
+        accent: '#FF6B35',       // Orange for warnings/alerts
+        success: '#2D9B4E',      // Green for success states
+        background: '#FFFFFF',   // Pure white
+        surface: '#F5F5F5',      // Light gray for surfaces
+        border: '#CCCCCC',       // Border gray
+        text: {
+          primary: '#333333',
+          secondary: '#666666',
+          disabled: '#999999',
         },
+      },
+      fontFamily: {
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+        mono: ['SF Mono', 'Monaco', 'Inconsolata', 'Courier New', 'monospace'],
+      },
+      spacing: {
+        // Grid-based spacing (8px base)
+        'grid': '8px',
+        'grid-2': '16px',
+        'grid-3': '24px',
+        'grid-4': '32px',
+        'grid-5': '40px',
+        'grid-6': '48px',
       },
     },
   },

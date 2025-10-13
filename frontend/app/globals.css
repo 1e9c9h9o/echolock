@@ -6,7 +6,56 @@
   * {
     @apply border-border;
   }
+
   body {
-    @apply bg-background text-foreground;
+    @apply bg-surface text-secondary;
+    font-feature-settings: "kern" 1, "liga" 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Ulm School inspired typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+    letter-spacing: -0.01em;
+  }
+
+  /* Form elements */
+  input, textarea, select {
+    @apply font-sans;
+  }
+
+  /* Focus styles */
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid theme('colors.primary');
+    outline-offset: 2px;
+  }
+
+  /* Remove default focus ring */
+  *:focus {
+    outline: none;
+  }
+
+  /* Links */
+  a {
+    @apply transition-colors;
+  }
+}
+
+@layer utilities {
+  /* Grid-based spacing utilities */
+  .grid-gap {
+    gap: 8px;
+  }
+
+  .grid-gap-2 {
+    gap: 16px;
+  }
+
+  .grid-gap-3 {
+    gap: 24px;
   }
 }
