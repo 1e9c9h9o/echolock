@@ -25,11 +25,14 @@ export default function Input({
           w-full px-4 py-4
           border-2 border-black
           bg-white text-black
-          focus:outline-none focus:ring-2 focus:ring-blue
+          focus:outline-none focus:ring-4 focus:ring-blue/30 focus:border-blue
           disabled:bg-gray-100 disabled:text-gray-400
           text-base
           font-mono
-          ${error ? 'border-red' : ''}
+          transition-all duration-200
+          hover:shadow-[4px_4px_0px_0px_rgba(93,93,255,0.2)]
+          focus:shadow-[4px_4px_0px_0px_rgba(93,93,255,0.4)]
+          ${error ? 'border-red focus:ring-red/30' : ''}
           ${className}
         `}
         {...props}

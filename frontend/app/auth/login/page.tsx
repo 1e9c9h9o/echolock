@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input'
 import Logo from '@/components/ui/Logo'
 import { authAPI } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
+import { showToast } from '@/components/ui/ToastContainer'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -25,25 +26,32 @@ export default function LoginPage() {
     try {
       const { user } = await authAPI.login(email, password)
       setUser(user)
-      router.push('/dashboard')
+      showToast('Login successful! Redirecting...', 'success', 2000)
+      setTimeout(() => router.push('/dashboard'), 500)
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Authentication failed')
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Login failed. Please check your credentials.'
+      setError(errorMessage)
+      showToast(errorMessage, 'error')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-      <div className="w-full max-w-lg">
+    <div className="min-h-screen bg-cream flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute top-10 right-10 w-64 h-64 bg-blue/5 rounded-full blur-3xl animate-float" />
+      <div className="absolute bottom-10 left-10 w-64 h-64 bg-red/5 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
+
+      <div className="w-full max-w-lg relative z-10">
         {/* Header */}
-        <div className="text-center mb-16">
-          <Logo className="w-20 h-20 mx-auto mb-8" />
-          <h1 className="text-5xl font-extrabold">Login</h1>
+        <div className="text-center mb-16 animate-fade-in-up">
+          <Logo className="w-20 h-20 mx-auto mb-8 hover:scale-110 transition-transform duration-300 animate-float" />
+          <h1 className="text-5xl font-extrabold gradient-text">Login</h1>
         </div>
 
         {/* Form */}
-        <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(33,33,33,1)] p-12">
+        <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(33,33,33,1)] p-12 hover:shadow-[12px_12px_0px_0px_rgba(33,33,33,1)] transition-all duration-300 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <form onSubmit={handleSubmit} className="space-y-8">
             <Input
               label="Email"

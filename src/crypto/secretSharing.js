@@ -81,7 +81,15 @@ export function verifyShare(authenticatedShare, authKey) {
  * @returns {Promise<Array<Uint8Array>>} Array of share Uint8Arrays
  */
 export async function splitSecret(secret, totalShares, threshold) {
-  const secretArray = secret instanceof Uint8Array ? secret : new Uint8Array(secret);
+  // Convert Buffer or any array-like to Uint8Array properly
+  let secretArray;
+  if (secret instanceof Uint8Array) {
+    secretArray = secret;
+  } else if (Buffer.isBuffer(secret)) {
+    secretArray = new Uint8Array(secret.buffer, secret.byteOffset, secret.byteLength);
+  } else {
+    secretArray = Uint8Array.from(secret);
+  }
   return await split(secretArray, totalShares, threshold);
 }
 
@@ -93,11 +101,8 @@ export async function splitSecret(secret, totalShares, threshold) {
  * @returns {Promise<Object>} { shares: Array<Object>, authKey: Buffer }
  */
 export async function splitAndAuthenticateSecret(secret, totalShares, threshold) {
-  // 1. Convert to Uint8Array if needed (shamir library requires Uint8Array)
-  const secretUint8 = secret instanceof Uint8Array ? secret : new Uint8Array(secret);
-
-  // 2. Split the secret using Shamir
-  const shares = await splitSecret(secretUint8, totalShares, threshold);
+  // 1. Split the secret using Shamir (splitSecret handles conversion)
+  const shares = await splitSecret(secret, totalShares, threshold);
 
   // 3. Derive authentication key from secret
   const secretBuffer = secret instanceof Buffer ? secret : Buffer.from(secret);

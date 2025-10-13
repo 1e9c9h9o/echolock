@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Logo from '@/components/ui/Logo'
 import { authAPI } from '@/lib/api'
+import { showToast } from '@/components/ui/ToastContainer'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -20,13 +21,25 @@ export default function SignupPage() {
     e.preventDefault()
     setError('')
 
+    // Client-side validation
     if (password.length < 8) {
-      setError('Minimum 8 characters required')
+      const msg = 'Password must be at least 8 characters'
+      setError(msg)
+      showToast(msg, 'warning')
+      return
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      const msg = 'Password must contain at least one uppercase letter'
+      setError(msg)
+      showToast(msg, 'warning')
       return
     }
 
     if (password !== confirmPassword) {
-      setError('Password mismatch')
+      const msg = 'Passwords do not match'
+      setError(msg)
+      showToast(msg, 'warning')
       return
     }
 
@@ -34,25 +47,32 @@ export default function SignupPage() {
 
     try {
       await authAPI.signup(email, password)
-      router.push('/auth/login?message=Account created')
+      showToast('Account created successfully! Please login.', 'success', 3000)
+      setTimeout(() => router.push('/auth/login'), 1000)
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed')
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please try again.'
+      setError(errorMessage)
+      showToast(errorMessage, 'error')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-      <div className="w-full max-w-lg">
+    <div className="min-h-screen bg-cream flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute top-10 right-10 w-64 h-64 bg-blue/5 rounded-full blur-3xl animate-float" />
+      <div className="absolute bottom-10 left-10 w-64 h-64 bg-red/5 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
+
+      <div className="w-full max-w-lg relative z-10">
         {/* Header */}
-        <div className="text-center mb-16">
-          <Logo className="w-20 h-20 mx-auto mb-8" />
-          <h1 className="text-5xl font-extrabold">Sign Up</h1>
+        <div className="text-center mb-16 animate-fade-in-up">
+          <Logo className="w-20 h-20 mx-auto mb-8 hover:scale-110 transition-transform duration-300 animate-float" />
+          <h1 className="text-5xl font-extrabold gradient-text">Sign Up</h1>
         </div>
 
         {/* Form */}
-        <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(33,33,33,1)] p-12">
+        <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(33,33,33,1)] p-12 hover:shadow-[12px_12px_0px_0px_rgba(33,33,33,1)] transition-all duration-300 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
           <form onSubmit={handleSubmit} className="space-y-8">
             <Input
               label="Email"
