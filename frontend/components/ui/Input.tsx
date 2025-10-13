@@ -3,36 +3,41 @@ import React from 'react'
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
   error?: string
+  helperText?: string
 }
 
 export default function Input({
   label,
   error,
+  helperText,
   className = '',
   ...props
 }: InputProps) {
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-xs font-bold uppercase tracking-wide mb-2">
+        <label className="block text-sm font-bold mb-2 text-black">
           {label}
         </label>
       )}
       <input
         className={`
-          w-full px-3 py-3
+          w-full px-4 py-3
           border-2 border-black
           bg-white text-black
-          focus:outline-none focus:ring-2 focus:ring-black
+          focus:outline-none focus:ring-2 focus:ring-blue
           disabled:bg-gray-100 disabled:text-gray-400
-          text-sm
-          ${error ? 'border-warning' : ''}
+          text-base
+          ${error ? 'border-red' : ''}
           ${className}
         `}
         {...props}
       />
+      {helperText && !error && (
+        <p className="mt-2 text-sm text-gray-600">{helperText}</p>
+      )}
       {error && (
-        <p className="mt-1 text-xs text-warning font-bold uppercase">{error}</p>
+        <p className="mt-2 text-sm font-bold text-red">{error}</p>
       )}
     </div>
   )

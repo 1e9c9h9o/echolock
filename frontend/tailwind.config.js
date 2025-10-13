@@ -8,31 +8,22 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Utilitarian + Kruger-inspired palette
-        echo: '#C73E3A',        // Red - urgent, direct
-        lock: '#2D8B3C',        // Green - active state
-        accent: '#000000',      // Black - bold statements
+        // echolock.xyz risograph palette
+        cream: '#FDF9F0',
+        blue: '#0045D3',
+        red: '#FF4D00',
+        black: '#212121',
+        white: '#FFFFFF',
 
-        primary: '#000000',     // Black for primary actions
-        secondary: '#FFFFFF',   // White for contrast
-        success: '#2D8B3C',     // Green
-        warning: '#C73E3A',     // Red
-        background: '#FFFFFF',
-        surface: '#F0F0F0',     // Light gray
-        border: '#000000',      // Black borders
-        text: {
-          primary: '#000000',
-          secondary: '#666666',
-          inverse: '#FFFFFF',
-        },
+        // Semantic
+        primary: '#0045D3',
+        danger: '#FF4D00',
+        background: '#FDF9F0',
+        surface: '#FFFFFF',
       },
       fontFamily: {
-        sans: ['Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
-        mono: ['Courier New', 'Courier', 'monospace'],
-      },
-      fontSize: {
-        'civic': ['14px', '1.4'],
-        'statement': ['24px', '1.2'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'Courier New', 'monospace'],
       },
     },
   },

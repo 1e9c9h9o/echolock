@@ -43,16 +43,16 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-cream flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-12">
           <Image src="/logo.png" alt="EchoLock" width={240} height={240} className="w-48 h-auto mx-auto mb-8" />
-          <h1 className="text-4xl font-bold uppercase">Register Account</h1>
+          <h1 className="text-4xl font-bold">Sign Up</h1>
         </div>
 
         {/* Form */}
-        <div className="border-2 border-black p-8">
+        <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(33,33,33,1)] p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <Input
               label="Email"
@@ -82,8 +82,8 @@ export default function SignupPage() {
             />
 
             {error && (
-              <div className="bg-warning text-white p-3 border-2 border-warning">
-                <p className="text-xs font-bold uppercase">{error}</p>
+              <div className="bg-red text-white p-3 border-2 border-black">
+                <p className="text-sm font-bold">{error}</p>
               </div>
             )}
 
@@ -97,11 +97,11 @@ export default function SignupPage() {
             </Button>
           </form>
 
-          <div className="mt-6 pt-6 border-t-2 border-black">
-            <p className="text-xs uppercase text-center">
-              Have account?{' '}
-              <Link href="/auth/login" className="underline hover:no-underline">
-                Access here
+          <div className="mt-6 pt-6 border-t-2 border-gray-200">
+            <p className="text-sm text-center">
+              Have an account?{' '}
+              <Link href="/auth/login" className="text-blue hover:underline font-bold">
+                Login
               </Link>
             </p>
           </div>
@@ -109,8 +109,8 @@ export default function SignupPage() {
 
         {/* Footer */}
         <div className="mt-6 text-center">
-          <Link href="/" className="text-xs uppercase hover:underline">
-            ← Return
+          <Link href="/" className="text-sm text-blue hover:underline font-bold">
+            ← Back
           </Link>
         </div>
       </div>
