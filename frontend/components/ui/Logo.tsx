@@ -1,25 +1,11 @@
-import Image from 'next/image'
-
-interface LogoProps {
-  size?: 'sm' | 'md' | 'lg'
-  className?: string
-}
-
-export default function Logo({ size = 'md', className = '' }: LogoProps) {
-  const sizes = {
-    sm: 80,
-    md: 120,
-    lg: 160,
-  }
-
+export default function Logo({ className = "" }: { className?: string }) {
   return (
-    <Image
-      src="/logo.png"
-      alt="EchoLock"
-      width={sizes[size]}
-      height={sizes[size]}
-      className={className}
-      priority
-    />
+    <svg className={className} viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="45" fill="none" stroke="#0045D3" strokeWidth="5" style={{ mixBlendMode: 'multiply' }} />
+      <circle cx="50" cy="50" r="35" fill="none" stroke="#FF4D00" strokeWidth="5" style={{ mixBlendMode: 'multiply' }} />
+      <circle cx="50" cy="50" r="25" fill="none" stroke="#0045D3" strokeWidth="5" style={{ mixBlendMode: 'multiply' }} />
+      <circle cx="50" cy="50" r="15" fill="none" stroke="#FF4D00" strokeWidth="5" style={{ mixBlendMode: 'multiply' }} />
+      <circle cx="50" cy="50" r="5" fill="#212121" />
+    </svg>
   )
 }
