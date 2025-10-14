@@ -150,7 +150,7 @@ export default function SwitchDetailPage() {
           </div>
 
           {switchData.status === 'active' && (
-            <Button variant="primary" size="lg" onClick={handleCheckIn}>
+            <Button variant="primary" onClick={handleCheckIn}>
               Check in now
             </Button>
           )}
