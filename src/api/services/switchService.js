@@ -42,10 +42,12 @@ export async function createSwitch(userId, data) {
 
     // Call your existing crypto code to create the switch
     // This handles all the encryption, secret sharing, and Nostr publishing
+    // Enable Bitcoin timelock if USE_BITCOIN_TIMELOCK env var is set to 'true'
+    const useBitcoinTimelock = process.env.USE_BITCOIN_TIMELOCK === 'true';
     const result = await createSwitchCore(
       message,
       checkInHours,
-      false, // useBitcoinTimelock = false for MVP (no Bitcoin)
+      useBitcoinTimelock,
       password
     );
 
