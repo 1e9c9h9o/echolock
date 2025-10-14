@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Lock, CheckCircle } from 'lucide-react'
@@ -9,7 +9,7 @@ import Input from '@/components/ui/Input'
 import Logo from '@/components/ui/Logo'
 import { authAPI } from '@/lib/api'
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
@@ -205,5 +205,27 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
+        <div className="w-full max-w-lg">
+          <div className="text-center mb-16">
+            <Logo className="w-20 h-20 mx-auto mb-8" />
+            <h1 className="text-5xl font-extrabold">Reset Password</h1>
+          </div>
+          <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(33,33,33,1)] p-12">
+            <div className="text-center">
+              <p className="text-base font-mono">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   )
 }

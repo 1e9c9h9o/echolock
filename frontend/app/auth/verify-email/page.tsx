@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle, XCircle } from 'lucide-react'
@@ -8,7 +8,7 @@ import Button from '@/components/ui/Button'
 import Logo from '@/components/ui/Logo'
 import { authAPI } from '@/lib/api'
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
@@ -102,5 +102,28 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
+        <div className="w-full max-w-lg">
+          <div className="text-center mb-16">
+            <Logo className="w-20 h-20 mx-auto mb-8" />
+            <h1 className="text-5xl font-extrabold">Email Verification</h1>
+          </div>
+          <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(33,33,33,1)] p-12">
+            <div className="text-center">
+              <div className="w-16 h-16 border-4 border-blue border-t-transparent rounded-full animate-spin mx-auto mb-8"></div>
+              <h2 className="text-2xl font-bold mb-4">Loading...</h2>
+            </div>
+          </div>
+        </div>
+      </div>
+    }>
+      <VerifyEmailContent />
+    </Suspense>
   )
 }
