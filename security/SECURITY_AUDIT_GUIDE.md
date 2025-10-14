@@ -401,7 +401,7 @@ Please provide:
 6. Sample report (if possible)
 
 DOCUMENTATION:
-- Project Repository: https://github.com/[username]/echolock
+- Project Repository: https://github.com/1e9c9h9o/echolock
 - Threat Model: /security/THREAT_MODEL.md
 - Security Policy: /SECURITY.md
 - Architecture: /docs/ARCHITECTURE.md
@@ -409,7 +409,7 @@ DOCUMENTATION:
 Please submit proposals by [Date]. We will review proposals and conduct interviews
 with 2-3 finalists before making a selection.
 
-Contact: security@echolock
+Contact: echoooolock@gmail.com
 ```
 
 ---

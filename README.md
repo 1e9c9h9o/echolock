@@ -109,7 +109,7 @@ When `USE_NOSTR_DISTRIBUTION=true`:
 
 ```bash
 # Clone and install
-git clone <repository-url>
+git clone https://github.com/1e9c9h9o/echolock.git
 cd echolock
 npm install
 
@@ -190,8 +190,8 @@ This project follows security-first development:
 
 ### Reporting Security Issues
 Found a vulnerability? Please report responsibly:
-- **GitHub**: [Create Security Advisory](https://github.com/[username]/echolock/security/advisories/new)
-- **Email**: security@example.com
+- **GitHub**: [Create Security Advisory](https://github.com/1e9c9h9o/echolock/security/advisories/new)
+- **Email**: echoooolock@gmail.com
 - **Details**: See [.well-known/security.txt](.well-known/security.txt)
 
 ## Dependencies
@@ -291,7 +291,14 @@ This is a security-critical project. Before contributing:
 
 ## License
 
-[To be determined]
+AGPL-3.0 - See [LICENSE](LICENSE) for details.
+
+This project is licensed under the GNU Affero General Public License v3.0, which requires that:
+- Source code must be made available when the software is used over a network
+- Modifications must be released under the same license
+- Changes must be documented
+
+Perfect for ensuring community collaboration and transparency in cryptographic software.
 
 ## Important Notes
 

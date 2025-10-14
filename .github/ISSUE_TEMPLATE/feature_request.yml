@@ -1,0 +1,92 @@
+name: Feature Request
+description: Suggest a new feature or enhancement
+title: "[FEATURE] "
+labels: ["enhancement", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for suggesting a new feature for ECHOLOCK!
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a problem? Please describe.
+      placeholder: I'm frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like
+      placeholder: I would like to see...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Describe alternatives you've considered
+      placeholder: I also considered...
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component would this feature affect?
+      options:
+        - Cryptography
+        - Bitcoin Integration
+        - Nostr Distribution
+        - API (backend)
+        - Frontend (web interface)
+        - CLI
+        - Documentation
+        - Testing
+        - Security
+        - Performance
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority (Your Opinion)
+      description: How important is this feature to you?
+      options:
+        - Critical (blocker)
+        - High (important)
+        - Medium (nice to have)
+        - Low (minor improvement)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: security-impact
+    attributes:
+      label: Security Impact
+      description: Does this feature have security implications?
+      options:
+        - label: This feature has security implications
+        - label: This feature affects cryptographic operations
+        - label: This feature affects Bitcoin transactions
+        - label: This feature affects secret storage
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe how you would use this feature
+      placeholder: I would use this to...
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add any other context, mockups, or examples
+      placeholder: Additional information...

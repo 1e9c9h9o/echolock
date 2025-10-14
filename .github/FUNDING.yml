@@ -1,0 +1,16 @@
+# GitHub Sponsors configuration for ECHOLOCK
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button
+
+github: [1e9c9h9o]
+
+# Additional funding platforms (uncomment and add your usernames as needed)
+# patreon: username
+# open_collective: project-name
+# ko_fi: username
+# tidelift: npm/package-name
+# community_bridge: project-name
+# liberapay: username
+# issuehunt: username
+# otechie: username
+# lfx_crowdfunding: project-name
+# custom: ['https://www.buymeacoffee.com/username', 'https://paypal.me/username']

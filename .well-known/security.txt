@@ -1,11 +1,11 @@
-# Canonical: https://github.com/[username]/echolock/.well-known/security.txt
+# Canonical: https://github.com/1e9c9h9o/echolock/.well-known/security.txt
 # Preferred-Languages: en
-# Expires: 2026-10-02T00:00:00.000Z
+# Expires: 2026-10-14T00:00:00.000Z
 
-Contact: mailto:security@example.com
-Contact: https://github.com/[username]/echolock/security/advisories/new
-Acknowledgments: https://github.com/[username]/echolock/blob/main/security/AUDIT_LOG.md
-Policy: https://github.com/[username]/echolock/blob/main/SECURITY.md
+Contact: mailto:echoooolock@gmail.com
+Contact: https://github.com/1e9c9h9o/echolock/security/advisories/new
+Acknowledgments: https://github.com/1e9c9h9o/echolock/blob/main/security/AUDIT_LOG.md
+Policy: https://github.com/1e9c9h9o/echolock/blob/main/SECURITY.md
 
 # Security Information for ECHOLOCK
 #

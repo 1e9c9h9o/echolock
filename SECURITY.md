@@ -20,8 +20,8 @@ We take security seriously. If you discover a security vulnerability in ECHOLOCK
 
 1. **DO NOT** open a public GitHub issue for security vulnerabilities
 2. **DO** report via one of these channels:
-   - GitHub Security Advisory: [Create Advisory](https://github.com/[username]/echolock/security/advisories/new)
-   - Email: security@example.com
+   - GitHub Security Advisory: [Create Advisory](https://github.com/1e9c9h9o/echolock/security/advisories/new)
+   - Email: echoooolock@gmail.com
 3. Include detailed information:
    - Description of the vulnerability
    - Steps to reproduce
@@ -253,9 +253,19 @@ We follow coordinated vulnerability disclosure:
 
 ## Contact
 
-- **Security Email**: security@example.com
-- **GitHub Security Advisory**: [Create Advisory](https://github.com/[username]/echolock/security/advisories/new)
+- **Security Email**: echoooolock@gmail.com
+- **GitHub Security Advisory**: [Create Advisory](https://github.com/1e9c9h9o/echolock/security/advisories/new)
 - **PGP Key**: (To be published)
+
+### Request for Security Audit
+
+We are actively seeking professional security auditors to review ECHOLOCK. If you or your organization specializes in:
+- Cryptographic implementations
+- Dead man's switch systems
+- Bitcoin/blockchain security
+- Distributed systems security
+
+Please contact us at echoooolock@gmail.com. We welcome both paid and pro-bono audit arrangements for this open-source security project.
 
 ---
 
