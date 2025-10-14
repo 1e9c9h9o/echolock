@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Logo from '@/components/ui/Logo'
 import Button from '@/components/ui/Button'
+import InteractiveDemo from '@/components/InteractiveDemo'
 
 export default function HomePage() {
   return (
@@ -69,6 +70,18 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="border-b-2 border-black py-20 relative z-10 bg-white/30">
+        <div className="container mx-auto px-6">
+          <h3 className="inline-block bg-blue text-cream px-3 py-2 text-base font-bold uppercase tracking-wide mb-8 shadow-[4px_4px_0px_0px_rgba(33,33,33,1)] animate-fade-in-up">
+            Interactive Demo
+          </h3>
+          <p className="text-xl text-black max-w-2xl mb-12 opacity-80">
+            See EchoLock in action! Watch how secrets are encrypted, distributed, and automatically released in real-time.
+          </p>
+          <InteractiveDemo />
         </div>
       </section>
 
