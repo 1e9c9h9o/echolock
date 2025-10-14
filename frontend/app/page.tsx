@@ -13,14 +13,11 @@ export default function HomePage() {
 
       <header className="border-b-2 border-black relative z-10 bg-cream">
         <div className="container mx-auto px-6 py-12">
-          <div className="flex items-center gap-6 animate-fade-in-up">
+          <div className="flex items-center gap-4 animate-fade-in-up">
             <Logo className="w-14 h-14 flex-shrink-0 hover:scale-110 transition-transform duration-300" />
-            <div>
-              <h1 className="font-sans text-4xl font-bold gradient-text animate-pulse-glow" style={{ letterSpacing: '1px' }}>
-                ECHOLOCK
-              </h1>
-              <div className="text-sm text-black mt-1 font-mono opacity-60">localhost:3001</div>
-            </div>
+            <h1 className="font-sans text-4xl font-bold gradient-text" style={{ letterSpacing: '0.1em' }}>
+              ECHOLOCK
+            </h1>
           </div>
         </div>
       </header>
