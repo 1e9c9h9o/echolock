@@ -24,6 +24,7 @@ import {
   deleteSwitch
 } from '../services/switchService.js';
 import { logger } from '../utils/logger.js';
+import websocketService from '../services/websocketService.js';
 
 const router = express.Router();
 
@@ -47,6 +48,9 @@ router.post('/', requireEmailVerified, validateCreateSwitch, async (req, res) =>
     }
 
     const switchData = await createSwitch(userId, req.body);
+
+    // Send WebSocket notification
+    websocketService.notifySwitchUpdate(userId, switchData);
 
     res.status(201).json({
       message: 'Switch created successfully',
@@ -145,6 +149,9 @@ router.post('/:id/checkin', async (req, res) => {
 
     const result = await checkIn(switchId, userId, req);
 
+    // Send WebSocket notification for check-in
+    websocketService.notifyCheckIn(userId, result);
+
     res.json({
       message: 'Check-in successful',
       data: result
@@ -191,6 +198,9 @@ router.patch('/:id', validateUpdateSwitch, async (req, res) => {
       });
     }
 
+    // Send WebSocket notification for switch update
+    websocketService.notifySwitchUpdate(userId, updatedSwitch);
+
     res.json({
       message: 'Switch updated successfully',
       data: {
@@ -233,6 +243,13 @@ router.delete('/:id', async (req, res) => {
         message: 'Switch does not exist or you do not have access'
       });
     }
+
+    // Send WebSocket notification for switch deletion
+    websocketService.notifySwitchUpdate(userId, {
+      id: switchId,
+      status: 'CANCELLED',
+      title: 'Deleted switch'
+    });
 
     res.json({
       message: 'Switch cancelled successfully',

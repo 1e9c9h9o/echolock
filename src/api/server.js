@@ -42,6 +42,11 @@ import userRoutes from './routes/users.js';
 
 // Import timer monitor (background job)
 import { startTimerMonitor } from './jobs/timerMonitor.js';
+import { startReminderMonitor } from './jobs/reminderMonitor.js';
+
+// Import WebSocket service
+import websocketService from './services/websocketService.js';
+import http from 'http';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -149,6 +154,10 @@ app.get('/health', async (req, res) => {
       database: {
         connected: dbHealthy,
         error: dbError
+      },
+      websocket: {
+        connectedClients: websocketService.getConnectedClientsCount(),
+        connectedUsers: websocketService.getConnectedUsersCount()
       }
     };
 
@@ -249,12 +258,27 @@ async function startServer() {
       const timerJob = startTimerMonitor();
       logger.info('Timer monitor started - checking for expired switches every 5 minutes');
       app.locals.timerJob = timerJob;
+
+      logger.info('Starting reminder monitor...');
+      const reminderJob = startReminderMonitor();
+      logger.info('Reminder monitor started - checking for upcoming expirations every hour');
+      app.locals.reminderJob = reminderJob;
     } else {
-      logger.warn('Timer monitor not started - database not available');
+      logger.warn('Timer monitor and reminder monitor not started - database not available');
     }
 
+    // Create HTTP server (needed for WebSocket integration)
+    const server = http.createServer(app);
+
+    // Initialize WebSocket server
+    websocketService.initialize(server);
+    logger.info('WebSocket server initialized');
+
+    // Store server instance for graceful shutdown
+    app.locals.httpServer = server;
+
     // Start server
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       logger.info(`🚀 EchoLock API server started`, {
         port: PORT,
         environment: NODE_ENV,
@@ -263,6 +287,7 @@ async function startServer() {
       });
 
       logger.info(`📡 API available at http://localhost:${PORT}/api`);
+      logger.info(`🔌 WebSocket available at ws://localhost:${PORT}/ws`);
       logger.info(`❤️  Health check at http://localhost:${PORT}/health`);
 
       if (!dbHealthy) {
@@ -285,7 +310,24 @@ process.on('SIGTERM', () => {
     logger.info('Timer monitor stopped');
   }
 
-  process.exit(0);
+  // Stop reminder monitor if running
+  if (app.locals.reminderJob) {
+    app.locals.reminderJob.stop();
+    logger.info('Reminder monitor stopped');
+  }
+
+  // Shutdown WebSocket server
+  websocketService.shutdown();
+
+  // Close HTTP server
+  if (app.locals.httpServer) {
+    app.locals.httpServer.close(() => {
+      logger.info('HTTP server closed');
+      process.exit(0);
+    });
+  } else {
+    process.exit(0);
+  }
 });
 
 process.on('SIGINT', () => {
@@ -297,7 +339,24 @@ process.on('SIGINT', () => {
     logger.info('Timer monitor stopped');
   }
 
-  process.exit(0);
+  // Stop reminder monitor if running
+  if (app.locals.reminderJob) {
+    app.locals.reminderJob.stop();
+    logger.info('Reminder monitor stopped');
+  }
+
+  // Shutdown WebSocket server
+  websocketService.shutdown();
+
+  // Close HTTP server
+  if (app.locals.httpServer) {
+    app.locals.httpServer.close(() => {
+      logger.info('HTTP server closed');
+      process.exit(0);
+    });
+  } else {
+    process.exit(0);
+  }
 });
 
 // Handle uncaught exceptions

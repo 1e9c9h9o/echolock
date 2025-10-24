@@ -1,0 +1,206 @@
+{
+  "common": {
+    "appName": "EchoLock",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish",
+    "skip": "Skip",
+    "learnMore": "Learn More",
+    "getStarted": "Get Started"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "switches": "Switches",
+    "create": "Create Switch",
+    "settings": "Settings",
+    "profile": "Profile",
+    "logout": "Logout",
+    "help": "Help"
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember Me",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "verifyEmail": "Verify Email",
+    "checkInbox": "Check your inbox for a verification link"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back, {name}",
+    "noSwitches": "No switches yet",
+    "createFirst": "Create your first dead man's switch",
+    "totalSwitches": "Total Switches",
+    "activeSwitches": "Active",
+    "pausedSwitches": "Paused",
+    "triggeredSwitches": "Triggered"
+  },
+  "switches": {
+    "title": "Your Switches",
+    "create": "Create Switch",
+    "checkIn": "Check In",
+    "pause": "Pause",
+    "resume": "Resume",
+    "cancel": "Cancel",
+    "status": {
+      "armed": "Armed",
+      "paused": "Paused",
+      "triggered": "Triggered",
+      "released": "Released",
+      "cancelled": "Cancelled"
+    },
+    "timeRemaining": "Time Remaining",
+    "expired": "Expired",
+    "lastCheckIn": "Last Check-in",
+    "nextCheckIn": "Next Check-in",
+    "recipients": "Recipients",
+    "message": "Message",
+    "interval": "Check-in Interval",
+    "expiresAt": "Expires At"
+  },
+  "create": {
+    "title": "Create Dead Man's Switch",
+    "switchTitle": "Switch Title",
+    "titlePlaceholder": "e.g., Important Documents",
+    "message": "Secret Message",
+    "messagePlaceholder": "Enter the message to be released...",
+    "checkInInterval": "Check-in Interval",
+    "hours": "hours",
+    "days": "days",
+    "addRecipient": "Add Recipient",
+    "recipientEmail": "Recipient Email",
+    "recipientName": "Recipient Name (optional)",
+    "encryptionStrength": "Encryption Strength",
+    "standard": "Standard",
+    "high": "High",
+    "maximum": "Maximum",
+    "createSwitch": "Create Switch",
+    "creating": "Creating..."
+  },
+  "calendar": {
+    "addToCalendar": "Add to Calendar",
+    "googleCalendar": "Google Calendar",
+    "outlookCalendar": "Outlook Calendar",
+    "yahooCalendar": "Yahoo Calendar",
+    "downloadICS": "Download .ics",
+    "reminderTime": "Reminder Time",
+    "24hoursBefore": "24 hours before",
+    "6hoursBefore": "6 hours before",
+    "1hourBefore": "1 hour before"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to EchoLock!",
+      "subtitle": "Your censorship-resistant dead man's switch",
+      "description": "EchoLock helps you protect sensitive information by automatically releasing encrypted messages if you fail to check in regularly.",
+      "startTour": "Start Interactive Tour",
+      "skipTour": "Skip Tour"
+    },
+    "tour": {
+      "step1": {
+        "title": "Welcome to EchoLock!",
+        "content": "EchoLock is a censorship-resistant dead man's switch that automatically releases encrypted messages if you fail to check in regularly. This quick tour will show you the key features."
+      },
+      "step2": {
+        "title": "Create a Switch",
+        "content": "Click here to create your first dead man's switch. You'll set a check-in interval and add an encrypted message."
+      },
+      "step3": {
+        "title": "Your Switches",
+        "content": "All your active switches appear here. Each shows the countdown timer and status."
+      },
+      "step4": {
+        "title": "Check In",
+        "content": "Click 'Check In' to reset the timer and prevent your message from being released. You'll receive email reminders before expiration."
+      },
+      "step5": {
+        "title": "Filter & Search",
+        "content": "Use these controls to filter switches by status, sort, and search by title."
+      },
+      "step6": {
+        "title": "Settings & Profile",
+        "content": "Access your account settings, preferences, and logout from here."
+      },
+      "complete": {
+        "title": "You're All Set!",
+        "content": "You're ready to create your first dead man's switch. Remember to check in regularly!"
+      }
+    },
+    "checklist": {
+      "title": "Getting Started",
+      "allDone": "All Done!",
+      "completed": "{count} of {total} steps completed",
+      "items": {
+        "verifyEmail": {
+          "title": "Verify your email",
+          "description": "Check your inbox and verify your email address to enable all features"
+        },
+        "createSwitch": {
+          "title": "Create your first switch",
+          "description": "Set up a dead man's switch with a check-in interval and message"
+        },
+        "addRecipients": {
+          "title": "Add recipients",
+          "description": "Specify who will receive your message if the switch triggers"
+        },
+        "performCheckIn": {
+          "title": "Perform your first check-in",
+          "description": "Test the check-in process to reset your timer"
+        },
+        "enableNotifications": {
+          "title": "Enable browser notifications",
+          "description": "Get real-time alerts for check-in reminders and status changes"
+        },
+        "calendarReminder": {
+          "title": "Add calendar reminder",
+          "description": "Set up calendar reminders to never miss a check-in"
+        }
+      }
+    }
+  },
+  "notifications": {
+    "checkInSuccess": "Check-in successful! Timer reset.",
+    "switchCreated": "Switch created successfully",
+    "switchUpdated": "Switch updated successfully",
+    "switchDeleted": "Switch deleted successfully",
+    "error": "An error occurred. Please try again.",
+    "emailVerificationSent": "Verification email sent. Check your inbox.",
+    "reminderSet": "Calendar reminder added"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidEmail": "Invalid email address",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "passwordsDontMatch": "Passwords don't match",
+    "networkError": "Network error. Please check your connection.",
+    "unauthorized": "Unauthorized. Please log in again.",
+    "notFound": "Resource not found",
+    "serverError": "Server error. Please try again later."
+  },
+  "accessibility": {
+    "skipToContent": "Skip to content",
+    "closeModal": "Close modal",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "toggleTheme": "Toggle theme",
+    "selectLanguage": "Select language",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
+    "sortBy": "Sort by",
+    "filterBy": "Filter by"
+  }
+}

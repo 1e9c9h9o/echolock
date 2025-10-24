@@ -23,6 +23,7 @@ import cron from 'node-cron';
 import { query, transaction } from '../db/connection.js';
 import { logger } from '../utils/logger.js';
 import { sendSwitchReleaseEmail } from '../services/emailService.js';
+import websocketService from '../services/websocketService.js';
 
 // Import your existing crypto code for message retrieval
 import { testRelease } from '../../core/deadManSwitch.js';
@@ -150,6 +151,13 @@ async function processExpiredSwitch(sw) {
           })
         ]
       );
+    });
+
+    // Send WebSocket notification to user
+    websocketService.notifySwitchTriggered(sw.user_id, {
+      id: switchId,
+      title: sw.title,
+      triggered_at: new Date().toISOString()
     });
 
     logger.info('Switch released successfully', {

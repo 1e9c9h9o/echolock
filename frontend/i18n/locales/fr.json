@@ -1,0 +1,206 @@
+{
+  "common": {
+    "appName": "EchoLock",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "finish": "Terminer",
+    "skip": "Passer",
+    "learnMore": "En savoir plus",
+    "getStarted": "Commencer"
+  },
+  "nav": {
+    "dashboard": "Tableau de Bord",
+    "switches": "Interrupteurs",
+    "create": "Créer un Interrupteur",
+    "settings": "Paramètres",
+    "profile": "Profil",
+    "logout": "Déconnexion",
+    "help": "Aide"
+  },
+  "auth": {
+    "login": "Connexion",
+    "signup": "S'inscrire",
+    "email": "Email",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "rememberMe": "Se souvenir de moi",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "dontHaveAccount": "Vous n'avez pas de compte ?",
+    "verifyEmail": "Vérifier l'email",
+    "checkInbox": "Vérifiez votre boîte de réception pour un lien de vérification"
+  },
+  "dashboard": {
+    "title": "Tableau de Bord",
+    "welcome": "Bon retour, {name}",
+    "noSwitches": "Aucun interrupteur pour le moment",
+    "createFirst": "Créez votre premier interrupteur homme mort",
+    "totalSwitches": "Total des Interrupteurs",
+    "activeSwitches": "Actifs",
+    "pausedSwitches": "En pause",
+    "triggeredSwitches": "Déclenchés"
+  },
+  "switches": {
+    "title": "Vos Interrupteurs",
+    "create": "Créer un Interrupteur",
+    "checkIn": "S'enregistrer",
+    "pause": "Pause",
+    "resume": "Reprendre",
+    "cancel": "Annuler",
+    "status": {
+      "armed": "Armé",
+      "paused": "En pause",
+      "triggered": "Déclenché",
+      "released": "Publié",
+      "cancelled": "Annulé"
+    },
+    "timeRemaining": "Temps Restant",
+    "expired": "Expiré",
+    "lastCheckIn": "Dernier Enregistrement",
+    "nextCheckIn": "Prochain Enregistrement",
+    "recipients": "Destinataires",
+    "message": "Message",
+    "interval": "Intervalle d'Enregistrement",
+    "expiresAt": "Expire le"
+  },
+  "create": {
+    "title": "Créer un Interrupteur Homme Mort",
+    "switchTitle": "Titre de l'Interrupteur",
+    "titlePlaceholder": "ex., Documents Importants",
+    "message": "Message Secret",
+    "messagePlaceholder": "Entrez le message à publier...",
+    "checkInInterval": "Intervalle d'Enregistrement",
+    "hours": "heures",
+    "days": "jours",
+    "addRecipient": "Ajouter un Destinataire",
+    "recipientEmail": "Email du Destinataire",
+    "recipientName": "Nom du Destinataire (optionnel)",
+    "encryptionStrength": "Force du Chiffrement",
+    "standard": "Standard",
+    "high": "Élevé",
+    "maximum": "Maximum",
+    "createSwitch": "Créer l'Interrupteur",
+    "creating": "Création..."
+  },
+  "calendar": {
+    "addToCalendar": "Ajouter au Calendrier",
+    "googleCalendar": "Google Calendar",
+    "outlookCalendar": "Outlook Calendar",
+    "yahooCalendar": "Yahoo Calendar",
+    "downloadICS": "Télécharger .ics",
+    "reminderTime": "Heure du Rappel",
+    "24hoursBefore": "24 heures avant",
+    "6hoursBefore": "6 heures avant",
+    "1hourBefore": "1 heure avant"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Bienvenue sur EchoLock !",
+      "subtitle": "Votre interrupteur homme mort résistant à la censure",
+      "description": "EchoLock vous aide à protéger des informations sensibles en publiant automatiquement des messages chiffrés si vous ne vous enregistrez pas régulièrement.",
+      "startTour": "Démarrer la Visite Interactive",
+      "skipTour": "Passer la Visite"
+    },
+    "tour": {
+      "step1": {
+        "title": "Bienvenue sur EchoLock !",
+        "content": "EchoLock est un interrupteur homme mort résistant à la censure qui publie automatiquement des messages chiffrés si vous ne vous enregistrez pas régulièrement. Cette visite rapide vous montrera les fonctionnalités clés."
+      },
+      "step2": {
+        "title": "Créer un Interrupteur",
+        "content": "Cliquez ici pour créer votre premier interrupteur homme mort. Vous définirez un intervalle d'enregistrement et ajouterez un message chiffré."
+      },
+      "step3": {
+        "title": "Vos Interrupteurs",
+        "content": "Tous vos interrupteurs actifs apparaissent ici. Chacun affiche le compte à rebours et le statut."
+      },
+      "step4": {
+        "title": "S'enregistrer",
+        "content": "Cliquez sur 'S'enregistrer' pour réinitialiser le minuteur et empêcher la publication de votre message. Vous recevrez des rappels par email avant l'expiration."
+      },
+      "step5": {
+        "title": "Filtrer et Rechercher",
+        "content": "Utilisez ces contrôles pour filtrer les interrupteurs par statut, trier et rechercher par titre."
+      },
+      "step6": {
+        "title": "Paramètres et Profil",
+        "content": "Accédez aux paramètres de votre compte, aux préférences et déconnectez-vous d'ici."
+      },
+      "complete": {
+        "title": "Vous êtes Prêt !",
+        "content": "Vous êtes prêt à créer votre premier interrupteur homme mort. N'oubliez pas de vous enregistrer régulièrement !"
+      }
+    },
+    "checklist": {
+      "title": "Pour Commencer",
+      "allDone": "Tout est Fait !",
+      "completed": "{count} étapes sur {total} complétées",
+      "items": {
+        "verifyEmail": {
+          "title": "Vérifiez votre email",
+          "description": "Consultez votre boîte de réception et vérifiez votre adresse email pour activer toutes les fonctionnalités"
+        },
+        "createSwitch": {
+          "title": "Créez votre premier interrupteur",
+          "description": "Configurez un interrupteur homme mort avec un intervalle d'enregistrement et un message"
+        },
+        "addRecipients": {
+          "title": "Ajoutez des destinataires",
+          "description": "Spécifiez qui recevra votre message si l'interrupteur se déclenche"
+        },
+        "performCheckIn": {
+          "title": "Effectuez votre premier enregistrement",
+          "description": "Testez le processus d'enregistrement pour réinitialiser votre minuteur"
+        },
+        "enableNotifications": {
+          "title": "Activez les notifications du navigateur",
+          "description": "Recevez des alertes en temps réel pour les rappels d'enregistrement et les changements de statut"
+        },
+        "calendarReminder": {
+          "title": "Ajoutez un rappel de calendrier",
+          "description": "Configurez des rappels de calendrier pour ne jamais manquer un enregistrement"
+        }
+      }
+    }
+  },
+  "notifications": {
+    "checkInSuccess": "Enregistrement réussi ! Minuteur réinitialisé.",
+    "switchCreated": "Interrupteur créé avec succès",
+    "switchUpdated": "Interrupteur mis à jour avec succès",
+    "switchDeleted": "Interrupteur supprimé avec succès",
+    "error": "Une erreur s'est produite. Veuillez réessayer.",
+    "emailVerificationSent": "Email de vérification envoyé. Consultez votre boîte.",
+    "reminderSet": "Rappel de calendrier ajouté"
+  },
+  "errors": {
+    "required": "Ce champ est requis",
+    "invalidEmail": "Adresse email invalide",
+    "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères",
+    "passwordsDontMatch": "Les mots de passe ne correspondent pas",
+    "networkError": "Erreur réseau. Veuillez vérifier votre connexion.",
+    "unauthorized": "Non autorisé. Veuillez vous reconnecter.",
+    "notFound": "Ressource non trouvée",
+    "serverError": "Erreur du serveur. Veuillez réessayer plus tard."
+  },
+  "accessibility": {
+    "skipToContent": "Aller au contenu",
+    "closeModal": "Fermer le modal",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "toggleTheme": "Changer de thème",
+    "selectLanguage": "Sélectionner la langue",
+    "previousPage": "Page précédente",
+    "nextPage": "Page suivante",
+    "sortBy": "Trier par",
+    "filterBy": "Filtrer par"
+  }
+}

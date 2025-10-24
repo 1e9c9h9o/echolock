@@ -1,0 +1,206 @@
+{
+  "common": {
+    "appName": "EchoLock",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "finish": "Finalizar",
+    "skip": "Saltar",
+    "learnMore": "Más información",
+    "getStarted": "Comenzar"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "switches": "Interruptores",
+    "create": "Crear Interruptor",
+    "settings": "Configuración",
+    "profile": "Perfil",
+    "logout": "Cerrar Sesión",
+    "help": "Ayuda"
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "signup": "Registrarse",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "rememberMe": "Recuérdame",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "dontHaveAccount": "¿No tienes una cuenta?",
+    "verifyEmail": "Verificar Correo",
+    "checkInbox": "Revisa tu bandeja de entrada para un enlace de verificación"
+  },
+  "dashboard": {
+    "title": "Panel de Control",
+    "welcome": "Bienvenido de nuevo, {name}",
+    "noSwitches": "Aún no hay interruptores",
+    "createFirst": "Crea tu primer interruptor de hombre muerto",
+    "totalSwitches": "Total de Interruptores",
+    "activeSwitches": "Activos",
+    "pausedSwitches": "Pausados",
+    "triggeredSwitches": "Activados"
+  },
+  "switches": {
+    "title": "Tus Interruptores",
+    "create": "Crear Interruptor",
+    "checkIn": "Registrarse",
+    "pause": "Pausar",
+    "resume": "Reanudar",
+    "cancel": "Cancelar",
+    "status": {
+      "armed": "Armado",
+      "paused": "Pausado",
+      "triggered": "Activado",
+      "released": "Liberado",
+      "cancelled": "Cancelado"
+    },
+    "timeRemaining": "Tiempo Restante",
+    "expired": "Expirado",
+    "lastCheckIn": "Último Registro",
+    "nextCheckIn": "Próximo Registro",
+    "recipients": "Destinatarios",
+    "message": "Mensaje",
+    "interval": "Intervalo de Registro",
+    "expiresAt": "Expira en"
+  },
+  "create": {
+    "title": "Crear Interruptor de Hombre Muerto",
+    "switchTitle": "Título del Interruptor",
+    "titlePlaceholder": "ej., Documentos Importantes",
+    "message": "Mensaje Secreto",
+    "messagePlaceholder": "Ingresa el mensaje a liberar...",
+    "checkInInterval": "Intervalo de Registro",
+    "hours": "horas",
+    "days": "días",
+    "addRecipient": "Agregar Destinatario",
+    "recipientEmail": "Correo del Destinatario",
+    "recipientName": "Nombre del Destinatario (opcional)",
+    "encryptionStrength": "Fuerza de Cifrado",
+    "standard": "Estándar",
+    "high": "Alto",
+    "maximum": "Máximo",
+    "createSwitch": "Crear Interruptor",
+    "creating": "Creando..."
+  },
+  "calendar": {
+    "addToCalendar": "Agregar al Calendario",
+    "googleCalendar": "Google Calendar",
+    "outlookCalendar": "Outlook Calendar",
+    "yahooCalendar": "Yahoo Calendar",
+    "downloadICS": "Descargar .ics",
+    "reminderTime": "Hora del Recordatorio",
+    "24hoursBefore": "24 horas antes",
+    "6hoursBefore": "6 horas antes",
+    "1hourBefore": "1 hora antes"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "¡Bienvenido a EchoLock!",
+      "subtitle": "Tu interruptor de hombre muerto resistente a la censura",
+      "description": "EchoLock te ayuda a proteger información sensible liberando automáticamente mensajes cifrados si no te registras regularmente.",
+      "startTour": "Iniciar Tour Interactivo",
+      "skipTour": "Saltar Tour"
+    },
+    "tour": {
+      "step1": {
+        "title": "¡Bienvenido a EchoLock!",
+        "content": "EchoLock es un interruptor de hombre muerto resistente a la censura que libera automáticamente mensajes cifrados si no te registras regularmente. Este rápido tour te mostrará las funciones clave."
+      },
+      "step2": {
+        "title": "Crear un Interruptor",
+        "content": "Haz clic aquí para crear tu primer interruptor de hombre muerto. Establecerás un intervalo de registro y agregarás un mensaje cifrado."
+      },
+      "step3": {
+        "title": "Tus Interruptores",
+        "content": "Todos tus interruptores activos aparecen aquí. Cada uno muestra el temporizador de cuenta regresiva y el estado."
+      },
+      "step4": {
+        "title": "Registrarse",
+        "content": "Haz clic en 'Registrarse' para restablecer el temporizador y evitar que se libere tu mensaje. Recibirás recordatorios por correo antes de la expiración."
+      },
+      "step5": {
+        "title": "Filtrar y Buscar",
+        "content": "Usa estos controles para filtrar interruptores por estado, ordenar y buscar por título."
+      },
+      "step6": {
+        "title": "Configuración y Perfil",
+        "content": "Accede a la configuración de tu cuenta, preferencias y cierra sesión desde aquí."
+      },
+      "complete": {
+        "title": "¡Todo Listo!",
+        "content": "Estás listo para crear tu primer interruptor de hombre muerto. ¡Recuerda registrarte regularmente!"
+      }
+    },
+    "checklist": {
+      "title": "Primeros Pasos",
+      "allDone": "¡Todo Completado!",
+      "completed": "{count} de {total} pasos completados",
+      "items": {
+        "verifyEmail": {
+          "title": "Verifica tu correo",
+          "description": "Revisa tu bandeja de entrada y verifica tu dirección de correo para habilitar todas las funciones"
+        },
+        "createSwitch": {
+          "title": "Crea tu primer interruptor",
+          "description": "Configura un interruptor de hombre muerto con un intervalo de registro y mensaje"
+        },
+        "addRecipients": {
+          "title": "Agrega destinatarios",
+          "description": "Especifica quién recibirá tu mensaje si se activa el interruptor"
+        },
+        "performCheckIn": {
+          "title": "Realiza tu primer registro",
+          "description": "Prueba el proceso de registro para restablecer tu temporizador"
+        },
+        "enableNotifications": {
+          "title": "Habilita notificaciones del navegador",
+          "description": "Recibe alertas en tiempo real para recordatorios de registro y cambios de estado"
+        },
+        "calendarReminder": {
+          "title": "Agrega recordatorio de calendario",
+          "description": "Configura recordatorios de calendario para nunca perder un registro"
+        }
+      }
+    }
+  },
+  "notifications": {
+    "checkInSuccess": "¡Registro exitoso! Temporizador restablecido.",
+    "switchCreated": "Interruptor creado exitosamente",
+    "switchUpdated": "Interruptor actualizado exitosamente",
+    "switchDeleted": "Interruptor eliminado exitosamente",
+    "error": "Ocurrió un error. Por favor intenta de nuevo.",
+    "emailVerificationSent": "Correo de verificación enviado. Revisa tu bandeja.",
+    "reminderSet": "Recordatorio de calendario agregado"
+  },
+  "errors": {
+    "required": "Este campo es requerido",
+    "invalidEmail": "Dirección de correo inválida",
+    "passwordTooShort": "La contraseña debe tener al menos 8 caracteres",
+    "passwordsDontMatch": "Las contraseñas no coinciden",
+    "networkError": "Error de red. Por favor verifica tu conexión.",
+    "unauthorized": "No autorizado. Por favor inicia sesión de nuevo.",
+    "notFound": "Recurso no encontrado",
+    "serverError": "Error del servidor. Por favor intenta más tarde."
+  },
+  "accessibility": {
+    "skipToContent": "Saltar al contenido",
+    "closeModal": "Cerrar modal",
+    "openMenu": "Abrir menú",
+    "closeMenu": "Cerrar menú",
+    "toggleTheme": "Cambiar tema",
+    "selectLanguage": "Seleccionar idioma",
+    "previousPage": "Página anterior",
+    "nextPage": "Página siguiente",
+    "sortBy": "Ordenar por",
+    "filterBy": "Filtrar por"
+  }
+}
