@@ -65,6 +65,15 @@ Available commands: `create`, `check-in`, `status`, `list`, `test-release`, `hel
 - Transaction broadcasting to Bitcoin testnet with production-grade safeguards
 - Comprehensive integration tests with live Nostr relays
 - Exponential backoff for relay health management
+- **Full-featured dashboard UI** with 8 advanced enhancements:
+  - 🌓 Dark mode with system preference detection
+  - 🔌 Real-time WebSocket updates
+  - 🔔 Browser push notifications
+  - ⌨️ 10+ keyboard shortcuts
+  - 📥 CSV/PDF export functionality
+  - 🔍 Advanced filtering and search
+  - ✅ Batch operations with multi-select
+  - 📱 QR code generation and sharing
 
 ### 🚧 Future Enhancements
 - NIP-65 relay discovery for dynamic relay selection
@@ -158,14 +167,48 @@ echolock/
 │   │   ├── coordinator.js
 │   │   ├── config.js
 │   │   └── deadManSwitch.js    # Core DMS implementation
+│   ├── api/             # RESTful API server
+│   │   ├── server.js            # Express.js server
+│   │   ├── routes/              # API endpoints
+│   │   ├── middleware/          # Auth, validation, security
+│   │   └── services/            # Business logic
 │   └── cli/             # Command-line interface
 │       ├── index.js            # Interactive CLI
 │       ├── demo.js             # Automated demo
 │       ├── nostrDemo.js        # Nostr distribution demo
 │       └── colors.js           # Visual components
+├── frontend/            # Next.js web application
+│   ├── app/             # Next.js 14 App Router
+│   │   ├── dashboard/           # Main dashboard
+│   │   │   ├── page.tsx         # Switch list
+│   │   │   ├── enhanced/        # Full-featured dashboard
+│   │   │   ├── create/          # Switch creation
+│   │   │   ├── create-wizard/   # Multi-step wizard
+│   │   │   ├── demo/            # Demo mode
+│   │   │   └── switches/[id]/   # Switch details
+│   │   ├── auth/                # Authentication pages
+│   │   └── layout.tsx           # Root layout
+│   ├── components/      # React components
+│   │   ├── ui/                  # Base UI components
+│   │   ├── CountdownTimer.tsx   # Real-time timers
+│   │   ├── ProgressBar.tsx      # Visual progress
+│   │   ├── SwitchFilters.tsx    # Advanced filtering
+│   │   ├── BatchActions.tsx     # Bulk operations
+│   │   ├── QRCodeModal.tsx      # QR code generation
+│   │   └── [20+ components]
+│   ├── contexts/        # React contexts
+│   │   └── ThemeContext.tsx     # Dark mode theme
+│   ├── hooks/           # Custom React hooks
+│   │   └── useKeyboardShortcuts.ts
+│   └── lib/             # Utilities
+│       ├── api.ts               # API client
+│       ├── websocket.ts         # Real-time updates
+│       ├── notifications.ts     # Push notifications
+│       └── export.ts            # CSV/PDF export
 ├── tests/               # Test suite
 │   ├── unit/            # Unit tests (41/41 passing)
-│   └── integration/     # Integration tests (Nostr)
+│   ├── integration/     # Integration tests (Nostr)
+│   └── security/        # Security tests
 ├── security/            # Security documentation
 └── data/                # Local storage (demo only)
 ```
@@ -347,12 +390,52 @@ export CHECK_IN_HOURS=72
 export DEBUG=true
 ```
 
+## Frontend Features
+
+### Enhanced Dashboard UI
+The EchoLock frontend provides a modern, feature-rich interface built with Next.js 14 and Tailwind CSS:
+
+**🎨 Design System**
+- Neo-brutalist aesthetic with bold borders and high contrast
+- Risograph-inspired color palette (Cream, Blue, Red, Black)
+- Custom fonts: Syne (headings), Space Mono (body)
+- Responsive layouts (mobile, tablet, desktop)
+- Dark mode with theme persistence
+
+**⚡ Advanced Features**
+- **Real-time Updates**: WebSocket integration for live switch status
+- **Push Notifications**: Browser notifications for urgent check-ins
+- **Keyboard Shortcuts**: 10+ shortcuts for power users (press `?` for help)
+- **Export Functionality**: Download switches as CSV or PDF reports
+- **Advanced Filtering**: Search, filter by status, sort by multiple criteria
+- **Batch Operations**: Multi-select switches for bulk actions
+- **QR Code Sharing**: Generate QR codes for easy sharing
+- **Visual Timers**: Real-time countdown timers and progress bars
+
+**📱 Pages & Features**
+- Dashboard with switch management
+- Multi-step wizard for switch creation
+- Demo mode with accelerated 10-minute lifecycle
+- Switch detail pages with check-in history
+- User settings and account management
+
+**🚀 Getting Started**
+```bash
+cd frontend
+npm install
+npm run dev
+# Visit http://localhost:3001
+```
+
+For detailed feature documentation, see [DASHBOARD_ENHANCEMENTS.md](DASHBOARD_ENHANCEMENTS.md)
+
 ## Support
 
 - **Setup Guide**: See [SETUP_COMPLETE.md](SETUP_COMPLETE.md)
 - **CLI Demo**: See [CLI_DEMO_COMPLETE.md](CLI_DEMO_COMPLETE.md)
 - **Bitcoin Integration**: See [BITCOIN_INTEGRATION.md](BITCOIN_INTEGRATION.md)
 - **Nostr Implementation**: See [NOSTR_IMPLEMENTATION.md](NOSTR_IMPLEMENTATION.md)
+- **Dashboard Features**: See [DASHBOARD_ENHANCEMENTS.md](DASHBOARD_ENHANCEMENTS.md)
 - **Architecture**: See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Development**: See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
 

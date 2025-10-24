@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, Clock, AlertCircle } from 'lucide-react'
+import { Plus, Clock, AlertCircle, Users, Sparkles } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
 import StatusBadge from '@/components/ui/StatusBadge'
+import CountdownTimer from '@/components/CountdownTimer'
+import ProgressBar from '@/components/ProgressBar'
+import CheckInButton from '@/components/CheckInButton'
+import LoadingMessage from '@/components/LoadingMessage'
 import { switchesAPI } from '@/lib/api'
 import { useSwitchStore } from '@/lib/store'
 import { showToast } from '@/components/ui/ToastContainer'
@@ -55,7 +59,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-base font-mono font-bold">Loading...</p>
+        <LoadingMessage />
       </div>
     )
   }
@@ -66,12 +70,20 @@ export default function DashboardPage() {
       <div className="mb-12">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-5xl font-bold">DASHBOARD</h1>
-          <Link href="/dashboard/create">
-            <Button variant="primary">
-              <Plus className="h-5 w-5 inline mr-2" strokeWidth={2} />
-              Create Switch
-            </Button>
-          </Link>
+          <div className="flex gap-4">
+            <Link href="/dashboard/demo">
+              <Button variant="secondary">
+                <Sparkles className="h-5 w-5 inline mr-2" strokeWidth={2} />
+                Try Demo
+              </Button>
+            </Link>
+            <Link href="/dashboard/create">
+              <Button variant="primary">
+                <Plus className="h-5 w-5 inline mr-2" strokeWidth={2} />
+                Create Switch
+              </Button>
+            </Link>
+          </div>
         </div>
         <p className="text-lg font-mono">
           Active switches and check-in status
@@ -108,55 +120,67 @@ export default function DashboardPage() {
 
       {/* Switches list */}
       {switches.length > 0 && (
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {switches.map((sw) => (
-            <Card key={sw.id}>
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-4 mb-6">
-                    <h3 className="text-2xl font-bold">
-                      {sw.title}
-                    </h3>
-                    <StatusBadge status={sw.status} />
-                  </div>
+            <Card key={sw.id} className="flex flex-col">
+              {/* Header */}
+              <div className="flex items-start justify-between mb-4">
+                <h3 className="text-xl font-bold flex-1 break-words">
+                  {sw.title}
+                </h3>
+                <StatusBadge status={sw.status} />
+              </div>
 
-                  <div className="space-y-3 font-mono text-base">
-                    <div className="flex items-center">
-                      <Clock className="h-5 w-5 mr-3" strokeWidth={2} />
-                      <span>
-                        Check-in every {sw.checkInHours} hours
-                      </span>
-                    </div>
-                    {sw.status === 'active' && (
-                      <div className="flex items-center">
-                        <AlertCircle className="h-5 w-5 mr-3" strokeWidth={2} />
-                        <span>
-                          Next check-in due{' '}
-                          {formatDistanceToNow(new Date(sw.nextCheckInAt), {
-                            addSuffix: true,
-                          })}
-                        </span>
-                      </div>
-                    )}
-                    <p>{sw.recipientCount} recipient(s)</p>
-                  </div>
+              {/* Switch Info */}
+              <div className="space-y-4 mb-6 flex-1">
+                <div className="flex items-center font-mono text-sm">
+                  <Clock className="h-4 w-4 mr-2 flex-shrink-0" strokeWidth={2} />
+                  <span>Every {sw.checkInHours}h</span>
                 </div>
 
-                <div className="flex gap-4 ml-8">
-                  {sw.status === 'active' && (
-                    <Button
-                      variant="primary"
-                      onClick={() => handleCheckIn(sw.id)}
-                    >
-                      Check In
-                    </Button>
-                  )}
-                  <Link href={`/dashboard/switches/${sw.id}`}>
-                    <Button variant="secondary">
-                      View
-                    </Button>
-                  </Link>
+                <div className="flex items-center font-mono text-sm">
+                  <Users className="h-4 w-4 mr-2 flex-shrink-0" strokeWidth={2} />
+                  <span>{sw.recipientCount} recipient(s)</span>
                 </div>
+
+                {/* Countdown Timer */}
+                {sw.status === 'active' && (
+                  <CountdownTimer
+                    targetDate={sw.nextCheckInAt}
+                    interval={sw.checkInHours}
+                    showIcon={false}
+                  />
+                )}
+
+                {/* Progress Bar */}
+                {sw.status === 'active' && (
+                  <ProgressBar
+                    targetDate={sw.nextCheckInAt}
+                    interval={sw.checkInHours}
+                    showPercentage={true}
+                  />
+                )}
+
+                {/* Created date */}
+                <p className="font-mono text-xs text-gray-600">
+                  Created {formatDistanceToNow(new Date(sw.createdAt), { addSuffix: true })}
+                </p>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col gap-3 mt-auto pt-4 border-t-2 border-black">
+                {sw.status === 'active' && (
+                  <CheckInButton
+                    targetDate={sw.nextCheckInAt}
+                    status={sw.status}
+                    onCheckIn={async () => handleCheckIn(sw.id)}
+                  />
+                )}
+                <Link href={`/dashboard/switches/${sw.id}`}>
+                  <Button variant="secondary" className="w-full">
+                    View Details
+                  </Button>
+                </Link>
               </div>
             </Card>
           ))}
