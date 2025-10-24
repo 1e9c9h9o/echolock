@@ -26,7 +26,7 @@ const initialChecklist: ChecklistItem[] = [
   {
     id: 'create_switch',
     title: 'Create your first switch',
-    description: 'Set up a dead man's switch with a check-in interval and message',
+    description: 'Set up a dead man switch with a check-in interval and message',
     completed: false,
   },
   {

@@ -75,10 +75,8 @@ export default function QRCodeModal({ switchId, switchTitle, onClose }: QRCodeMo
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       onClick={onClose}
     >
-      <Card
-        className="max-w-lg w-full"
-        onClick={(e: React.MouseEvent) => e.stopPropagation()}
-      >
+      <div onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+        <Card className="max-w-lg w-full">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <QrCode className="h-8 w-8" strokeWidth={2} />
@@ -143,6 +141,7 @@ export default function QRCodeModal({ switchId, switchTitle, onClose }: QRCodeMo
           </div>
         </div>
       </Card>
+      </div>
     </div>
   )
 }

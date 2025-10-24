@@ -3,6 +3,7 @@ import { create } from 'zustand'
 interface User {
   id: string
   email: string
+  email_verified?: boolean
 }
 
 interface Switch {
