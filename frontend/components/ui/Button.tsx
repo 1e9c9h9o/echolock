@@ -1,7 +1,7 @@
 import React from 'react'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger'
+  variant?: 'primary' | 'secondary' | 'danger' | 'success'
   children: React.ReactNode
 }
 
@@ -15,6 +15,7 @@ export default function Button({
     primary: 'bg-blue text-cream border-2 border-black hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none hover:brightness-110 active:scale-95',
     secondary: 'bg-cream text-blue border-2 border-black hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none hover:bg-white active:scale-95',
     danger: 'bg-red text-cream border-2 border-black hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none hover:brightness-110 active:scale-95',
+    success: 'bg-green-600 text-white border-2 border-green-700 hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none hover:brightness-110 active:scale-95',
   }
 
   return (

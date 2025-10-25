@@ -82,7 +82,7 @@ export default function CheckInButton({
   // Success state (briefly shown after check-in)
   if (success) {
     return (
-      <Button variant="primary" disabled className={`${className} bg-green-600 border-green-700`}>
+      <Button variant="success" disabled className={className}>
         <Check className="h-5 w-5 mr-2" strokeWidth={2} />
         Checked In ✓
       </Button>
