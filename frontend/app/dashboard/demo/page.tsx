@@ -127,32 +127,32 @@ export default function DemoPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-12">
+      <div className="mb-8 md:mb-12">
         <Link
           href="/dashboard"
-          className="inline-flex items-center text-blue hover:text-red text-base font-mono font-bold mb-6 transition-colors"
+          className="inline-flex items-center text-blue hover:text-red text-sm md:text-base font-mono font-bold mb-4 md:mb-6 transition-colors"
         >
-          <ArrowLeft className="h-5 w-5 mr-2" strokeWidth={2} />
+          <ArrowLeft className="h-4 w-4 md:h-5 md:w-5 mr-2" strokeWidth={2} />
           Back to Dashboard
         </Link>
-        <div className="flex items-center gap-4 mb-3">
-          <h1 className="text-5xl font-bold">DEMO MODE</h1>
-          <span className="bg-blue text-cream px-4 py-2 border-2 border-black text-sm font-bold">
+        <div className="flex flex-wrap items-center gap-2 md:gap-4 mb-2 md:mb-3">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold">DEMO MODE</h1>
+          <span className="bg-blue text-cream px-3 py-1 md:px-4 md:py-2 border-2 border-black text-xs md:text-sm font-bold">
             ACCELERATED
           </span>
         </div>
-        <p className="text-lg font-mono">
+        <p className="text-base md:text-lg font-mono break-words">
           Experience the full lifecycle of a dead man's switch in just 2 minutes
         </p>
       </div>
 
       {/* Warning Banner */}
-      <div className="bg-yellow-100 border-2 border-black p-6 mb-8">
+      <div className="bg-yellow-100 border-2 border-black p-4 md:p-6 mb-6 md:mb-8">
         <div className="flex items-start">
-          <Sparkles className="h-6 w-6 mr-3 flex-shrink-0 text-yellow-700" strokeWidth={2} />
-          <div className="font-mono">
+          <Sparkles className="h-5 w-5 md:h-6 md:w-6 mr-2 md:mr-3 flex-shrink-0 text-yellow-700" strokeWidth={2} />
+          <div className="font-mono text-sm md:text-base">
             <p className="font-bold mb-2">This is a demonstration with accelerated timers:</p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
+            <ul className="list-disc list-inside space-y-1 text-xs md:text-sm break-words">
               <li>Check-in interval: 1 minute (vs 24+ hours in real use)</li>
               <li>Data stored in browser session (not saved to database)</li>
               <li>Demo will auto-complete the full lifecycle</li>
@@ -164,12 +164,12 @@ export default function DemoPage() {
 
       {/* Intro Phase */}
       {phase === 'intro' && (
-        <Card className="text-center py-12">
-          <div className="w-32 h-32 bg-blue mx-auto mb-8 flex items-center justify-center border-2 border-black">
-            <Play className="h-20 w-20 text-cream" strokeWidth={2} />
+        <Card className="text-center py-8 md:py-12 px-4">
+          <div className="w-24 h-24 md:w-32 md:h-32 bg-blue mx-auto mb-6 md:mb-8 flex items-center justify-center border-2 border-black">
+            <Play className="h-16 w-16 md:h-20 md:w-20 text-cream" strokeWidth={2} />
           </div>
-          <h2 className="text-3xl font-bold mb-4">START DEMO</h2>
-          <p className="text-lg font-mono mb-8 max-w-2xl mx-auto">
+          <h2 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4">START DEMO</h2>
+          <p className="text-base md:text-lg font-mono mb-6 md:mb-8 max-w-2xl mx-auto break-words px-2">
             Click below to create a demo switch and watch the full lifecycle in action.
             You'll see the ARMED, TRIGGERED, and RELEASED states.
           </p>
@@ -185,8 +185,8 @@ export default function DemoPage() {
         <div className="space-y-8">
           {/* Status Card */}
           <Card>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">DEMO SWITCH STATUS</h2>
+            <div className="flex flex-wrap items-center justify-between gap-2 md:gap-4 mb-4 md:mb-6">
+              <h2 className="text-xl md:text-2xl font-bold">DEMO SWITCH STATUS</h2>
               <StatusBadge status={demoSwitch.status} />
             </div>
 
@@ -232,8 +232,8 @@ export default function DemoPage() {
 
           {/* Explanation Card */}
           <Card variant="info">
-            <h3 className="text-xl font-bold mb-4">WHAT'S HAPPENING?</h3>
-            <div className="font-mono space-y-3">
+            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">WHAT'S HAPPENING?</h3>
+            <div className="font-mono text-xs md:text-sm space-y-2 md:space-y-3 break-words">
               <p>✅ Your switch is ARMED and monitoring for check-ins</p>
               <p>⏱️ You must check in within 1 minute to reset the timer</p>
               <p>⚠️ If you don't check in, the switch will TRIGGER</p>
@@ -242,7 +242,7 @@ export default function DemoPage() {
           </Card>
 
           {/* Actions */}
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
             <CheckInButton
               targetDate={demoSwitch.nextCheckInAt}
               status={demoSwitch.status}
@@ -258,25 +258,25 @@ export default function DemoPage() {
 
       {/* Triggered Phase */}
       {phase === 'triggered' && demoSwitch && (
-        <div className="space-y-8">
+        <div className="space-y-6 md:space-y-8">
           <Card variant="urgent">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">SWITCH TRIGGERED!</h2>
+            <div className="flex flex-wrap items-center justify-between gap-2 md:gap-4 mb-4 md:mb-6">
+              <h2 className="text-xl md:text-2xl font-bold">SWITCH TRIGGERED!</h2>
               <StatusBadge status={demoSwitch.status} />
             </div>
 
-            <div className="space-y-6">
-              <div className="bg-red-100 p-6 border-2 border-black">
-                <p className="font-mono text-sm font-bold mb-2">⚠️ TIMER EXPIRED</p>
-                <p className="font-mono text-base">
+            <div className="space-y-4 md:space-y-6">
+              <div className="bg-red-100 p-4 md:p-6 border-2 border-black">
+                <p className="font-mono text-xs md:text-sm font-bold mb-2">⚠️ TIMER EXPIRED</p>
+                <p className="font-mono text-sm md:text-base break-words">
                   You didn't check in within the 1-minute window. The switch has been triggered
                   and your secret will be released shortly.
                 </p>
               </div>
 
-              <div className="bg-cream p-6 border-2 border-black">
-                <p className="font-mono text-sm font-bold mb-2">SECRET MESSAGE (STILL ENCRYPTED)</p>
-                <p className="font-mono text-base blur-sm select-none">
+              <div className="bg-cream p-4 md:p-6 border-2 border-black">
+                <p className="font-mono text-xs md:text-sm font-bold mb-2">SECRET MESSAGE (STILL ENCRYPTED)</p>
+                <p className="font-mono text-sm md:text-base blur-sm select-none break-all">
                   {demoSwitch.secret.substring(0, 50)}...
                 </p>
                 <p className="font-mono text-xs mt-3 text-gray-600">
@@ -284,7 +284,7 @@ export default function DemoPage() {
                 </p>
               </div>
 
-              <div className="font-mono text-sm">
+              <div className="font-mono text-xs md:text-sm">
                 <span className="text-gray-600">Time elapsed: </span>
                 <span className="font-bold">{formatElapsed(timeElapsed)}</span>
               </div>
@@ -292,13 +292,13 @@ export default function DemoPage() {
           </Card>
 
           <Card variant="urgent">
-            <h3 className="text-xl font-bold mb-4">WHAT'S HAPPENING?</h3>
-            <div className="font-mono space-y-3">
+            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">WHAT'S HAPPENING?</h3>
+            <div className="font-mono text-xs md:text-sm space-y-2 md:space-y-3 break-words">
               <p>❌ Check-in deadline was missed</p>
               <p>📡 Retrieving encrypted fragments from Nostr relays</p>
               <p>🔓 Reconstructing secret message</p>
               <p>📧 Preparing to release secret to recipients</p>
-              <p className="text-sm opacity-90 mt-4">
+              <p className="text-xs md:text-sm opacity-90 mt-3 md:mt-4">
                 In real use, this process can take 5-60 minutes depending on configuration
               </p>
             </div>
@@ -313,32 +313,32 @@ export default function DemoPage() {
 
       {/* Released Phase */}
       {phase === 'released' && demoSwitch && (
-        <div className="space-y-8">
+        <div className="space-y-6 md:space-y-8">
           <Card>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">SECRET RELEASED</h2>
-              <span className="bg-green-600 text-white px-4 py-2 border-2 border-black text-xs font-bold uppercase">
+            <div className="flex flex-wrap items-center justify-between gap-2 md:gap-4 mb-4 md:mb-6">
+              <h2 className="text-xl md:text-2xl font-bold">SECRET RELEASED</h2>
+              <span className="bg-green-600 text-white px-3 py-1 md:px-4 md:py-2 border-2 border-black text-xs font-bold uppercase">
                 COMPLETE
               </span>
             </div>
 
-            <div className="space-y-6">
-              <div className="bg-green-100 p-6 border-2 border-black">
-                <p className="font-mono text-sm font-bold mb-2">✅ DEMO COMPLETE</p>
-                <p className="font-mono text-base">
+            <div className="space-y-4 md:space-y-6">
+              <div className="bg-green-100 p-4 md:p-6 border-2 border-black">
+                <p className="font-mono text-xs md:text-sm font-bold mb-2">✅ DEMO COMPLETE</p>
+                <p className="font-mono text-sm md:text-base break-words">
                   The full lifecycle has completed. In real use, your secret would now be
                   delivered to all recipients.
                 </p>
               </div>
 
-              <div className="bg-white p-6 border-2 border-black">
-                <p className="font-mono text-sm font-bold mb-3">SECRET MESSAGE (DECRYPTED)</p>
-                <p className="font-mono text-base">
+              <div className="bg-white p-4 md:p-6 border-2 border-black">
+                <p className="font-mono text-xs md:text-sm font-bold mb-3">SECRET MESSAGE (DECRYPTED)</p>
+                <p className="font-mono text-sm md:text-base break-words">
                   {demoSwitch.secret}
                 </p>
               </div>
 
-              <div className="font-mono text-sm">
+              <div className="font-mono text-xs md:text-sm">
                 <span className="text-gray-600">Total demo time: </span>
                 <span className="font-bold">{formatElapsed(timeElapsed)}</span>
               </div>
@@ -346,20 +346,20 @@ export default function DemoPage() {
           </Card>
 
           <Card variant="info">
-            <h3 className="text-xl font-bold mb-4">DEMO SUMMARY</h3>
-            <div className="font-mono space-y-3">
+            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">DEMO SUMMARY</h3>
+            <div className="font-mono text-xs md:text-sm space-y-2 md:space-y-3 break-words">
               <p>✅ Switch created and armed</p>
               <p>✅ {demoSwitch.checkInCount > 0 ? `${demoSwitch.checkInCount} check-in(s) performed` : 'No check-ins (let it expire naturally)'}</p>
               <p>✅ Timer expired and switch triggered</p>
               <p>✅ Secret fragments retrieved and reconstructed</p>
               <p>✅ Secret released to recipients</p>
-              <p className="text-sm opacity-90 mt-4">
+              <p className="text-xs md:text-sm opacity-90 mt-3 md:mt-4">
                 In production, this lifecycle typically takes 24-168 hours (1-7 days)
               </p>
             </div>
           </Card>
 
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
             <Button variant="primary" onClick={resetDemo}>
               <RotateCcw className="h-5 w-5 mr-2" strokeWidth={2} />
               Try Again
