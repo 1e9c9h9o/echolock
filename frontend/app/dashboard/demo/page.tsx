@@ -25,7 +25,7 @@ interface DemoSwitch {
 
 const DEMO_SECRET = 'This is a demo secret message. In real use, this could be critical information, passwords, or instructions that will be released if you stop checking in!'
 
-const DEMO_INTERVAL_MINUTES = 5 // 5 minutes for demo (vs 24+ hours in real use)
+const DEMO_INTERVAL_MINUTES = 1 // 1 minute for demo (vs 24+ hours in real use)
 
 export default function DemoPage() {
   const [phase, setPhase] = useState<DemoPhase>('intro')
@@ -55,7 +55,7 @@ export default function DemoPage() {
           status: 'expired',
         })
         setPhase('triggered')
-        showToast('⚠️ Demo switch triggered! Secret will be released in 5 minutes.', 'warning')
+        showToast('⚠️ Demo switch triggered! Secret will be released in 1 minute.', 'warning')
       }
     }
   }, [demoSwitch, timeElapsed])
@@ -66,7 +66,7 @@ export default function DemoPage() {
       const releaseTimer = setTimeout(() => {
         setPhase('released')
         showToast('✅ Demo complete! Secret has been released.', 'success')
-      }, DEMO_INTERVAL_MINUTES * 60 * 1000) // 5 minutes
+      }, DEMO_INTERVAL_MINUTES * 60 * 1000) // 1 minute
 
       return () => clearTimeout(releaseTimer)
     }
@@ -89,7 +89,7 @@ export default function DemoPage() {
     setDemoSwitch(newSwitch)
     setPhase('armed')
     setTimeElapsed(0)
-    showToast('🚀 Demo started! This is an accelerated 5-minute lifecycle.', 'info')
+    showToast('🚀 Demo started! This is an accelerated 1-minute lifecycle.', 'info')
   }
 
   const resetDemo = () => {
@@ -114,7 +114,7 @@ export default function DemoPage() {
       checkInCount: demoSwitch.checkInCount + 1,
     })
 
-    showToast('Check-in successful! Timer reset to 5 minutes.', 'success')
+    showToast('Check-in successful! Timer reset to 1 minute.', 'success')
   }
 
   // Format time elapsed
@@ -142,7 +142,7 @@ export default function DemoPage() {
           </span>
         </div>
         <p className="text-lg font-mono">
-          Experience the full lifecycle of a dead man's switch in just 10 minutes
+          Experience the full lifecycle of a dead man's switch in just 2 minutes
         </p>
       </div>
 
@@ -153,7 +153,7 @@ export default function DemoPage() {
           <div className="font-mono">
             <p className="font-bold mb-2">This is a demonstration with accelerated timers:</p>
             <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>Check-in interval: 5 minutes (vs 24+ hours in real use)</li>
+              <li>Check-in interval: 1 minute (vs 24+ hours in real use)</li>
               <li>Data stored in browser session (not saved to database)</li>
               <li>Demo will auto-complete the full lifecycle</li>
               <li>Try checking in to reset the timer, or let it expire naturally</li>
@@ -235,9 +235,9 @@ export default function DemoPage() {
             <h3 className="text-xl font-bold mb-4">WHAT'S HAPPENING?</h3>
             <div className="font-mono space-y-3">
               <p>✅ Your switch is ARMED and monitoring for check-ins</p>
-              <p>⏱️ You must check in within 5 minutes to reset the timer</p>
+              <p>⏱️ You must check in within 1 minute to reset the timer</p>
               <p>⚠️ If you don't check in, the switch will TRIGGER</p>
-              <p>📧 Once triggered, your secret will be released after another 5 minutes</p>
+              <p>📧 Once triggered, your secret will be released after another 1 minute</p>
             </div>
           </Card>
 
@@ -269,7 +269,7 @@ export default function DemoPage() {
               <div className="bg-red-100 p-6 border-2 border-black">
                 <p className="font-mono text-sm font-bold mb-2">⚠️ TIMER EXPIRED</p>
                 <p className="font-mono text-base">
-                  You didn't check in within the 5-minute window. The switch has been triggered
+                  You didn't check in within the 1-minute window. The switch has been triggered
                   and your secret will be released shortly.
                 </p>
               </div>
@@ -280,7 +280,7 @@ export default function DemoPage() {
                   {demoSwitch.secret.substring(0, 50)}...
                 </p>
                 <p className="font-mono text-xs mt-3 text-gray-600">
-                  Retrieving fragments from relays... Release in ~5 minutes
+                  Retrieving fragments from relays... Release in ~1 minute
                 </p>
               </div>
 
