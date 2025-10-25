@@ -231,7 +231,7 @@ export default function DemoPage() {
           </Card>
 
           {/* Explanation Card */}
-          <Card className="bg-blue text-cream">
+          <Card variant="info">
             <h3 className="text-xl font-bold mb-4">WHAT'S HAPPENING?</h3>
             <div className="font-mono space-y-3">
               <p>✅ Your switch is ARMED and monitoring for check-ins</p>
@@ -291,7 +291,7 @@ export default function DemoPage() {
             </div>
           </Card>
 
-          <Card className="bg-red text-cream">
+          <Card variant="urgent">
             <h3 className="text-xl font-bold mb-4">WHAT'S HAPPENING?</h3>
             <div className="font-mono space-y-3">
               <p>❌ Check-in deadline was missed</p>
@@ -345,7 +345,7 @@ export default function DemoPage() {
             </div>
           </Card>
 
-          <Card className="bg-blue text-cream">
+          <Card variant="info">
             <h3 className="text-xl font-bold mb-4">DEMO SUMMARY</h3>
             <div className="font-mono space-y-3">
               <p>✅ Switch created and armed</p>
