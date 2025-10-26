@@ -21,8 +21,8 @@ interface Switch {
   id: string
   title: string
   checkInHours: number
-  nextCheckInAt: string
-  status: 'active' | 'expired' | 'cancelled'
+  expiresAt: string  // Changed from nextCheckInAt to match API
+  status: string      // Changed to string to accept 'ARMED', 'PAUSED', etc.
   createdAt: string
   recipientCount: number
 }
@@ -184,7 +184,7 @@ export default function DashboardPage() {
                 {/* Countdown Timer */}
                 {sw.status === 'active' && (
                   <CountdownTimer
-                    targetDate={sw.nextCheckInAt}
+                    targetDate={sw.expiresAt}
                     interval={sw.checkInHours}
                     showIcon={false}
                   />
@@ -193,7 +193,7 @@ export default function DashboardPage() {
                 {/* Progress Bar */}
                 {sw.status === 'active' && (
                   <ProgressBar
-                    targetDate={sw.nextCheckInAt}
+                    targetDate={sw.expiresAt}
                     interval={sw.checkInHours}
                     showPercentage={true}
                   />
@@ -209,7 +209,7 @@ export default function DashboardPage() {
               <div className="flex flex-col gap-3 mt-auto pt-4 border-t-2 border-black">
                 {sw.status === 'active' && (
                   <CheckInButton
-                    targetDate={sw.nextCheckInAt}
+                    targetDate={sw.expiresAt}
                     status={sw.status}
                     onCheckIn={async () => handleCheckIn(sw.id)}
                   />

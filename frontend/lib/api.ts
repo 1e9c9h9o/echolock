@@ -95,7 +95,7 @@ export const authAPI = {
 export const switchesAPI = {
   getAll: async () => {
     const response = await api.get('/switches')
-    return response.data.data
+    return response.data.data.switches || []
   },
 
   getOne: async (id: string) => {
