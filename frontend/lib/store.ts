@@ -10,8 +10,8 @@ interface Switch {
   id: string
   title: string
   checkInHours: number
-  nextCheckInAt: string
-  status: 'active' | 'expired' | 'cancelled'
+  expiresAt: string
+  status: string
   createdAt: string
   recipientCount: number
 }
