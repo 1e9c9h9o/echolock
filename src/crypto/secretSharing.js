@@ -81,15 +81,25 @@ export function verifyShare(authenticatedShare, authKey) {
  * @returns {Promise<Array<Uint8Array>>} Array of share Uint8Arrays
  */
 export async function splitSecret(secret, totalShares, threshold) {
-  // Convert Buffer or any array-like to Uint8Array properly
+  // Convert Buffer or any array-like to Uint8Array properly by copying bytes
   let secretArray;
-  if (secret instanceof Uint8Array) {
+  if (secret instanceof Uint8Array && !(secret instanceof Buffer)) {
+    // Already a pure Uint8Array (not a Buffer subclass)
     secretArray = secret;
   } else if (Buffer.isBuffer(secret)) {
-    secretArray = new Uint8Array(secret.buffer, secret.byteOffset, secret.byteLength);
-  } else {
+    // Copy Buffer contents into a new Uint8Array
+    // This ensures compatibility with the shamir library which expects pure Uint8Array
+    secretArray = new Uint8Array(secret);
+  } else if (ArrayBuffer.isView(secret)) {
+    // Handle other TypedArray views
+    secretArray = new Uint8Array(secret.buffer.slice(secret.byteOffset, secret.byteOffset + secret.byteLength));
+  } else if (Array.isArray(secret)) {
+    // Handle regular array
     secretArray = Uint8Array.from(secret);
+  } else {
+    throw new TypeError(`secret must be a Buffer, Uint8Array, or Array, got ${typeof secret}`);
   }
+
   return await split(secretArray, totalShares, threshold);
 }
 
