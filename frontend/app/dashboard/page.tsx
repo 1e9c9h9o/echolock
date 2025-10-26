@@ -115,7 +115,7 @@ export default function DashboardPage() {
               </div>
               <div className="space-y-2 font-mono text-sm">
                 <p><strong>{switches.length}</strong> switch{switches.length !== 1 ? 'es' : ''} monitored</p>
-                <p><strong>{switches.filter(s => s.status === 'active').length}</strong> currently active</p>
+                <p><strong>{switches.filter(s => s.status === 'ARMED').length}</strong> currently active</p>
                 <p><strong>10+</strong> Nostr relays</p>
                 <p><strong>5</strong> encrypted fragments per switch</p>
               </div>
@@ -182,7 +182,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Countdown Timer */}
-                {sw.status === 'active' && (
+                {sw.status === 'ARMED' && (
                   <CountdownTimer
                     targetDate={sw.expiresAt}
                     interval={sw.checkInHours}
@@ -191,7 +191,7 @@ export default function DashboardPage() {
                 )}
 
                 {/* Progress Bar */}
-                {sw.status === 'active' && (
+                {sw.status === 'ARMED' && (
                   <ProgressBar
                     targetDate={sw.expiresAt}
                     interval={sw.checkInHours}
@@ -207,7 +207,7 @@ export default function DashboardPage() {
 
               {/* Actions */}
               <div className="flex flex-col gap-3 mt-auto pt-4 border-t-2 border-black">
-                {sw.status === 'active' && (
+                {sw.status === 'ARMED' && (
                   <CheckInButton
                     targetDate={sw.expiresAt}
                     status={sw.status}
