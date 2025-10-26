@@ -49,17 +49,17 @@ export default function NostrRelayHealth() {
   const healthPercentage = Math.round((connectedCount / relays.length) * 100)
 
   return (
-    <Card>
+    <Card className="bg-white dark:bg-gray-800 border-2 border-black">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center">
-          <Activity className="h-6 w-6 mr-3" strokeWidth={2} />
-          <h3 className="text-xl font-bold">NOSTR RELAY NETWORK</h3>
+          <Activity className="h-6 w-6 mr-3 text-black dark:text-white" strokeWidth={2} />
+          <h3 className="text-xl font-bold text-black dark:text-white">NOSTR RELAY NETWORK</h3>
         </div>
         <div className="flex items-center gap-2">
           <div className={`px-3 py-1 border-2 border-black font-bold text-sm ${
             healthPercentage >= 70 ? 'bg-green text-black' :
             healthPercentage >= 50 ? 'bg-yellow text-black' :
-            'bg-red text-cream'
+            'bg-red text-white'
           }`}>
             {connectedCount}/{relays.length} ONLINE
           </div>
@@ -68,7 +68,7 @@ export default function NostrRelayHealth() {
 
       {/* Health bar */}
       <div className="mb-6">
-        <div className="h-3 w-full border-2 border-black bg-cream">
+        <div className="h-3 w-full border-2 border-black bg-cream dark:bg-gray-700">
           <div
             className={`h-full transition-all duration-500 ${
               healthPercentage >= 70 ? 'bg-green' :
@@ -78,7 +78,7 @@ export default function NostrRelayHealth() {
             style={{ width: `${healthPercentage}%` }}
           />
         </div>
-        <p className="text-xs font-mono mt-2 text-gray-600">
+        <p className="text-xs font-mono mt-2 text-gray-700 dark:text-gray-300">
           Minimum 7 relays required for redundancy • {healthPercentage}% network health
         </p>
       </div>
@@ -88,7 +88,7 @@ export default function NostrRelayHealth() {
         {relays.map((relay) => (
           <div
             key={relay.url}
-            className="flex items-center justify-between p-3 border border-gray-300 bg-white hover:border-black transition-colors"
+            className="flex items-center justify-between p-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 hover:border-black dark:hover:border-white transition-colors"
           >
             <div className="flex items-center flex-1 min-w-0">
               {relay.status === 'connected' ? (
@@ -98,12 +98,12 @@ export default function NostrRelayHealth() {
               ) : (
                 <div className="h-4 w-4 mr-2 animate-pulse bg-gray-400 flex-shrink-0" />
               )}
-              <span className="font-mono text-xs truncate">
+              <span className="font-mono text-xs truncate text-black dark:text-white">
                 {relay.url.replace('wss://', '')}
               </span>
             </div>
             {relay.latency && (
-              <span className="text-xs font-mono text-gray-600 ml-2 flex-shrink-0">
+              <span className="text-xs font-mono text-gray-600 dark:text-gray-400 ml-2 flex-shrink-0">
                 {relay.latency}ms
               </span>
             )}
@@ -111,9 +111,9 @@ export default function NostrRelayHealth() {
         ))}
       </div>
 
-      <div className="mt-4 pt-4 border-t-2 border-black">
-        <p className="text-xs font-mono text-gray-700">
-          <strong>NIP SUPPORT:</strong> NIP-01 (Events) • NIP-40 (Expiration) • NIP-78 (Parameterized Replaceable)
+      <div className="mt-4 pt-4 border-t-2 border-black dark:border-gray-600">
+        <p className="text-xs font-mono text-gray-700 dark:text-gray-300">
+          <strong className="text-black dark:text-white">NIP SUPPORT:</strong> NIP-01 (Events) • NIP-40 (Expiration) • NIP-78 (Parameterized Replaceable)
         </p>
       </div>
     </Card>
