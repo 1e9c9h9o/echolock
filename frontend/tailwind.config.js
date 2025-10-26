@@ -17,6 +17,11 @@ module.exports = {
         black: '#212121',
         white: '#FFFFFF',
 
+        // Additional colors for security indicators
+        green: '#00C853',
+        yellow: '#FFD600',
+        purple: '#7B1FA2',
+
         // Semantic
         primary: '#0045D3',
         danger: '#FF4D00',

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, Clock, AlertCircle, Users, Sparkles } from 'lucide-react'
+import { Plus, Clock, AlertCircle, Users, Sparkles, Shield } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import Button from '@/components/ui/Button'
 import Card from '@/components/ui/Card'
@@ -11,6 +11,8 @@ import CountdownTimer from '@/components/CountdownTimer'
 import ProgressBar from '@/components/ProgressBar'
 import CheckInButton from '@/components/CheckInButton'
 import LoadingMessage from '@/components/LoadingMessage'
+import NostrRelayHealth from '@/components/NostrRelayHealth'
+import SecurityStrengthIndicator from '@/components/SecurityStrengthIndicator'
 import { switchesAPI } from '@/lib/api'
 import { useSwitchStore } from '@/lib/store'
 import { showToast } from '@/components/ui/ToastContainer'
@@ -100,6 +102,28 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* System Status - show when there are switches */}
+      {switches.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+          <NostrRelayHealth />
+          <div className="space-y-6">
+            <SecurityStrengthIndicator compact={false} />
+            <Card className="bg-gray-100">
+              <div className="flex items-center mb-4">
+                <Shield className="h-5 w-5 mr-2 text-blue" strokeWidth={2} />
+                <h4 className="font-bold">ACTIVE PROTECTION</h4>
+              </div>
+              <div className="space-y-2 font-mono text-sm">
+                <p><strong>{switches.length}</strong> switch{switches.length !== 1 ? 'es' : ''} monitored</p>
+                <p><strong>{switches.filter(s => s.status === 'active').length}</strong> currently active</p>
+                <p><strong>10+</strong> Nostr relays</p>
+                <p><strong>5</strong> encrypted fragments per switch</p>
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
+
       {/* Empty state */}
       {switches.length === 0 && !error && (
         <Card className="text-center py-16">
@@ -129,6 +153,20 @@ export default function DashboardPage() {
                   {sw.title}
                 </h3>
                 <StatusBadge status={sw.status} />
+              </div>
+
+              {/* Security Badge */}
+              <div className="mb-4 flex items-center gap-2 flex-wrap">
+                <div className="px-2 py-1 bg-green border border-black text-xs font-bold flex items-center gap-1">
+                  <Shield className="h-3 w-3" strokeWidth={2} />
+                  AES-256
+                </div>
+                <div className="px-2 py-1 bg-blue text-cream border border-black text-xs font-bold">
+                  SHAMIR 3/5
+                </div>
+                <div className="px-2 py-1 bg-purple text-cream border border-black text-xs font-bold">
+                  NOSTR
+                </div>
               </div>
 
               {/* Switch Info */}

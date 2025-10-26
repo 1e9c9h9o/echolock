@@ -7,6 +7,8 @@ import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
+import CryptoInfoPanel from '@/components/CryptoInfoPanel'
+import SecurityStrengthIndicator from '@/components/SecurityStrengthIndicator'
 import { switchesAPI } from '@/lib/api'
 
 interface Recipient {
@@ -102,6 +104,12 @@ export default function CreateSwitchPage() {
         <p className="text-lg font-mono">
           Configure switch parameters and recipients
         </p>
+      </div>
+
+      {/* Cryptographic Information */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+        <CryptoInfoPanel />
+        <SecurityStrengthIndicator />
       </div>
 
       {/* Form */}
