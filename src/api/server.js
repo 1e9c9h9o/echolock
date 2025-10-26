@@ -56,6 +56,10 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 // MIDDLEWARE
 // ============================================================================
 
+// Trust proxy - required for Railway, Heroku, etc.
+// This allows Express to trust X-Forwarded-* headers from the reverse proxy
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet({
   contentSecurityPolicy: {
