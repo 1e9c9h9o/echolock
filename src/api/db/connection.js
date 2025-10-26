@@ -37,7 +37,7 @@ const config = {
 
   // SSL configuration (required for production)
   ssl: process.env.NODE_ENV === 'production' ? {
-    rejectUnauthorized: true
+    rejectUnauthorized: false  // Allow self-signed certs (Railway uses them)
   } : false
 };
 
