@@ -39,6 +39,7 @@ import { testConnection } from './db/connection.js';
 import authRoutes from './routes/auth.js';
 import switchRoutes from './routes/switches.js';
 import userRoutes from './routes/users.js';
+import securityRoutes from './routes/security.js';
 
 // Import timer monitor (background job)
 import { startTimerMonitor } from './jobs/timerMonitor.js';
@@ -213,6 +214,7 @@ app.get('/api', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/switches', switchRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/security', securityRoutes);
 
 // ============================================================================
 // ERROR HANDLING

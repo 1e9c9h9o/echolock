@@ -161,4 +161,49 @@ export const healthCheck = async () => {
   return response.data
 }
 
+// Security API
+export const securityAPI = {
+  // Session Management
+  getSessions: async () => {
+    const response = await api.get('/security/sessions')
+    return response.data.data
+  },
+
+  revokeSession: async (sessionId: string) => {
+    const response = await api.post(`/security/sessions/${sessionId}/revoke`)
+    return response.data
+  },
+
+  revokeAllSessions: async () => {
+    const response = await api.post('/security/sessions/revoke-all')
+    return response.data
+  },
+
+  // Audit Log
+  getAuditLog: async (limit = 50, offset = 0) => {
+    const response = await api.get('/security/audit-log', {
+      params: { limit, offset }
+    })
+    return response.data.data
+  },
+
+  // 2FA
+  getTwoFactorStatus: async () => {
+    const response = await api.get('/security/2fa/status')
+    return response.data.data
+  },
+
+  // Emergency Controls
+  pauseAllSwitches: async () => {
+    const response = await api.post('/security/emergency/pause-all')
+    return response.data
+  },
+
+  // Security Stats
+  getSecurityStats: async () => {
+    const response = await api.get('/security/stats')
+    return response.data.data
+  },
+}
+
 export default api
