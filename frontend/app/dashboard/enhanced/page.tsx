@@ -26,8 +26,8 @@ interface Switch {
   id: string
   title: string
   checkInHours: number
-  nextCheckInAt: string
-  status: 'active' | 'expired' | 'cancelled'
+  expiresAt: string
+  status: string  // API returns 'ARMED', 'EXPIRED', 'CANCELLED', etc.
   createdAt: string
   recipientCount: number
 }
@@ -106,9 +106,15 @@ export default function EnhancedDashboardPage() {
   const filteredSwitches = useMemo(() => {
     let result = [...switches]
 
-    // Filter by status
+    // Filter by status (case-insensitive, API returns uppercase)
     if (filters.status !== 'all') {
-      result = result.filter((sw) => sw.status === filters.status)
+      const statusMap: Record<string, string> = {
+        'active': 'ARMED',
+        'expired': 'EXPIRED',
+        'cancelled': 'CANCELLED'
+      }
+      const apiStatus = statusMap[filters.status] || filters.status
+      result = result.filter((sw) => sw.status === apiStatus)
     }
 
     // Filter by search query
@@ -127,8 +133,8 @@ export default function EnhancedDashboardPage() {
           bVal = new Date(b.createdAt).getTime()
           break
         case 'nextCheckIn':
-          aVal = new Date(a.nextCheckInAt).getTime()
-          bVal = new Date(b.nextCheckInAt).getTime()
+          aVal = new Date(a.expiresAt).getTime()
+          bVal = new Date(b.expiresAt).getTime()
           break
         case 'title':
           aVal = a.title.toLowerCase()
@@ -317,18 +323,18 @@ export default function EnhancedDashboardPage() {
               {/* Switch Info */}
               <div className="space-y-4 mb-6 flex-1">
                 {/* Countdown Timer */}
-                {sw.status === 'active' && (
+                {sw.status === 'ARMED' && (
                   <CountdownTimer
-                    targetDate={sw.nextCheckInAt}
+                    targetDate={sw.expiresAt}
                     interval={sw.checkInHours}
                     showIcon={true}
                   />
                 )}
 
                 {/* Progress Bar */}
-                {sw.status === 'active' && (
+                {sw.status === 'ARMED' && (
                   <ProgressBar
-                    targetDate={sw.nextCheckInAt}
+                    targetDate={sw.expiresAt}
                     interval={sw.checkInHours}
                     showPercentage={true}
                   />
@@ -342,9 +348,9 @@ export default function EnhancedDashboardPage() {
 
               {/* Actions */}
               <div className="flex flex-col gap-3 mt-auto pt-4 border-t-2 border-black">
-                {sw.status === 'active' && (
+                {sw.status === 'ARMED' && (
                   <CheckInButton
-                    targetDate={sw.nextCheckInAt}
+                    targetDate={sw.expiresAt}
                     status={sw.status}
                     onCheckIn={async () => handleCheckIn(sw.id)}
                   />
