@@ -74,8 +74,23 @@ app.use(helmet({
 }));
 
 // CORS configuration
+// Support multiple origins from comma-separated string
+const allowedOrigins = process.env.CORS_ORIGINS
+  ? process.env.CORS_ORIGINS.split(',').map(origin => origin.trim())
+  : ['http://localhost:3001'];
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3001',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, curl)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      logger.warn(`CORS blocked origin: ${origin}`, { allowedOrigins });
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   optionsSuccessStatus: 200
 };
