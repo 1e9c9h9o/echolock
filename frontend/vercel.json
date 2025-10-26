@@ -5,11 +5,11 @@
   "framework": "nextjs",
   "outputDirectory": ".next",
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://api.echolock.xyz"
+    "NEXT_PUBLIC_API_URL": "https://echolock-api-production.up.railway.app"
   },
   "build": {
     "env": {
-      "NEXT_PUBLIC_API_URL": "https://api.echolock.xyz"
+      "NEXT_PUBLIC_API_URL": "https://echolock-api-production.up.railway.app"
     }
   },
   "headers": [
