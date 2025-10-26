@@ -16,7 +16,7 @@ type DemoPhase = 'intro' | 'armed' | 'triggered' | 'released'
 interface DemoSwitch {
   id: string
   secret: string
-  status: 'active' | 'expired' | 'cancelled'
+  status: string  // Using 'active', 'expired', 'cancelled' for demo
   checkInInterval: number // minutes (accelerated)
   nextCheckInAt: string
   createdAt: string

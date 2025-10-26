@@ -14,8 +14,8 @@ interface SwitchDetail {
   id: string
   title: string
   checkInHours: number
-  nextCheckInAt: string
-  status: 'active' | 'expired' | 'cancelled'
+  expiresAt: string
+  status: string  // API returns 'ARMED', 'EXPIRED', 'CANCELLED', etc.
   createdAt: string
   lastCheckInAt: string | null
   recipients: Array<{
@@ -149,7 +149,7 @@ export default function SwitchDetailPage() {
             </p>
           </div>
 
-          {switchData.status === 'active' && (
+          {(switchData.status === 'ARMED' || switchData.status === 'active') && (
             <Button variant="primary" onClick={handleCheckIn}>
               Check in now
             </Button>
@@ -171,21 +171,21 @@ export default function SwitchDetailPage() {
               </span>
             </div>
 
-            {switchData.status === 'active' && (
+            {(switchData.status === 'ARMED' || switchData.status === 'active') && (
               <>
                 <div className="flex items-center">
                   <AlertCircle className="h-5 w-5 text-text-secondary mr-grid-2" strokeWidth={1.5} />
                   <span className="text-secondary">
                     Next check-in due:{' '}
                     <strong>
-                      {formatDistanceToNow(new Date(switchData.nextCheckInAt), {
+                      {formatDistanceToNow(new Date(switchData.expiresAt), {
                         addSuffix: true,
                       })}
                     </strong>
                   </span>
                 </div>
                 <div className="text-sm text-text-secondary">
-                  Exact time: {format(new Date(switchData.nextCheckInAt), 'PPpp')}
+                  Exact time: {format(new Date(switchData.expiresAt), 'PPpp')}
                 </div>
               </>
             )}
@@ -253,7 +253,7 @@ export default function SwitchDetailPage() {
         <Card className="border-accent">
           <h2 className="text-xl font-bold text-accent mb-grid-4">Danger zone</h2>
           <div className="space-y-grid-3">
-            {switchData.status === 'active' && (
+            {(switchData.status === 'ARMED' || switchData.status === 'active') && (
               <div className="flex items-center justify-between pb-grid-3 border-b border-border">
                 <div>
                   <h3 className="font-medium text-secondary mb-grid">Cancel switch</h3>

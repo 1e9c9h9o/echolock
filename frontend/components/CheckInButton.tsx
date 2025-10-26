@@ -6,7 +6,7 @@ import Button from '@/components/ui/Button'
 
 interface CheckInButtonProps {
   targetDate: string // ISO timestamp
-  status: 'active' | 'expired' | 'cancelled'
+  status: string  // API returns 'ARMED', 'EXPIRED', 'CANCELLED', etc.
   onCheckIn: () => Promise<void>
   className?: string
 }
@@ -46,7 +46,7 @@ export default function CheckInButton({
   }, [targetDate])
 
   const handleClick = async () => {
-    if (loading || status !== 'active') return
+    if (loading || (status !== 'ARMED' && status !== 'active')) return
 
     setLoading(true)
     try {
@@ -62,7 +62,7 @@ export default function CheckInButton({
   }
 
   // Disabled states
-  if (status === 'expired') {
+  if (status === 'EXPIRED' || status === 'expired') {
     return (
       <Button variant="danger" disabled className={className}>
         <Heart className="h-5 w-5 mr-2" strokeWidth={2} />
@@ -71,7 +71,7 @@ export default function CheckInButton({
     )
   }
 
-  if (status === 'cancelled') {
+  if (status === 'CANCELLED' || status === 'cancelled') {
     return (
       <Button variant="secondary" disabled className={className}>
         Cancelled
