@@ -235,7 +235,7 @@ router.get('/switch-status/:switchId', requireMasterKey, async (req, res) => {
 
     // Get release logs
     const logs = await query(
-      'SELECT * FROM release_log WHERE switch_id = $1 ORDER BY created_at DESC',
+      'SELECT * FROM release_log WHERE switch_id = $1 ORDER BY timestamp DESC',
       [switchId]
     );
 
