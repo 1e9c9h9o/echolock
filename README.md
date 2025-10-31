@@ -16,6 +16,27 @@ Cryptographic dead man's switch using Bitcoin timelocks and Nostr protocol for d
 
 ## 🚀 Quick Start
 
+### 🌐 Production Web Application
+
+ECHOLOCK is live in production with a full-featured web interface:
+
+**Website:** https://www.echolock.xyz
+**API:** https://echolock-api-production.up.railway.app
+
+**Features:**
+- ✨ **Mobile-Optimized** - Responsive design for all screen sizes
+- 🔐 **User Authentication** - JWT-based secure login/signup
+- 📊 **Real-time Dashboard** - Live switch management with WebSocket updates
+- 🌓 **Dark Mode** - System preference detection
+- 🌍 **Multi-language** - English, Spanish, French, Arabic (with RTL support)
+- 📧 **Email Notifications** - Check-in reminders and release alerts
+- 📱 **QR Code Sharing** - Easy switch sharing
+- 📅 **Calendar Integration** - Add check-in reminders to your calendar
+
+**Demo Account:**
+- Email: demo@echolock.xyz
+- Password: DemoPass123
+
 ### Watch the Demos
 
 **Cryptographic Demo:**
@@ -44,6 +65,54 @@ npm start
 ```
 
 Available commands: `create`, `check-in`, `status`, `list`, `test-release`, `help`, `exit`
+
+### API Server (Production)
+
+ECHOLOCK includes a production-ready REST API with PostgreSQL backend:
+
+```bash
+# Start API server
+npm run api
+
+# Development mode with auto-reload
+npm run api:dev
+```
+
+**API Features:**
+- JWT authentication with access & refresh tokens
+- Multi-user support with user accounts
+- PostgreSQL database storage
+- Email notifications (verification, reminders, releases)
+- WebSocket real-time updates
+- Background jobs (auto-release, reminders)
+- Rate limiting and security middleware
+- Comprehensive audit logging
+
+**API Endpoints:**
+- `POST /api/auth/signup` - User registration
+- `POST /api/auth/login` - User login
+- `POST /api/switches` - Create switch
+- `GET /api/switches` - List switches
+- `POST /api/switches/:id/checkin` - Check-in
+- `GET /api/switches/:id` - Get status
+- `DELETE /api/switches/:id` - Delete switch
+
+**Documentation:**
+- [API_DOCS.md](./API_DOCS.md) - Complete API reference
+- [LOCAL_SETUP_GUIDE.md](./LOCAL_SETUP_GUIDE.md) - Setup instructions
+- [CLI_VS_API_GUIDE.md](./CLI_VS_API_GUIDE.md) - Mode comparison
+
+**Quick Start:**
+```bash
+# Set up database
+npm run db:migrate
+
+# Start API server
+npm run api:dev
+
+# Test health endpoint
+curl http://localhost:3000/health
+```
 
 ## Features
 
@@ -146,6 +215,53 @@ When `USE_NOSTR_DISTRIBUTION=true`:
 - [x] Nostr distribution tested with live relays
 - [ ] Security audit completed
 - [ ] Production ready
+
+## Production Deployment
+
+### Current Infrastructure
+
+**Frontend (Vercel):**
+- Production: https://www.echolock.xyz
+- Framework: Next.js 14 with App Router
+- Hosting: Vercel (auto-deploys from main branch)
+- Features: SSR, responsive design, dark mode, i18n
+
+**Backend (Railway):**
+- API: https://echolock-api-production.up.railway.app
+- Framework: Express.js with Node.js
+- Database: PostgreSQL (managed by Railway)
+- Features: JWT auth, WebSocket, background jobs, email service
+
+**Architecture:**
+```
+┌─────────────────┐
+│  Browser/Mobile │
+└────────┬────────┘
+         │ HTTPS
+         ↓
+┌─────────────────┐         ┌──────────────────┐
+│  Vercel CDN     │ ───────→│  Railway API     │
+│  www.echolock   │  REST   │  + PostgreSQL    │
+│  .xyz           │ ←─────  │                  │
+└─────────────────┘ WebSocket└──────────────────┘
+         │                           │
+         │                           ↓
+         │                  ┌──────────────────┐
+         └─────────────────→│  Nostr Relays    │
+                  Fragments │  (7+ global)     │
+                            └──────────────────┘
+```
+
+### Mobile-Responsive Updates (Oct 2025)
+
+Recent improvements for mobile devices:
+- ✅ Proper viewport meta tag configuration
+- ✅ Responsive typography (16px mobile → 18px desktop)
+- ✅ Flexible heading sizes (text-3xl → text-5xl)
+- ✅ Adaptive spacing and padding
+- ✅ Mobile-first grid layouts
+- ✅ Touch-friendly button sizes
+- ✅ Optimized for screens 320px and up
 
 ## Installation
 

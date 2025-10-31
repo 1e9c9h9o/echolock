@@ -8,9 +8,15 @@
   body {
     @apply bg-cream text-black;
     font-family: 'Space Mono', monospace;
-    font-size: 18px;
+    font-size: 16px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
+  }
+
+  @media (min-width: 640px) {
+    body {
+      font-size: 18px;
+    }
   }
 
   /* Subtle noise texture like echolock.xyz */
