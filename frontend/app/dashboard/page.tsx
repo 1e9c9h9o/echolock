@@ -69,27 +69,29 @@ export default function DashboardPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-12">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-5xl font-bold">DASHBOARD</h1>
-          <div className="flex gap-4">
-            <Link href="/dashboard/demo">
-              <Button variant="secondary">
+      <div className="mb-8 lg:mb-12">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+          <div>
+            <h1 className="text-3xl lg:text-5xl font-bold">DASHBOARD</h1>
+            <p className="text-base lg:text-lg font-mono mt-2">
+              Active switches and check-in status
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 lg:gap-4">
+            <Link href="/dashboard/demo" className="w-full sm:w-auto">
+              <Button variant="secondary" className="w-full sm:w-auto whitespace-nowrap">
                 <Sparkles className="h-5 w-5 inline mr-2" strokeWidth={2} />
                 Try Demo
               </Button>
             </Link>
-            <Link href="/dashboard/create">
-              <Button variant="primary">
+            <Link href="/dashboard/create" className="w-full sm:w-auto">
+              <Button variant="primary" className="w-full sm:w-auto whitespace-nowrap">
                 <Plus className="h-5 w-5 inline mr-2" strokeWidth={2} />
                 Create Switch
               </Button>
             </Link>
           </div>
         </div>
-        <p className="text-lg font-mono">
-          Active switches and check-in status
-        </p>
       </div>
 
       {/* Error */}

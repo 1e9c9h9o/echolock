@@ -136,21 +136,21 @@ export default function SwitchDetailPage() {
           <ArrowLeft className="h-4 w-4 mr-grid" strokeWidth={1.5} />
           Back to dashboard
         </Link>
-        <div className="flex items-start justify-between">
-          <div>
-            <div className="flex items-center space-x-grid-3 mb-grid-2">
-              <h1 className="text-3xl font-bold text-secondary">
+        <div className="flex flex-col lg:flex-row items-start lg:justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex flex-wrap items-center gap-2 mb-grid-2">
+              <h1 className="text-2xl lg:text-3xl font-bold text-secondary">
                 {switchData.title}
               </h1>
               <StatusBadge status={switchData.status} />
             </div>
-            <p className="text-text-secondary">
+            <p className="text-text-secondary text-sm lg:text-base">
               Created {format(new Date(switchData.createdAt), 'PPP')}
             </p>
           </div>
 
           {(switchData.status === 'ARMED' || switchData.status === 'active') && (
-            <Button variant="primary" onClick={handleCheckIn}>
+            <Button variant="primary" onClick={handleCheckIn} className="w-full lg:w-auto whitespace-nowrap">
               Check in now
             </Button>
           )}
@@ -254,21 +254,21 @@ export default function SwitchDetailPage() {
           <h2 className="text-xl font-bold text-accent mb-grid-4">Danger zone</h2>
           <div className="space-y-grid-3">
             {(switchData.status === 'ARMED' || switchData.status === 'active') && (
-              <div className="flex items-center justify-between pb-grid-3 border-b border-border">
-                <div>
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 pb-grid-3 border-b border-border">
+                <div className="flex-1">
                   <h3 className="font-medium text-secondary mb-grid">Cancel switch</h3>
                   <p className="text-sm text-text-secondary">
                     Stop the timer and prevent message delivery
                   </p>
                 </div>
-                <Button variant="secondary" onClick={handleCancel}>
+                <Button variant="secondary" onClick={handleCancel} className="w-full lg:w-auto whitespace-nowrap">
                   Cancel switch
                 </Button>
               </div>
             )}
 
-            <div className="flex items-center justify-between">
-              <div>
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+              <div className="flex-1">
                 <h3 className="font-medium text-secondary mb-grid">Delete switch</h3>
                 <p className="text-sm text-text-secondary">
                   Permanently delete this switch and all data
@@ -277,7 +277,7 @@ export default function SwitchDetailPage() {
               <Button
                 variant="secondary"
                 onClick={handleDelete}
-                className="border-accent text-accent hover:bg-accent hover:text-white"
+                className="w-full lg:w-auto whitespace-nowrap border-accent text-accent hover:bg-accent hover:text-white"
               >
                 <Trash2 className="h-4 w-4 mr-grid" strokeWidth={1.5} />
                 Delete
