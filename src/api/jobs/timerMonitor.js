@@ -25,8 +25,8 @@ import { logger } from '../utils/logger.js';
 import { sendSwitchReleaseEmail } from '../services/emailService.js';
 import websocketService from '../services/websocketService.js';
 
-// Import your existing crypto code for message retrieval
-import { testRelease } from '../../core/deadManSwitch.js';
+// Import database-compatible message retrieval service
+import { retrieveAndReconstructMessage } from '../services/messageRetrievalService.js';
 
 // Track processing to prevent duplicate releases
 const processingSwitches = new Set();
@@ -53,20 +53,33 @@ async function processExpiredSwitch(sw) {
       expiresAt: sw.expires_at
     });
 
-    // Step 1: Retrieve and reconstruct message using your existing code
-    logger.debug('Retrieving fragments from Nostr...', { switchId });
+    // Step 1: Get full switch data from database
+    const switchResult = await query(
+      `SELECT * FROM switches WHERE id = $1`,
+      [switchId]
+    );
 
-    const releaseResult = await testRelease(switchId, null, false);
-
-    if (!releaseResult.success) {
-      throw new Error(`Release failed: ${releaseResult.message}`);
+    if (switchResult.rows.length === 0) {
+      throw new Error('Switch not found in database');
     }
 
-    const message = releaseResult.reconstructedMessage;
+    const fullSwitchData = switchResult.rows[0];
+
+    // Step 2: Retrieve and reconstruct message from Nostr
+    logger.debug('Retrieving fragments from Nostr...', { switchId });
+
+    const releaseResult = await retrieveAndReconstructMessage(fullSwitchData);
+
+    if (!releaseResult.success) {
+      throw new Error(`Message retrieval failed: ${releaseResult.error}`);
+    }
+
+    const message = releaseResult.message;
 
     logger.info('Message reconstructed successfully', {
       switchId,
-      sharesUsed: releaseResult.sharesUsed
+      sharesUsed: releaseResult.sharesUsed,
+      messageLength: message.length
     });
 
     // Step 2: Get recipients
@@ -166,12 +179,26 @@ async function processExpiredSwitch(sw) {
       recipientsNotified: recipients.length,
       successfulEmails: emailResults.filter(r => r.status === 'SENT').length
     });
+
+    // Log to console for Railway visibility
+    console.log('✅ Switch released successfully:', {
+      switchId,
+      title: sw.title,
+      emailsSent: emailResults.filter(r => r.status === 'SENT').length,
+      recipients: recipients.map(r => r.email)
+    });
   } catch (error) {
     logger.error('Failed to process expired switch', {
       switchId,
-      title: sw.title,
+      title: sw?.title || 'unknown',
       error: error.message,
       stack: error.stack
+    });
+
+    // Log to console for Railway visibility
+    console.error('❌ Switch processing failed:', {
+      switchId,
+      error: error.message
     });
 
     // Update switch to indicate error (but don't fail completely)
