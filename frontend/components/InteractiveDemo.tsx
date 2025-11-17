@@ -1,60 +1,129 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Button from '@/components/ui/Button'
 
 type DemoStep =
   | 'idle'
-  | 'creating'
+  | 'typing'
   | 'encrypting'
-  | 'distributing'
+  | 'encrypted'
   | 'countdown'
   | 'releasing'
+  | 'decrypting'
   | 'complete'
+
+const SECRET_MESSAGE = "The backup codes are in the safe. Combination: 24-15-36. Tell Sarah I love her."
+const ENCRYPTED_TEXT = "U2FsdGVkX1+vupppZksvRf9Dz3Q4nVK8mHPxzB7tJYqRwE5gN2xKvL8..."
 
 export default function InteractiveDemo() {
   const [step, setStep] = useState<DemoStep>('idle')
-  const [countdown, setCountdown] = useState(10)
-  const [switchId, setSwitchId] = useState('')
-  const [message, setMessage] = useState('')
+  const [countdown, setCountdown] = useState(8)
+  const [typedMessage, setTypedMessage] = useState('')
+  const [encryptedDisplay, setEncryptedDisplay] = useState('')
+  const [decryptedMessage, setDecryptedMessage] = useState('')
+  const [checkInPulse, setCheckInPulse] = useState(false)
+  const cancelRef = useRef(false)
 
   const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
   const resetDemo = () => {
+    cancelRef.current = true
     setStep('idle')
-    setCountdown(10)
-    setSwitchId('')
-    setMessage('')
+    setCountdown(8)
+    setTypedMessage('')
+    setEncryptedDisplay('')
+    setDecryptedMessage('')
+    setCheckInPulse(false)
+    setTimeout(() => {
+      cancelRef.current = false
+    }, 100)
   }
 
+  // Typing animation effect
+  useEffect(() => {
+    if (step !== 'typing') return
+
+    let index = 0
+    const typeInterval = setInterval(() => {
+      if (cancelRef.current) {
+        clearInterval(typeInterval)
+        return
+      }
+      if (index < SECRET_MESSAGE.length) {
+        setTypedMessage(SECRET_MESSAGE.slice(0, index + 1))
+        index++
+      } else {
+        clearInterval(typeInterval)
+      }
+    }, 50)
+
+    return () => clearInterval(typeInterval)
+  }, [step])
+
+  // Check-in button pulse effect during countdown
+  useEffect(() => {
+    if (step !== 'countdown') return
+
+    const pulseInterval = setInterval(() => {
+      setCheckInPulse(prev => !prev)
+    }, 800)
+
+    return () => clearInterval(pulseInterval)
+  }, [step])
+
   const runDemo = async () => {
-    // Step 1: Creating switch
-    setStep('creating')
-    await sleep(1500)
-    const demoSwitchId = `demo-${Math.random().toString(36).substr(2, 9)}`
-    setSwitchId(demoSwitchId)
+    cancelRef.current = false
 
-    // Step 2: Encrypting
+    // Step 1: Show message being typed
+    setStep('typing')
+    await sleep(SECRET_MESSAGE.length * 50 + 1000) // Wait for typing to finish + pause
+    if (cancelRef.current) return
+
+    // Step 2: Encrypt the message
     setStep('encrypting')
+    await sleep(1500)
+    if (cancelRef.current) return
+
+    // Step 3: Show encrypted result
+    setEncryptedDisplay(ENCRYPTED_TEXT)
+    setStep('encrypted')
     await sleep(2000)
+    if (cancelRef.current) return
 
-    // Step 3: Distributing
-    setStep('distributing')
-    await sleep(2500)
-
-    // Step 4: Countdown
+    // Step 4: Countdown with check-in button NOT being pressed
     setStep('countdown')
-    for (let i = 10; i > 0; i--) {
+    for (let i = 8; i > 0; i--) {
+      if (cancelRef.current) return
       setCountdown(i)
       await sleep(1000)
     }
+    if (cancelRef.current) return
 
-    // Step 5: Releasing
+    // Step 5: Timer expired - releasing
     setStep('releasing')
-    await sleep(3000)
+    await sleep(2000)
+    if (cancelRef.current) return
 
-    // Step 6: Complete
-    setMessage("If you're reading this, the dead man's switch worked!\n\nThis message was encrypted with AES-256-GCM, split into 5 fragments using Shamir's Secret Sharing, distributed to Nostr relays, and automatically released when the timer expired.")
+    // Step 6: Decrypting - show message being revealed
+    setStep('decrypting')
+    let decIndex = 0
+    const decryptInterval = setInterval(() => {
+      if (cancelRef.current) {
+        clearInterval(decryptInterval)
+        return
+      }
+      if (decIndex < SECRET_MESSAGE.length) {
+        setDecryptedMessage(SECRET_MESSAGE.slice(0, decIndex + 1))
+        decIndex++
+      } else {
+        clearInterval(decryptInterval)
+      }
+    }, 30)
+    await sleep(SECRET_MESSAGE.length * 30 + 500)
+    if (cancelRef.current) return
+
+    // Step 7: Complete
     setStep('complete')
   }
 
@@ -63,7 +132,7 @@ export default function InteractiveDemo() {
       <div className="text-center mb-8">
         <h3 className="text-2xl font-bold mb-2">Try It Live</h3>
         <p className="text-black opacity-70">
-          Watch how EchoLock encrypts, distributes, and automatically releases a secret
+          See exactly how a dead man's switch protects and releases your message
         </p>
       </div>
 
@@ -71,14 +140,25 @@ export default function InteractiveDemo() {
         <div className="text-center space-y-6">
           <div className="bg-cream/50 p-6 border-2 border-black">
             <p className="text-lg mb-4">
-              This demo simulates the full dead man's switch workflow in 20 seconds.
+              Watch the complete lifecycle in 20 seconds:
             </p>
-            <ul className="text-left space-y-2 max-w-md mx-auto text-base opacity-80">
-              <li>✓ Encrypt secret message</li>
-              <li>✓ Split key into 5 fragments</li>
-              <li>✓ Distribute to Nostr relays</li>
-              <li>✓ 10-second countdown timer</li>
-              <li>✓ Automatic release on expiry</li>
+            <ul className="text-left space-y-3 max-w-md mx-auto text-base">
+              <li className="flex items-center gap-2">
+                <span className="text-blue font-bold">1.</span>
+                <span>Type a secret message</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-blue font-bold">2.</span>
+                <span>Encrypt it (unreadable to anyone)</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-blue font-bold">3.</span>
+                <span>Timer counts down, <strong>check-in NOT pressed</strong></span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-blue font-bold">4.</span>
+                <span>Message automatically decrypted and released</span>
+              </li>
             </ul>
           </div>
           <Button variant="primary" onClick={runDemo}>
@@ -87,14 +167,21 @@ export default function InteractiveDemo() {
         </div>
       )}
 
-      {step === 'creating' && (
-        <div className="space-y-4 animate-fade-in-up">
+      {step === 'typing' && (
+        <div className="space-y-6 animate-fade-in-up">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 border-4 border-blue border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-lg font-bold">Creating Dead Man's Switch...</span>
+            <span className="text-2xl">✍️</span>
+            <span className="text-lg font-bold">Step 1: Writing Secret Message</span>
           </div>
-          <p className="text-base opacity-70 ml-11">
-            Generating switch with 10-second timer for demo
+          <div className="bg-cream p-6 border-2 border-black">
+            <label className="block text-sm font-bold mb-2 opacity-70">Your Secret:</label>
+            <div className="bg-white p-4 border-2 border-black min-h-[80px] font-mono text-base">
+              {typedMessage}
+              <span className="inline-block w-2 h-5 bg-black animate-pulse ml-1"></span>
+            </div>
+          </div>
+          <p className="text-sm opacity-60 text-center">
+            This message will only be released if you don't check in...
           </p>
         </div>
       )}
@@ -103,87 +190,113 @@ export default function InteractiveDemo() {
         <div className="space-y-6 animate-fade-in-up">
           <div className="flex items-center gap-3 text-green-600">
             <span className="text-2xl">✓</span>
-            <span className="text-lg font-bold">Switch Created!</span>
-          </div>
-          <div className="bg-cream/50 p-4 border-2 border-black font-mono text-sm">
-            <div><span className="opacity-60">Switch ID:</span> {switchId}</div>
-            <div><span className="opacity-60">Fragments:</span> 3-of-5 threshold</div>
-            <div><span className="opacity-60">Status:</span> <span className="text-green-600 font-bold">ARMED</span></div>
+            <span className="text-lg">Message written</span>
           </div>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 border-4 border-blue border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-lg font-bold">Encrypting Message...</span>
+            <span className="text-lg font-bold">Step 2: Encrypting Message...</span>
           </div>
-          <ul className="space-y-2 ml-11 text-base opacity-70">
-            <li>• Encrypting with AES-256-GCM</li>
-            <li>• Generating 256-bit encryption key</li>
-            <li>• Splitting key using Shamir Secret Sharing</li>
-          </ul>
+          <div className="bg-cream p-4 border-2 border-black">
+            <div className="font-mono text-sm opacity-70 mb-3">{typedMessage}</div>
+            <div className="text-center text-2xl animate-bounce">⬇️</div>
+            <div className="text-center text-sm opacity-70 mt-2">
+              Applying AES-256-GCM encryption...
+            </div>
+          </div>
         </div>
       )}
 
-      {step === 'distributing' && (
+      {step === 'encrypted' && (
         <div className="space-y-6 animate-fade-in-up">
           <div className="flex items-center gap-3 text-green-600">
             <span className="text-2xl">✓</span>
             <span className="text-lg font-bold">Message Encrypted!</span>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 border-4 border-blue border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-lg font-bold">Distributing Fragments...</span>
+          <div className="bg-black text-green-400 p-4 border-2 border-green-600 font-mono text-sm">
+            <div className="opacity-70 mb-2">// Encrypted output:</div>
+            <div className="break-all">{encryptedDisplay}</div>
           </div>
-          <ul className="space-y-2 ml-11 text-base opacity-70">
-            <li>• Publishing to relay.damus.io ✓</li>
-            <li>• Publishing to nos.lol ✓</li>
-            <li>• Publishing to relay.nostr.band ✓</li>
-            <li>• Publishing to nostr.wine ✓</li>
-            <li>• Publishing to relay.snort.social ✓</li>
-            <li className="font-bold text-green-600">• 5 fragments distributed successfully</li>
-          </ul>
+          <div className="bg-blue/10 p-3 border-2 border-blue text-sm text-center">
+            <strong>Now unreadable!</strong> Only the encryption key can decrypt this.
+          </div>
         </div>
       )}
 
       {step === 'countdown' && (
-        <div className="space-y-6 animate-fade-in-up text-center">
-          <div className="flex items-center gap-3 text-green-600 justify-center">
+        <div className="space-y-6 animate-fade-in-up">
+          <div className="flex items-center gap-3 text-green-600">
             <span className="text-2xl">✓</span>
-            <span className="text-lg font-bold">Fragments Distributed!</span>
+            <span className="text-lg">Message encrypted and stored</span>
           </div>
-          <div className="bg-cream/50 p-8 border-2 border-black">
-            <p className="text-base opacity-70 mb-4">Waiting for timer to expire...</p>
-            <div className="text-6xl font-bold text-blue mb-2">{countdown}</div>
-            <p className="text-base opacity-70">seconds remaining</p>
+
+          <div className="bg-cream/50 p-6 border-2 border-black text-center">
+            <p className="text-lg font-bold mb-4">Step 3: Dead Man's Switch Active</p>
+            <div className="text-5xl font-bold text-red mb-2">{countdown}</div>
+            <p className="text-base opacity-70 mb-6">seconds until release</p>
+
+            {/* The key visual: CHECK-IN button that ISN'T being pressed */}
+            <div className="relative">
+              <button
+                disabled
+                className={`
+                  px-8 py-4 bg-green-600 text-white font-bold text-xl border-4 border-black
+                  opacity-80 cursor-not-allowed
+                  ${checkInPulse ? 'scale-105 shadow-lg' : 'scale-100'}
+                  transition-all duration-300
+                `}
+              >
+                CHECK IN
+              </button>
+              <div className="absolute -top-3 -right-3 bg-red text-white px-2 py-1 text-xs font-bold border-2 border-black rotate-12">
+                NOT PRESSED!
+              </div>
+            </div>
+
+            <p className="text-sm text-red font-bold mt-4 animate-pulse">
+              User is not checking in...
+            </p>
           </div>
-          <p className="text-sm opacity-60">
-            In production, this would be 72+ hours
+
+          <p className="text-xs opacity-60 text-center">
+            In real use, this timer would be 24-72+ hours
           </p>
         </div>
       )}
 
       {step === 'releasing' && (
         <div className="space-y-6 animate-fade-in-up">
-          <div className="bg-red/10 p-4 border-2 border-red text-center">
-            <p className="text-lg font-bold text-red">⚠️ Timer Expired - No Check-In Received</p>
-            <p className="text-base opacity-70 mt-2">Initiating automatic release sequence...</p>
+          <div className="bg-red/20 p-4 border-2 border-red text-center">
+            <p className="text-xl font-bold text-red">TIMER EXPIRED!</p>
+            <p className="text-base opacity-70 mt-2">No check-in received. Releasing message...</p>
           </div>
-          <div className="space-y-4 ml-4">
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 border-4 border-blue border-t-transparent rounded-full animate-spin"></div>
-              <span>Fetching encrypted fragments from Nostr relays...</span>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3 text-green-600">
+              <span>✓</span>
+              <span>Retrieving encryption key fragments...</span>
             </div>
-            <div className="flex items-center gap-3 text-green-600 ml-9">
-              <span>✓ Retrieved 5 fragments</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-6 h-6 border-4 border-blue border-t-transparent rounded-full animate-spin"></div>
-              <span>Reconstructing encryption key...</span>
-            </div>
-            <div className="flex items-center gap-3 text-green-600 ml-9">
-              <span>✓ Key reconstructed from 3 fragments</span>
+            <div className="flex items-center gap-3 text-green-600">
+              <span>✓</span>
+              <span>Reconstructing decryption key...</span>
             </div>
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 border-4 border-blue border-t-transparent rounded-full animate-spin"></div>
+              <div className="w-5 h-5 border-3 border-blue border-t-transparent rounded-full animate-spin"></div>
               <span>Decrypting message...</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {step === 'decrypting' && (
+        <div className="space-y-6 animate-fade-in-up">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🔓</span>
+            <span className="text-lg font-bold">Step 4: Decrypting Message</span>
+          </div>
+          <div className="bg-cream p-6 border-2 border-black">
+            <label className="block text-sm font-bold mb-2 opacity-70">Revealed Message:</label>
+            <div className="bg-white p-4 border-2 border-green-600 min-h-[80px] font-mono text-base text-green-700">
+              {decryptedMessage}
+              <span className="inline-block w-2 h-5 bg-green-600 animate-pulse ml-1"></span>
             </div>
           </div>
         </div>
@@ -192,24 +305,23 @@ export default function InteractiveDemo() {
       {step === 'complete' && (
         <div className="space-y-6 animate-fade-in-up">
           <div className="bg-green-600 text-white p-6 border-2 border-black text-center">
-            <p className="text-2xl font-bold mb-2">📨 Message Released!</p>
-            <p className="text-base opacity-90">Decryption successful</p>
+            <p className="text-2xl font-bold mb-2">Message Released!</p>
+            <p className="text-base opacity-90">Your secret has been automatically delivered</p>
           </div>
           <div className="bg-cream p-6 border-2 border-black">
-            <p className="text-lg font-bold mb-3">Decrypted Secret Message:</p>
-            <p className="text-base leading-relaxed whitespace-pre-line">
-              {message}
+            <p className="text-sm font-bold mb-3 opacity-70">Final Decrypted Message:</p>
+            <p className="text-lg leading-relaxed font-mono">
+              {SECRET_MESSAGE}
             </p>
           </div>
           <div className="bg-blue/10 p-4 border-2 border-blue">
-            <p className="font-bold mb-2">✓ Demo Complete!</p>
-            <ul className="text-sm space-y-1 opacity-80">
-              <li>• Secret encrypted with AES-256-GCM</li>
-              <li>• Key split into 5 fragments (3-of-5 threshold)</li>
-              <li>• Fragments distributed to Nostr relays</li>
-              <li>• Timer expired without check-in</li>
-              <li>• Message automatically decrypted and released</li>
-            </ul>
+            <p className="font-bold mb-3">What happened:</p>
+            <ol className="text-sm space-y-2 opacity-80 list-decimal list-inside">
+              <li>You wrote a secret message</li>
+              <li>It was encrypted (unreadable without the key)</li>
+              <li>The check-in button was <strong>NOT pressed</strong></li>
+              <li>Timer expired → message automatically decrypted</li>
+            </ol>
           </div>
           <div className="flex gap-4 justify-center">
             <Button variant="primary" onClick={resetDemo}>
