@@ -328,7 +328,7 @@ export default function InteractiveDemo() {
             <p className="opacity-70 leading-relaxed">
               Think of it like a safety deposit box that opens automatically if you don't visit the bank regularly.
               You lock your message inside, and as long as you keep "checking in," it stays locked.
-              But if something happens to you and you stop checking in, the box opens and delivers your message to your loved ones.
+              But if you stop checking in, the box opens and delivers your message.
             </p>
           </div>
           <div className="flex gap-4 justify-center">
