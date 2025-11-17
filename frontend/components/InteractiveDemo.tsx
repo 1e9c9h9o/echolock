@@ -323,6 +323,14 @@ export default function InteractiveDemo() {
               <li>Timer expired → message automatically decrypted</li>
             </ol>
           </div>
+          <div className="bg-cream/50 p-4 border border-black/20 text-sm">
+            <p className="font-bold mb-2 opacity-70">In simple terms:</p>
+            <p className="opacity-70 leading-relaxed">
+              Think of it like a safety deposit box that opens automatically if you don't visit the bank regularly.
+              You lock your message inside, and as long as you keep "checking in," it stays locked.
+              But if something happens to you and you stop checking in, the box opens and delivers your message to your loved ones.
+            </p>
+          </div>
           <div className="flex gap-4 justify-center">
             <Button variant="primary" onClick={resetDemo}>
               Run Demo Again
