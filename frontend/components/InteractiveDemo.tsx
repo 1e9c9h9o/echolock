@@ -13,7 +13,7 @@ type DemoStep =
   | 'decrypting'
   | 'complete'
 
-const SECRET_MESSAGE = "The backup codes are in the safe. Combination: 24-15-36. Tell Sarah I love her."
+const SECRET_MESSAGE = "The backup codes are in the safe. Combination: 24-15-36. Tell my family I love them."
 const ENCRYPTED_TEXT = "U2FsdGVkX1+vupppZksvRf9Dz3Q4nVK8mHPxzB7tJYqRwE5gN2xKvL8..."
 
 export default function InteractiveDemo() {
