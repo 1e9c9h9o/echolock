@@ -324,11 +324,11 @@ export default function InteractiveDemo() {
             </ol>
           </div>
           <div className="bg-cream/50 p-4 border border-black/20 text-sm">
-            <p className="font-bold mb-2 opacity-70">In simple terms:</p>
+            <p className="font-bold mb-2 opacity-70">How it works:</p>
             <p className="opacity-70 leading-relaxed">
-              Think of it like a safety deposit box that opens automatically if you don't visit the bank regularly.
-              You lock your message inside, and as long as you keep "checking in," it stays locked.
-              But if you stop checking in, the box opens and delivers your message.
+              A "dead man's switch" is a failsafe mechanism that activates when the operator stops providing input.
+              Your message is encrypted using AES-256-GCM (military-grade encryption), then the decryption key is split into fragments using Shamir's Secret Sharing—a cryptographic method where no single fragment reveals anything, but combining enough fragments reconstructs the original key.
+              These fragments are distributed across a decentralized network. When the timer expires without a check-in, the system automatically retrieves the fragments, reconstructs the key, and decrypts your message.
             </p>
           </div>
           <div className="flex gap-4 justify-center">
