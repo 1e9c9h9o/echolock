@@ -326,8 +326,8 @@ export default function InteractiveDemo() {
           <div className="bg-cream/50 p-4 border border-black/20 text-sm">
             <p className="font-bold mb-2 opacity-70">How it works:</p>
             <p className="opacity-70 leading-relaxed">
-              A "dead man's switch" is a failsafe mechanism that activates when the operator stops providing input.
-              Your message is encrypted using AES-256-GCM (military-grade encryption), then the decryption key is split into fragments using Shamir's Secret Sharing—a cryptographic method where no single fragment reveals anything, but combining enough fragments reconstructs the original key.
+              A "<a href="https://en.wikipedia.org/wiki/Dead_man%27s_switch" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue">dead man's switch</a>" is a failsafe mechanism that activates when the operator stops providing input.
+              Your message is encrypted using <a href="https://en.wikipedia.org/wiki/Galois/Counter_Mode" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue">AES-256-GCM</a> (military-grade encryption), then the decryption key is split into fragments using <a href="https://en.wikipedia.org/wiki/Shamir%27s_secret_sharing" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue">Shamir's Secret Sharing</a>—a cryptographic method where no single fragment reveals anything, but combining enough fragments reconstructs the original key.
               These fragments are distributed across a decentralized network. When the timer expires without a check-in, the system automatically retrieves the fragments, reconstructs the key, and decrypts your message.
             </p>
           </div>
