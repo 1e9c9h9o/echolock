@@ -4,8 +4,8 @@ import ToastContainer from '@/components/ui/ToastContainer'
 import { ThemeProvider } from '@/contexts/ThemeContext'
 
 export const metadata: Metadata = {
-  title: 'EchoLock - Cryptographic Dead Man Switch',
-  description: 'Secure secret sharing with Bitcoin timelocks and Nostr distribution',
+  title: 'ECHOLOCK — Cryptographic Dead Man\'s Switch',
+  description: 'Decentralized dead man\'s switch with AES-256-GCM encryption, Shamir\'s Secret Sharing, Nostr relays, and Bitcoin timelocks',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=5',
   icons: {
     icon: '/icon.svg',
@@ -20,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-gray-50 dark:bg-gray-900">
+      <body className="bg-blue">
         <ThemeProvider>
           {children}
           <ToastContainer />

@@ -9,29 +9,26 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // echolock.xyz risograph palette
-        cream: '#FDF9F0',
-        'cream-dark': '#F5EFE0',
-        blue: '#0045D3',
-        red: '#FF4D00',
-        black: '#212121',
+        // Hacienda industrial palette
+        blue: '#7BA3C9',
+        'blue-light': '#A8C5DC',
+        'blue-dark': '#5B8BB8',
+        orange: '#FF6B00',
+        yellow: '#FFD000',
+        black: '#0A0A0A',
+        'hazard-black': '#1A1A1A',
         white: '#FFFFFF',
 
-        // Additional colors for security indicators
-        green: '#00C853',
-        yellow: '#FFD600',
-        purple: '#7B1FA2',
-
         // Semantic
-        primary: '#0045D3',
-        danger: '#FF4D00',
-        background: '#FDF9F0',
+        primary: '#FF6B00',
+        danger: '#FF6B00',
+        background: '#7BA3C9',
         surface: '#FFFFFF',
       },
       fontFamily: {
-        sans: ['Syne', 'sans-serif'],
-        mono: ['Space Mono', 'monospace'],
-        heading: ['Syne', 'sans-serif'],
+        sans: ['IBM Plex Sans', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'monospace'],
+        heading: ['IBM Plex Sans', 'sans-serif'],
       },
       fontSize: {
         base: ['18px', '1.6'],
