@@ -38,7 +38,7 @@ const processingSwitches = new Set();
 async function processExpiredSwitch(sw) {
   const switchId = sw.id;
 
-  // Prevent duplicate processing
+  // Prevent duplicate processing (in-memory guard for single instance)
   if (processingSwitches.has(switchId)) {
     logger.debug('Switch already being processed', { switchId });
     return;
@@ -53,17 +53,26 @@ async function processExpiredSwitch(sw) {
       expiresAt: sw.expires_at
     });
 
-    // Step 1: Get full switch data from database
+    // Step 1: Get full switch data with row lock to prevent race conditions
+    // Use FOR UPDATE to lock the row - prevents concurrent check-ins from modifying
     const switchResult = await query(
-      `SELECT * FROM switches WHERE id = $1`,
+      `SELECT * FROM switches WHERE id = $1 AND status = 'ARMED' FOR UPDATE`,
       [switchId]
     );
 
     if (switchResult.rows.length === 0) {
-      throw new Error('Switch not found in database');
+      // Switch was modified (check-in, deleted, or already triggered)
+      logger.info('Switch no longer ARMED, skipping', { switchId });
+      return;
     }
 
     const fullSwitchData = switchResult.rows[0];
+
+    // Double-check expiration (another process might have reset it)
+    if (new Date(fullSwitchData.expires_at) > new Date()) {
+      logger.info('Switch timer was reset, skipping', { switchId });
+      return;
+    }
 
     // Step 2: Retrieve and reconstruct message from Nostr
     logger.debug('Retrieving fragments from Nostr...', { switchId });
@@ -90,8 +99,20 @@ async function processExpiredSwitch(sw) {
 
     const recipients = recipientsResult.rows;
 
+    // Verify switch still exists (user may have been deleted during processing)
+    // This is a safety check for the race condition window between message retrieval and email sending
+    const verifySwitch = await query(
+      'SELECT id, user_id FROM switches WHERE id = $1',
+      [switchId]
+    );
+
+    if (verifySwitch.rows.length === 0) {
+      logger.warn('Switch was deleted during processing, aborting release', { switchId });
+      return;
+    }
+
     if (recipients.length === 0) {
-      logger.warn('No recipients for switch', { switchId });
+      logger.warn('No recipients for switch - release will complete but no emails sent', { switchId });
     }
 
     // Step 3: Send emails to all recipients
@@ -142,12 +163,18 @@ async function processExpiredSwitch(sw) {
       }
     }
 
-    // Step 4: Update switch status to RELEASED
+    // Step 4: Update switch status to RELEASED (only if still ARMED)
     await transaction(async (client) => {
-      await client.query(
-        'UPDATE switches SET status = $1, triggered_at = NOW(), released_at = NOW() WHERE id = $2',
+      const updateResult = await client.query(
+        `UPDATE switches SET status = $1, triggered_at = NOW(), released_at = NOW()
+         WHERE id = $2 AND status = 'ARMED'
+         RETURNING id`,
         ['RELEASED', switchId]
       );
+
+      if (updateResult.rows.length === 0) {
+        logger.warn('Switch status changed during processing, release may be duplicate', { switchId });
+      }
 
       // Audit log
       await client.query(
@@ -257,18 +284,24 @@ export async function checkExpiredSwitches() {
 
     logger.info(`Timer monitor: Found ${expiredCount} expired switch(es)`);
 
-    // Process each expired switch
-    for (const sw of result.rows) {
-      // Process asynchronously but don't wait (allows parallel processing)
-      processExpiredSwitch(sw).catch(error => {
-        logger.error('Unhandled error in processExpiredSwitch', {
-          switchId: sw.id,
-          error: error.message
-        });
+    // Process each expired switch with proper awaiting
+    // Use Promise.allSettled to process in parallel but wait for all to complete
+    const results = await Promise.allSettled(
+      result.rows.map(sw => processExpiredSwitch(sw))
+    );
+
+    // Log any failures
+    const failures = results.filter(r => r.status === 'rejected');
+    if (failures.length > 0) {
+      logger.error(`Timer monitor: ${failures.length} switch(es) failed to process`, {
+        errors: failures.map(f => f.reason?.message || 'Unknown error')
       });
     }
 
-    logger.info(`Timer monitor: Initiated processing of ${expiredCount} switch(es)`);
+    logger.info(`Timer monitor: Completed processing of ${expiredCount} switch(es)`, {
+      succeeded: results.filter(r => r.status === 'fulfilled').length,
+      failed: failures.length
+    });
   } catch (error) {
     logger.error('Timer monitor error:', error);
   }

@@ -43,12 +43,21 @@ function requireMasterKey(req, res, next) {
 /**
  * POST /api/admin/manual-release/:switchId
  * Manually process a TRIGGERED switch and send emails
+ *
+ * SECURITY: Only allows release of switches that are already TRIGGERED (timer expired but release failed)
+ * This prevents malicious use of admin key to prematurely release ARMED switches
  */
 router.post('/manual-release/:switchId', requireMasterKey, async (req, res) => {
   const { switchId } = req.params;
+  const clientIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  const forceRelease = req.body.force === true && process.env.NODE_ENV !== 'production';
 
   try {
-    logger.info('Manual release requested', { switchId });
+    logger.info('Manual release requested', {
+      switchId,
+      clientIp,
+      forceRelease
+    });
 
     // Step 1: Get switch details
     const switchResult = await query(
@@ -61,6 +70,29 @@ router.post('/manual-release/:switchId', requireMasterKey, async (req, res) => {
     }
 
     const sw = switchResult.rows[0];
+
+    // SECURITY: Only allow manual release for switches that are TRIGGERED (not ARMED)
+    // TRIGGERED means the timer expired but automatic release failed
+    // ARMED switches must expire naturally to prevent abuse
+    if (sw.status === 'ARMED') {
+      if (forceRelease) {
+        logger.warn('Force release of ARMED switch in non-production', {
+          switchId,
+          clientIp,
+          userId: sw.user_id
+        });
+      } else {
+        logger.warn('Attempted manual release of ARMED switch - denied', {
+          switchId,
+          clientIp,
+          userId: sw.user_id
+        });
+        return res.status(403).json({
+          error: 'Cannot manually release ARMED switch',
+          message: 'Manual release is only allowed for TRIGGERED switches (timer expired but release failed). Wait for timer to expire or use force=true in development only.'
+        });
+      }
+    }
 
     // Step 2: Check if already released
     if (sw.status === 'RELEASED' && sw.released_at) {
@@ -172,7 +204,7 @@ router.post('/manual-release/:switchId', requireMasterKey, async (req, res) => {
       ['RELEASED', switchId]
     );
 
-    // Audit log
+    // Audit log - include admin IP for security tracking
     await query(
       `INSERT INTO audit_log (user_id, event_type, event_data)
        VALUES ($1, $2, $3)`,
@@ -183,7 +215,12 @@ router.post('/manual-release/:switchId', requireMasterKey, async (req, res) => {
           switchId,
           title: sw.title,
           recipientCount: recipients.length,
-          emailResults
+          emailResults,
+          adminAction: {
+            clientIp,
+            forceRelease,
+            timestamp: new Date().toISOString()
+          }
         })
       ]
     );

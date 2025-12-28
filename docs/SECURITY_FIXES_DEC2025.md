@@ -600,6 +600,251 @@ if (IS_PRODUCTION && !SERVICE_MASTER_KEY) {
 
 ---
 
-**Document Version**: 1.1
+## Phase 3: Deep Logic-Focused Security Audit (2025-12-28)
+
+A third audit pass focused on **business logic flaws** and **data flow issues** rather than common vulnerability patterns. This uncovered 8 additional issues, including several CRITICAL logic bugs.
+
+---
+
+### 19. Missing Module Import - Runtime Failure ✅
+
+**Severity**: CRITICAL
+**File**: `src/api/services/messageRetrievalService.js:11`
+
+**Before**: Import from non-existent file
+```javascript
+import { decryptWithServiceKey } from '../utils/encryption.js';
+// File doesn't exist - should be crypto.js
+```
+
+**After**: Correct import path
+```javascript
+import { decryptWithServiceKey } from '../utils/crypto.js';
+```
+
+**Impact**: Message release would crash on startup - dead man's switch couldn't function.
+
+---
+
+### 20. Function Signature Mismatch - Decryption Failure ✅
+
+**Severity**: CRITICAL
+**File**: `src/api/services/messageRetrievalService.js:176,204`
+
+**Before**: Object passed when separate args expected
+```javascript
+const decrypted = decryptWithServiceKey({
+  ciphertext: parts[0],
+  iv: parts[1],
+  authTag: parts[2]
+});
+// Function expects: decryptWithServiceKey(ciphertext, iv, authTag)
+```
+
+**After**: Correct argument passing
+```javascript
+const decrypted = decryptWithServiceKey(parts[0], parts[1], parts[2]);
+```
+
+**Impact**: All message decryption would fail - messages could never be released.
+
+---
+
+### 21. Double-Release Race Condition ✅
+
+**Severity**: CRITICAL
+**File**: `src/api/jobs/timerMonitor.js`
+
+**Before**: Fire-and-forget processing with no locking
+```javascript
+const switchResult = await query(
+  `SELECT * FROM switches WHERE id = $1`,  // No lock!
+  [switchId]
+);
+// ... processing ...
+for (const sw of result.rows) {
+  processExpiredSwitch(sw).catch(...);  // Fire and forget
+}
+```
+
+**After**: Database row locking and awaited processing
+```javascript
+const switchResult = await query(
+  `SELECT * FROM switches WHERE id = $1 AND status = 'ARMED' FOR UPDATE`,
+  [switchId]
+);
+// Double-check expiration after lock
+if (new Date(fullSwitchData.expires_at) > new Date()) {
+  return; // Timer was reset
+}
+// ...
+const results = await Promise.allSettled(
+  result.rows.map(sw => processExpiredSwitch(sw))
+);
+```
+
+**Impact**: Prevents a switch from being released twice if check-in and timer overlap.
+
+---
+
+### 22. Unauthorized Admin Switch Release ✅
+
+**Severity**: CRITICAL
+**File**: `src/api/routes/admin.js:47`
+
+**Before**: Admin could release ANY switch, including ARMED ones
+```javascript
+router.post('/manual-release/:switchId', requireMasterKey, async (req, res) => {
+  // No status check - could release ARMED switches prematurely
+});
+```
+
+**After**: Only TRIGGERED switches can be manually released
+```javascript
+if (sw.status === 'ARMED') {
+  if (forceRelease && process.env.NODE_ENV !== 'production') {
+    logger.warn('Force release of ARMED switch in non-production', { switchId, clientIp });
+  } else {
+    return res.status(403).json({
+      error: 'Cannot manually release ARMED switch',
+      message: 'Manual release only for TRIGGERED switches (timer expired but release failed)'
+    });
+  }
+}
+```
+
+**Impact**: Prevents abuse of admin key to prematurely release active switches.
+
+---
+
+### 23. Zero Recipients Allowed - Silent Failure ✅
+
+**Severity**: HIGH
+**File**: `src/api/services/switchService.js:37`
+
+**Before**: Switches could be created with no recipients
+```javascript
+const { recipients = [] } = data;
+// No validation - empty array accepted
+```
+
+**After**: Require at least one recipient
+```javascript
+if (!recipients || recipients.length === 0) {
+  throw new Error('At least one recipient is required');
+}
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+for (const recipient of recipients) {
+  if (!recipient.email || !emailRegex.test(recipient.email)) {
+    throw new Error(`Invalid recipient email: ${recipient.email || 'empty'}`);
+  }
+}
+```
+
+**Impact**: Prevents switches that would release but notify no one.
+
+---
+
+### 24. Expiration Boundary Race Condition ✅
+
+**Severity**: HIGH
+**File**: `src/api/services/switchService.js:322`
+
+**Before**: Check-in allowed even after expiration
+```javascript
+if (sw.status !== 'ARMED') {
+  throw new Error(`Cannot check in - switch status is ${sw.status}`);
+}
+// No expiration check - could check in at exact expiration moment
+```
+
+**After**: Reject check-in if timer has expired
+```javascript
+const now = new Date();
+const expiresAt = new Date(sw.expires_at);
+if (now >= expiresAt) {
+  throw new Error('Cannot check in - switch has already expired. Timer may be processing release.');
+}
+```
+
+**Impact**: Prevents race condition at expiration boundary.
+
+---
+
+### 25. Session Endpoints Without Session Table ✅
+
+**Severity**: HIGH
+**File**: `src/api/routes/security.js`
+
+**Before**: Endpoints queried sessions table that may not have data
+```javascript
+const result = await query(`SELECT ... FROM sessions ...`);
+// Would return empty or error if migrations not run
+```
+
+**After**: Graceful handling of missing/empty sessions
+```javascript
+if (result.rows.length === 0) {
+  return res.json({
+    message: 'Session tracking not yet enabled',
+    data: { sessions: [], count: 0, note: 'Session management will be available in a future update' }
+  });
+}
+// Also handle undefined_table error gracefully
+```
+
+**Impact**: Prevents confusing errors when session tracking isn't fully implemented.
+
+---
+
+### 26. Deleted User Switch Orphan Race Condition ✅
+
+**Severity**: MEDIUM
+**File**: `src/api/jobs/timerMonitor.js`
+
+**Before**: No verification that switch still exists after message retrieval
+```javascript
+// Get recipients
+const recipients = await query(...);
+// Immediately send emails - what if user was deleted?
+```
+
+**After**: Verify switch existence before sending emails
+```javascript
+const verifySwitch = await query(
+  'SELECT id, user_id FROM switches WHERE id = $1',
+  [switchId]
+);
+
+if (verifySwitch.rows.length === 0) {
+  logger.warn('Switch was deleted during processing, aborting release', { switchId });
+  return;
+}
+```
+
+**Impact**: Prevents orphaned release attempts for deleted users.
+
+---
+
+## Updated Summary Table (Phase 3)
+
+| Fix | Severity | Category | Status |
+|-----|----------|----------|--------|
+| **Missing Module Import** | **CRITICAL** | **Runtime** | ✅ |
+| **Function Signature Mismatch** | **CRITICAL** | **Logic** | ✅ |
+| **Double-Release Race Condition** | **CRITICAL** | **Concurrency** | ✅ |
+| **Unauthorized Admin Release** | **CRITICAL** | **Authorization** | ✅ |
+| **Zero Recipients Validation** | **HIGH** | **Validation** | ✅ |
+| **Expiration Boundary Check** | **HIGH** | **Timing** | ✅ |
+| **Session Endpoint Handling** | **HIGH** | **Error Handling** | ✅ |
+| **Deleted User Cleanup** | **MEDIUM** | **Data Integrity** | ✅ |
+
+**Phase 3 Total**: 8 additional security issues (4 CRITICAL, 3 HIGH, 1 MEDIUM)
+**Grand Total**: 26 security issues addressed
+
+---
+
+**Document Version**: 1.2
 **Date**: 2025-12-28
 **Author**: Security Audit Implementation

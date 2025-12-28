@@ -37,8 +37,22 @@ import { loadConfig } from '../../core/config.js';
 export async function createSwitch(userId, data) {
   const { title, message, checkInHours, password, recipients = [], description = '' } = data;
 
+  // SECURITY: Require at least one recipient
+  // A switch with no recipients would release successfully but notify no one
+  if (!recipients || recipients.length === 0) {
+    throw new Error('At least one recipient is required');
+  }
+
+  // Validate recipient emails
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  for (const recipient of recipients) {
+    if (!recipient.email || !emailRegex.test(recipient.email)) {
+      throw new Error(`Invalid recipient email: ${recipient.email || 'empty'}`);
+    }
+  }
+
   try {
-    logger.info('Creating switch', { userId, title, checkInHours });
+    logger.info('Creating switch', { userId, title, checkInHours, recipientCount: recipients.length });
 
     // Call your existing crypto code to create the switch
     // This handles all the encryption, secret sharing, and Nostr publishing
@@ -305,8 +319,16 @@ export async function checkIn(switchId, userId, req) {
         throw new Error(`Cannot check in - switch status is ${sw.status}`);
       }
 
-      // Calculate new expiry time
+      // SECURITY: Check if switch has already expired
+      // This prevents race condition at expiration boundary where check-in
+      // could succeed while timer monitor is already processing release
       const now = new Date();
+      const expiresAt = new Date(sw.expires_at);
+      if (now >= expiresAt) {
+        throw new Error('Cannot check in - switch has already expired. Timer may be processing release.');
+      }
+
+      // Calculate new expiry time
       const newExpiresAt = new Date(now.getTime() + (sw.check_in_hours * 60 * 60 * 1000));
 
       // Update switch

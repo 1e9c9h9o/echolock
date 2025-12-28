@@ -8,7 +8,7 @@
  */
 
 import { logger } from '../utils/logger.js';
-import { decryptWithServiceKey } from '../utils/encryption.js';
+import { decryptWithServiceKey } from '../utils/crypto.js';
 import { decrypt } from '../../crypto/encryption.js';
 import { combineAuthenticatedShares } from '../../crypto/secretSharing.js';
 import crypto from 'crypto';
@@ -173,11 +173,7 @@ function decryptNostrPrivateKey(switchData) {
       throw new Error('Invalid encrypted Nostr private key format');
     }
 
-    const decrypted = decryptWithServiceKey({
-      ciphertext: parts[0],
-      iv: parts[1],
-      authTag: parts[2]
-    });
+    const decrypted = decryptWithServiceKey(parts[0], parts[1], parts[2]);
 
     return decrypted.toString('hex');
   } catch (error) {
@@ -201,11 +197,7 @@ function decryptAuthKey(switchData) {
       throw new Error('Invalid encrypted auth key format');
     }
 
-    const decrypted = decryptWithServiceKey({
-      ciphertext: parts[0],
-      iv: parts[1],
-      authTag: parts[2]
-    });
+    const decrypted = decryptWithServiceKey(parts[0], parts[1], parts[2]);
 
     return decrypted.toString('hex');
   } catch (error) {

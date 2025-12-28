@@ -23,11 +23,15 @@ router.use(authenticateToken);
 /**
  * GET /api/security/sessions
  * Get all active sessions for the current user
+ *
+ * NOTE: Session tracking requires integration with auth flow.
+ * Sessions are created on login and tracked via refresh tokens.
  */
 router.get('/sessions', async (req, res) => {
   try {
     const userId = req.user.id;
 
+    // Check if sessions table has been populated (session tracking may not be enabled)
     const result = await query(
       `SELECT
         id,
@@ -46,6 +50,18 @@ router.get('/sessions', async (req, res) => {
       [userId]
     );
 
+    // If no sessions found, it likely means session tracking isn't enabled yet
+    if (result.rows.length === 0) {
+      return res.json({
+        message: 'Session tracking not yet enabled',
+        data: {
+          sessions: [],
+          count: 0,
+          note: 'Session management will be available in a future update'
+        }
+      });
+    }
+
     res.json({
       message: 'Sessions retrieved successfully',
       data: {
@@ -54,6 +70,17 @@ router.get('/sessions', async (req, res) => {
       }
     });
   } catch (error) {
+    // Handle case where sessions table doesn't exist
+    if (error.code === '42P01') { // undefined_table
+      return res.json({
+        message: 'Session tracking not yet enabled',
+        data: {
+          sessions: [],
+          count: 0,
+          note: 'Run database migrations to enable session management'
+        }
+      });
+    }
     logger.error('Get sessions error:', error);
     res.status(500).json({
       error: 'Server error',
@@ -348,32 +375,54 @@ router.get('/stats', async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Get various security stats in parallel
-    const [activeSessions, recentEvents, twoFactorStatus] = await Promise.all([
-      query(
+    // Get various security stats - handle missing tables gracefully
+    let activeSessions = 0;
+    let recentEvents = 0;
+    let twoFactorEnabled = false;
+
+    // Try to get session count (may not be enabled)
+    try {
+      const sessionsResult = await query(
         `SELECT COUNT(*) as count
          FROM sessions
          WHERE user_id = $1 AND revoked = FALSE AND expires_at > NOW()`,
         [userId]
-      ),
-      query(
+      );
+      activeSessions = parseInt(sessionsResult.rows[0].count);
+    } catch (error) {
+      if (error.code !== '42P01') throw error; // Ignore undefined_table
+    }
+
+    // Get recent events count
+    try {
+      const eventsResult = await query(
         `SELECT COUNT(*) as count
          FROM audit_log
          WHERE user_id = $1 AND timestamp > NOW() - INTERVAL '24 hours'`,
         [userId]
-      ),
-      query(
+      );
+      recentEvents = parseInt(eventsResult.rows[0].count);
+    } catch (error) {
+      if (error.code !== '42P01') throw error;
+    }
+
+    // Get 2FA status
+    try {
+      const twoFactorResult = await query(
         `SELECT enabled FROM two_factor_auth WHERE user_id = $1`,
         [userId]
-      )
-    ]);
+      );
+      twoFactorEnabled = twoFactorResult.rows[0]?.enabled || false;
+    } catch (error) {
+      if (error.code !== '42P01') throw error;
+    }
 
     res.json({
       message: 'Security stats retrieved',
       data: {
-        activeSessions: parseInt(activeSessions.rows[0].count),
-        recentEvents24h: parseInt(recentEvents.rows[0].count),
-        twoFactorEnabled: twoFactorStatus.rows[0]?.enabled || false
+        activeSessions,
+        recentEvents24h: recentEvents,
+        twoFactorEnabled
       }
     });
   } catch (error) {
