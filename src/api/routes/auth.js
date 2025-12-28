@@ -32,6 +32,18 @@ import { validateSignup, validateLogin, validateEmail, validatePassword } from '
 
 const router = express.Router();
 
+// Cookie configuration helper
+const getCookieConfig = (maxAge) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'strict' : 'lax',
+    maxAge,
+    path: '/'
+  };
+};
+
 /**
  * POST /api/auth/signup
  * Register a new user
@@ -70,11 +82,15 @@ router.post('/signup', validateSignup, async (req, res) => {
     const user = result.rows[0];
 
     // Send verification email
+    let emailSent = false;
+    let emailError = null;
     try {
       await sendVerificationEmail(email, verificationToken);
-    } catch (emailError) {
-      logger.error('Failed to send verification email:', emailError);
-      // Don't fail signup if email fails
+      emailSent = true;
+    } catch (err) {
+      emailError = err.message;
+      logger.error('Failed to send verification email:', err);
+      // Continue with signup but inform the user
     }
 
     // Log event
@@ -97,7 +113,9 @@ router.post('/signup', validateSignup, async (req, res) => {
       data: {
         userId: user.id,
         email: user.email,
-        emailVerificationRequired: true
+        emailVerificationRequired: true,
+        emailSent,
+        ...(emailError && { emailError: 'Verification email could not be sent. Please request a new one.' })
       }
     });
   } catch (error) {
@@ -171,9 +189,14 @@ router.post('/login', validateLogin, async (req, res) => {
 
     logger.info('User logged in', { userId: user.id, email: user.email });
 
+    // Set httpOnly cookies for tokens
+    res.cookie('accessToken', accessToken, getCookieConfig(15 * 60 * 1000)); // 15 minutes
+    res.cookie('refreshToken', refreshToken, getCookieConfig(7 * 24 * 60 * 60 * 1000)); // 7 days
+
     res.json({
       message: 'Login successful',
       data: {
+        // Also return tokens in body for backwards compatibility with mobile/API clients
         accessToken,
         refreshToken,
         user: {
@@ -198,7 +221,8 @@ router.post('/login', validateLogin, async (req, res) => {
  */
 router.post('/refresh', async (req, res) => {
   try {
-    const { refreshToken } = req.body;
+    // Get refresh token from cookie first, then fall back to body
+    const refreshToken = req.cookies?.refreshToken || req.body.refreshToken;
 
     if (!refreshToken) {
       return res.status(400).json({
@@ -244,10 +268,13 @@ router.post('/refresh', async (req, res) => {
     // Generate new access token
     const accessToken = generateAccessToken(user);
 
+    // Set httpOnly cookie for new access token
+    res.cookie('accessToken', accessToken, getCookieConfig(15 * 60 * 1000)); // 15 minutes
+
     res.json({
       message: 'Token refreshed',
       data: {
-        accessToken
+        accessToken // Also return in body for backwards compatibility
       }
     });
   } catch (error) {
@@ -440,8 +467,44 @@ router.post('/reset-password', validatePassword, async (req, res) => {
 });
 
 /**
+ * GET /api/auth/ws-ticket
+ * Get a short-lived ticket for WebSocket authentication
+ * This allows WebSocket connections when using httpOnly cookies
+ */
+router.get('/ws-ticket', authenticateToken, async (req, res) => {
+  try {
+    // Generate a short-lived ticket (30 seconds)
+    const ticket = generateToken(32);
+    const expiresAt = Date.now() + 30000; // 30 seconds
+
+    // Store ticket in memory (in production, use Redis)
+    if (!global.wsTickets) {
+      global.wsTickets = new Map();
+    }
+    global.wsTickets.set(ticket, {
+      userId: req.user.id,
+      email: req.user.email,
+      expiresAt
+    });
+
+    // Clean up expired tickets periodically
+    setTimeout(() => {
+      global.wsTickets.delete(ticket);
+    }, 35000);
+
+    res.json({ ticket });
+  } catch (error) {
+    logger.error('WebSocket ticket error:', error);
+    res.status(500).json({
+      error: 'Failed to generate ticket',
+      message: 'An error occurred'
+    });
+  }
+});
+
+/**
  * POST /api/auth/logout
- * Logout (client should delete tokens)
+ * Logout (clears httpOnly cookies)
  */
 router.post('/logout', authenticateToken, async (req, res) => {
   try {
@@ -453,6 +516,19 @@ router.post('/logout', authenticateToken, async (req, res) => {
     );
 
     logger.info('User logged out', { userId: req.user.id });
+
+    // Clear httpOnly cookies
+    const isProduction = process.env.NODE_ENV === 'production';
+    const cookieOptions = {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'strict' : 'lax',
+      path: '/'
+    };
+
+    res.clearCookie('accessToken', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
+    res.clearCookie('csrf-token', { ...cookieOptions, httpOnly: false });
 
     res.json({
       message: 'Logged out successfully'

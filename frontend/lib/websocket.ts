@@ -27,17 +27,37 @@ class WebSocketService {
   }
 
   /**
+   * Get WebSocket authentication ticket from server
+   * Since httpOnly cookies can't be accessed from JS, we get a short-lived ticket
+   */
+  private async getWsTicket(): Promise<string | null> {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+      const response = await fetch(`${API_URL}/api/auth/ws-ticket`, {
+        credentials: 'include', // Include cookies
+      })
+      if (response.ok) {
+        const data = await response.json()
+        return data.ticket
+      }
+    } catch (error) {
+      console.error('Failed to get WebSocket ticket:', error)
+    }
+    return null
+  }
+
+  /**
    * Establish WebSocket connection
    */
-  connect() {
-    const token = localStorage.getItem('accessToken')
-    if (!token) {
-      console.warn('No access token found, skipping WebSocket connection')
+  async connect() {
+    const ticket = await this.getWsTicket()
+    if (!ticket) {
+      console.warn('No WebSocket ticket available, skipping connection')
       return
     }
 
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3000'
-    const url = `${wsUrl}?token=${token}`
+    const url = `${wsUrl}?ticket=${ticket}`
 
     try {
       this.ws = new WebSocket(url)

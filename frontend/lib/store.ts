@@ -36,8 +36,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   isAuthenticated: false,
   setUser: (user) => set({ user, isAuthenticated: !!user }),
   logout: () => {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
+    // Tokens are now in httpOnly cookies and cleared by the server on logout
+    // Just clear the local state here
     set({ user: null, isAuthenticated: false })
   },
 }))

@@ -7,6 +7,7 @@
  */
 
 import express from 'express';
+import crypto from 'crypto';
 import { query } from '../db/connection.js';
 import { sendSwitchReleaseEmail } from '../services/emailService.js';
 import { testRelease } from '../../core/deadManSwitch.js';
@@ -14,12 +15,25 @@ import { logger } from '../utils/logger.js';
 
 const router = express.Router();
 
+/**
+ * Timing-safe string comparison to prevent timing attacks
+ */
+function timingSafeCompare(a, b) {
+  if (!a || !b) return false;
+  if (a.length !== b.length) {
+    // Compare against itself to maintain constant time
+    crypto.timingSafeEqual(Buffer.from(a), Buffer.from(a));
+    return false;
+  }
+  return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
+
 // Middleware to check SERVICE_MASTER_KEY
 function requireMasterKey(req, res, next) {
   const masterKey = process.env.SERVICE_MASTER_KEY;
   const providedKey = req.headers['x-master-key'];
 
-  if (!providedKey || providedKey !== masterKey) {
+  if (!providedKey || !masterKey || !timingSafeCompare(providedKey, masterKey)) {
     return res.status(403).json({ error: 'Forbidden - Invalid master key' });
   }
 

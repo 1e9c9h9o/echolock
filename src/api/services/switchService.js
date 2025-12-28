@@ -70,7 +70,7 @@ export async function createSwitch(userId, data) {
 
       if (result.distribution?.nostrPublicKey) {
         // Load fragments to get the Nostr private key
-        const fs = await import('fs');
+        const fs = await import('fs/promises');
         const path = await import('path');
         const { fileURLToPath } = await import('url');
 
@@ -79,8 +79,9 @@ export async function createSwitch(userId, data) {
         const projectRoot = path.resolve(__dirname, '../../..');
         const fragmentsFile = path.join(projectRoot, 'data/fragments.json');
 
-        if (fs.existsSync(fragmentsFile)) {
-          const fragments = JSON.parse(fs.readFileSync(fragmentsFile, 'utf8'));
+        try {
+          const fragmentsData = await fs.readFile(fragmentsFile, 'utf8');
+          const fragments = JSON.parse(fragmentsData);
           const switchFragments = fragments[result.switchId];
 
           if (switchFragments?.nostrPrivateKey) {
@@ -93,6 +94,9 @@ export async function createSwitch(userId, data) {
             nostrPrivateKeyIV = encrypted.iv;
             nostrPrivateKeyAuthTag = encrypted.authTag;
           }
+        } catch (fileError) {
+          // File doesn't exist or can't be read - this is OK for new switches
+          logger.debug('Fragments file not found or unreadable', { fragmentsFile });
         }
       }
 
@@ -182,8 +186,12 @@ export async function createSwitch(userId, data) {
  * @param {string} userId - User ID
  * @returns {Promise<Array>} Array of switches
  */
-export async function listSwitches(userId) {
+export async function listSwitches(userId, limit = 100, offset = 0) {
   try {
+    // Validate and cap limit to prevent abuse
+    const safeLimit = Math.min(Math.max(1, parseInt(limit) || 100), 1000);
+    const safeOffset = Math.max(0, parseInt(offset) || 0);
+
     const result = await query(
       `SELECT
         s.id, s.title, s.description, s.status, s.check_in_hours,
@@ -193,8 +201,9 @@ export async function listSwitches(userId) {
        LEFT JOIN recipients r ON r.switch_id = s.id
        WHERE s.user_id = $1
        GROUP BY s.id
-       ORDER BY s.created_at DESC`,
-      [userId]
+       ORDER BY s.created_at DESC
+       LIMIT $2 OFFSET $3`,
+      [userId, safeLimit, safeOffset]
     );
 
     const now = new Date();

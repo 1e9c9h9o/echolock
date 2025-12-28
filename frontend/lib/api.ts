@@ -2,19 +2,45 @@ import axios, { AxiosError } from 'axios'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
+// CSRF token storage (non-sensitive, can be in memory)
+let csrfToken: string | null = null
+
 const api = axios.create({
   baseURL: `${API_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
   },
+  // Enable sending cookies with requests (for httpOnly token cookies)
+  withCredentials: true,
 })
 
-// Request interceptor to add auth token
+// Fetch CSRF token on initialization
+const fetchCsrfToken = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/api/csrf-token`, {
+      withCredentials: true,
+    })
+    csrfToken = response.data.csrfToken
+    return csrfToken
+  } catch (error) {
+    console.error('Failed to fetch CSRF token:', error)
+    return null
+  }
+}
+
+// Request interceptor to add CSRF token
 api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('accessToken')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+  async (config) => {
+    // For state-changing requests, add CSRF token
+    const statefulMethods = ['POST', 'PUT', 'DELETE', 'PATCH']
+    if (config.method && statefulMethods.includes(config.method.toUpperCase())) {
+      // Get CSRF token if we don't have one
+      if (!csrfToken) {
+        await fetchCsrfToken()
+      }
+      if (csrfToken) {
+        config.headers['X-CSRF-Token'] = csrfToken
+      }
     }
     return config
   },
@@ -27,24 +53,32 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as any
 
+    // Handle CSRF token errors
+    if (error.response?.status === 403 &&
+        (error.response?.data as any)?.error?.includes('CSRF')) {
+      // Refresh CSRF token and retry
+      await fetchCsrfToken()
+      if (csrfToken) {
+        originalRequest.headers['X-CSRF-Token'] = csrfToken
+        return api(originalRequest)
+      }
+    }
+
+    // Handle expired access token
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true
 
       try {
-        const refreshToken = localStorage.getItem('refreshToken')
-        const response = await axios.post(`${API_URL}/api/auth/refresh`, {
-          refreshToken,
+        // Try to refresh the token (cookie-based)
+        const response = await axios.post(`${API_URL}/api/auth/refresh`, {}, {
+          withCredentials: true,
         })
 
-        const { accessToken } = response.data.data
-        localStorage.setItem('accessToken', accessToken)
-
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`
+        // Token is automatically set in httpOnly cookie by the server
         return api(originalRequest)
       } catch (refreshError) {
-        localStorage.removeItem('accessToken')
-        localStorage.removeItem('refreshToken')
-        window.location.href = '/login'
+        // Clear any frontend state and redirect to login
+        window.location.href = '/auth/login'
         return Promise.reject(refreshError)
       }
     }
@@ -52,6 +86,11 @@ api.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+// Initialize CSRF token on module load
+if (typeof window !== 'undefined') {
+  fetchCsrfToken()
+}
 
 // Auth API
 export const authAPI = {
@@ -62,17 +101,18 @@ export const authAPI = {
 
   login: async (email: string, password: string) => {
     const response = await api.post('/auth/login', { email, password })
-    const { accessToken, refreshToken, user } = response.data.data
-    localStorage.setItem('accessToken', accessToken)
-    localStorage.setItem('refreshToken', refreshToken)
-    return { user, accessToken }
+    const { user } = response.data.data
+    // Tokens are now stored in httpOnly cookies by the server
+    // Fetch new CSRF token after login
+    await fetchCsrfToken()
+    return { user }
   },
 
   logout: async () => {
-    const refreshToken = localStorage.getItem('refreshToken')
-    await api.post('/auth/logout', { refreshToken })
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
+    await api.post('/auth/logout', {})
+    // Cookies are cleared by the server
+    // Clear CSRF token
+    csrfToken = null
   },
 
   forgotPassword: async (email: string) => {

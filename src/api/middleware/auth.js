@@ -21,20 +21,27 @@ import jwt from 'jsonwebtoken';
 import { logger, logSecurityEvent } from '../utils/logger.js';
 import { query } from '../db/connection.js';
 
+import crypto from 'crypto';
+
 // JWT secret from environment variable
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '15m'; // 15 minutes default
 
+// Strict validation in production - fail fast
 if (!JWT_SECRET && process.env.NODE_ENV === 'production') {
+  console.error('FATAL: JWT_SECRET environment variable is required in production');
+  console.error('Please set JWT_SECRET to a secure random string of at least 32 characters');
   throw new Error('JWT_SECRET environment variable is required in production');
 }
 
-// Use a generated secret for development (DO NOT USE IN PRODUCTION)
-const SECRET = JWT_SECRET || 'dev-secret-change-in-production';
+// Generate a random secret for development (tokens won't persist across restarts)
+const DEV_SECRET = crypto.randomBytes(32).toString('hex');
+const SECRET = JWT_SECRET || DEV_SECRET;
 
 if (!JWT_SECRET) {
-  logger.warn('Using default JWT secret - tokens will not persist across restarts!');
-  logger.warn('Set JWT_SECRET environment variable for production');
+  logger.warn('JWT_SECRET not set - using randomly generated secret');
+  logger.warn('Tokens will not persist across server restarts!');
+  logger.warn('Set JWT_SECRET environment variable for production use');
 }
 
 /**
@@ -93,7 +100,7 @@ export function verifyToken(token) {
 
 /**
  * Authentication middleware
- * Extracts JWT from Authorization header and verifies it
+ * Extracts JWT from Authorization header or httpOnly cookie and verifies it
  * Attaches user object to req.user
  *
  * @param {Object} req - Express request
@@ -102,9 +109,14 @@ export function verifyToken(token) {
  */
 export async function authenticateToken(req, res, next) {
   try {
-    // Extract token from Authorization header
+    // Extract token from Authorization header first, then fall back to cookie
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    let token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+    // If no Authorization header, try httpOnly cookie
+    if (!token && req.cookies) {
+      token = req.cookies.accessToken;
+    }
 
     if (!token) {
       return res.status(401).json({
@@ -191,7 +203,12 @@ export async function authenticateToken(req, res, next) {
  */
 export async function optionalAuth(req, res, next) {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  let token = authHeader && authHeader.split(' ')[1];
+
+  // If no Authorization header, try httpOnly cookie
+  if (!token && req.cookies) {
+    token = req.cookies.accessToken;
+  }
 
   if (!token) {
     return next();

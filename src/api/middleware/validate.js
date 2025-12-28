@@ -17,10 +17,33 @@ import { logger } from '../utils/logger.js';
 
 /**
  * Validate email format
+ * Uses a more robust regex that checks for:
+ * - Valid local part (allows dots, plus, hyphens, underscores)
+ * - Valid domain with at least one dot
+ * - TLD of 2-10 characters
  */
 export function isValidEmail(email) {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  if (!email || typeof email !== 'string') return false;
+
+  // Max email length per RFC 5321
+  if (email.length > 254) return false;
+
+  // More robust email regex
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+
+  if (!emailRegex.test(email)) return false;
+
+  // Additional checks
+  const [localPart, domain] = email.split('@');
+
+  // Local part max 64 characters
+  if (localPart.length > 64) return false;
+
+  // Domain must have valid TLD (2-10 chars)
+  const tld = domain.split('.').pop();
+  if (tld.length < 2 || tld.length > 10) return false;
+
+  return true;
 }
 
 /**

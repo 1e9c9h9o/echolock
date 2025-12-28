@@ -32,6 +32,8 @@ import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
+import crypto from 'crypto';
 import { logger, logRequest, logResponse } from './utils/logger.js';
 import { testConnection } from './db/connection.js';
 
@@ -102,9 +104,70 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
+// Cookie parsing (required for httpOnly token cookies)
+app.use(cookieParser(process.env.COOKIE_SECRET || 'dev-cookie-secret'));
+
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// CSRF Protection middleware for state-changing requests
+// Uses double-submit cookie pattern
+const csrfProtection = (req, res, next) => {
+  // Skip CSRF for safe methods and non-browser requests
+  const safeMethods = ['GET', 'HEAD', 'OPTIONS'];
+  if (safeMethods.includes(req.method)) {
+    return next();
+  }
+
+  // Skip CSRF for API requests with Authorization header (non-browser clients)
+  if (req.headers.authorization) {
+    return next();
+  }
+
+  // For cookie-based auth, validate CSRF token
+  const csrfToken = req.headers['x-csrf-token'] || req.body._csrf;
+  const csrfCookie = req.cookies['csrf-token'];
+
+  if (!csrfToken || !csrfCookie) {
+    return res.status(403).json({
+      error: 'CSRF token missing',
+      message: 'Please refresh the page and try again'
+    });
+  }
+
+  // Timing-safe comparison
+  try {
+    const tokenBuffer = Buffer.from(csrfToken);
+    const cookieBuffer = Buffer.from(csrfCookie);
+    if (tokenBuffer.length !== cookieBuffer.length ||
+        !crypto.timingSafeEqual(tokenBuffer, cookieBuffer)) {
+      throw new Error('Invalid CSRF token');
+    }
+  } catch (e) {
+    return res.status(403).json({
+      error: 'CSRF token invalid',
+      message: 'Please refresh the page and try again'
+    });
+  }
+
+  next();
+};
+
+// Generate CSRF token endpoint
+app.get('/api/csrf-token', (req, res) => {
+  const token = crypto.randomBytes(32).toString('hex');
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  res.cookie('csrf-token', token, {
+    httpOnly: false, // Must be readable by JavaScript
+    secure: isProduction,
+    sameSite: isProduction ? 'strict' : 'lax',
+    maxAge: 3600000 // 1 hour
+  });
+
+  res.json({ csrfToken: token });
+});
 
 // Request logging
 app.use((req, res, next) => {
