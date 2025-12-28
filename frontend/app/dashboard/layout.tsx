@@ -3,11 +3,19 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Logo from '@/components/ui/Logo'
-import ThemeToggle from '@/components/ThemeToggle'
 import { Home, Plus, Settings, LogOut, Menu, X } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
 import { authAPI } from '@/lib/api'
+
+function LogoMark({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className}>
+      <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="5" opacity="0.3"/>
+      <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" strokeWidth="5" opacity="0.6"/>
+      <circle cx="50" cy="50" r="16" fill="#FF6B00"/>
+    </svg>
+  )
+}
 
 export default function DashboardLayout({
   children,
@@ -39,74 +47,88 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-cream dark:bg-gray-900 flex">
-      {/* Mobile menu button */}
-      <button
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-gray-800 rounded-lg border-2 border-black dark:border-white"
-      >
-        {isSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-      </button>
-
-      {/* Overlay */}
-      {isSidebarOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <aside className={`
-        w-64 bg-white dark:bg-gray-800 border-r-2 border-black dark:border-white flex flex-col
-        fixed lg:static inset-y-0 left-0 z-40 transform transition-transform duration-200 ease-in-out
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        {/* Logo */}
-        <div className="p-6 border-b-2 border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <Logo className="w-10 h-10" />
-            <span className="font-sans text-xl font-bold text-blue dark:text-blue" style={{ textShadow: '1px 1px 0 #FF4D00' }}>ECHOLOCK</span>
-          </Link>
-          <ThemeToggle />
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 p-4">
-          <NavLink href="/dashboard" icon={Home}>
-            Dashboard
-          </NavLink>
-          <NavLink href="/dashboard/create" icon={Plus}>
-            Create Switch
-          </NavLink>
-          <NavLink href="/dashboard/settings" icon={Settings}>
-            Settings
-          </NavLink>
-        </nav>
-
-        {/* User info */}
-        <div className="p-6 border-t-2 border-gray-200 dark:border-gray-700">
-          <div className="mb-3">
-            <p className="text-sm font-bold text-black dark:text-white truncate">
-              {user?.email}
-            </p>
+    <div className="min-h-screen bg-blue flex flex-col">
+      {/* Header */}
+      <header className="bg-black text-white">
+        <div className="container">
+          <div className="flex items-center justify-between py-4">
+            <div className="flex items-center gap-4">
+              {/* Mobile menu button */}
+              <button
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="lg:hidden p-2 hover:bg-orange hover:text-black transition-colors"
+              >
+                {isSidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </button>
+              <Link href="/dashboard" className="flex items-center gap-4">
+                <div className="w-10 h-10">
+                  <LogoMark className="w-full h-full text-white" />
+                </div>
+                <span className="text-sm font-bold tracking-[0.2em] uppercase hidden sm:inline">Echolock</span>
+              </Link>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-xs opacity-60 hidden md:inline">{user?.email}</span>
+              <button
+                onClick={handleLogout}
+                className="text-[11px] uppercase tracking-wider px-4 py-2 hover:bg-orange hover:text-black transition-colors flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" strokeWidth={2} />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="flex items-center text-red hover:text-black dark:hover:text-white text-sm font-bold w-full transition-colors"
-          >
-            <LogOut className="h-4 w-4 mr-2" strokeWidth={2} />
-            <span>Logout</span>
-          </button>
         </div>
-      </aside>
+      </header>
+      <div className="h-2 hazard-stripe" />
 
-      {/* Main content */}
-      <main className="flex-1 overflow-auto bg-cream dark:bg-gray-900">
-        <div className="max-w-6xl mx-auto p-8 pt-20 lg:pt-8">
-          {children}
-        </div>
-      </main>
+      <div className="flex flex-1">
+        {/* Mobile overlay */}
+        {isSidebarOpen && (
+          <div
+            className="lg:hidden fixed inset-0 bg-black/50 z-30"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
+        {/* Sidebar */}
+        <aside className={`
+          w-64 bg-white border-r-4 border-black flex flex-col
+          fixed lg:static inset-y-0 left-0 z-40 transform transition-transform duration-200 ease-in-out
+          ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+          mt-[72px] lg:mt-0
+        `}>
+          {/* Navigation */}
+          <nav className="flex-1 p-4">
+            <div className="text-[9px] uppercase tracking-widest text-black/50 px-4 py-2 mb-2">Navigation</div>
+            <NavLink href="/dashboard" icon={Home} onClick={() => setIsSidebarOpen(false)}>
+              Dashboard
+            </NavLink>
+            <NavLink href="/dashboard/create" icon={Plus} onClick={() => setIsSidebarOpen(false)}>
+              Create Switch
+            </NavLink>
+            <NavLink href="/dashboard/settings" icon={Settings} onClick={() => setIsSidebarOpen(false)}>
+              Settings
+            </NavLink>
+          </nav>
+
+          {/* Sidebar footer */}
+          <div className="p-4 border-t-2 border-black/10">
+            <div className="text-[9px] uppercase tracking-widest text-black/50 mb-2">System Status</div>
+            <div className="flex items-center gap-2 text-xs">
+              <div className="w-2 h-2 bg-orange rounded-full animate-pulse" />
+              <span>Operational</span>
+            </div>
+          </div>
+        </aside>
+
+        {/* Main content */}
+        <main className="flex-1 overflow-auto bg-blue-light">
+          <div className="max-w-6xl mx-auto p-6 lg:p-8">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   )
 }
@@ -115,15 +137,18 @@ function NavLink({
   href,
   icon: Icon,
   children,
+  onClick,
 }: {
   href: string
   icon: any
   children: React.ReactNode
+  onClick?: () => void
 }) {
   return (
     <Link
       href={href}
-      className="flex items-center px-4 py-3 text-black dark:text-white hover:bg-blue hover:text-white transition-colors mb-1 text-sm font-bold rounded"
+      onClick={onClick}
+      className="flex items-center px-4 py-3 text-black hover:bg-orange hover:text-black transition-colors mb-1 text-sm font-bold border-l-4 border-transparent hover:border-black"
     >
       <Icon className="h-5 w-5 mr-3" strokeWidth={2} />
       <span>{children}</span>

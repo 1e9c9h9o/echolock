@@ -12,19 +12,18 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const variants = {
-    primary: 'bg-blue text-cream border-2 border-black hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none hover:brightness-110 active:scale-95',
-    secondary: 'bg-cream text-blue border-2 border-black hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none hover:bg-white active:scale-95',
-    danger: 'bg-red text-cream border-2 border-black hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none hover:brightness-110 active:scale-95',
-    success: 'bg-green-600 text-white border-2 border-green-700 hover:translate-x-[3px] hover:translate-y-[3px] hover:shadow-none hover:brightness-110 active:scale-95',
+    primary: 'bg-orange text-black border-2 border-black hover:bg-yellow active:scale-95',
+    secondary: 'bg-black text-white border-2 border-black hover:bg-white hover:text-black active:scale-95',
+    danger: 'bg-orange text-black border-2 border-black hover:bg-yellow active:scale-95',
+    success: 'bg-orange text-black border-2 border-black hover:bg-yellow active:scale-95',
   }
 
   return (
     <button
-      className={`px-8 py-4 font-bold uppercase text-sm transition-all duration-200 shadow-[6px_6px_0px_0px_rgba(33,33,33,1)] font-sans relative overflow-hidden group ${variants[variant]} ${className}`}
+      className={`px-6 py-3 font-bold uppercase text-xs tracking-wider transition-all duration-150 font-mono ${variants[variant]} ${className}`}
       {...props}
     >
-      <span className="relative z-10">{children}</span>
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+      {children}
     </button>
   )
 }

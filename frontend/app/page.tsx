@@ -41,7 +41,7 @@ export default function HomePage() {
       <div className="h-2 hazard-stripe" />
 
       {/* Hero */}
-      <section className="py-20">
+      <section className="py-10 lg:py-20">
         <div className="container">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
             {/* Hero content */}

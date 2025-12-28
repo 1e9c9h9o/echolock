@@ -5,10 +5,19 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import Logo from '@/components/ui/Logo'
 import { authAPI } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 import { showToast } from '@/components/ui/ToastContainer'
+
+function LogoMark({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 100 100" className={className}>
+      <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="5" opacity="0.3"/>
+      <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" strokeWidth="5" opacity="0.6"/>
+      <circle cx="50" cy="50" r="16" fill="#FF6B00"/>
+    </svg>
+  )
+}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -38,77 +47,92 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Animated background elements */}
-      <div className="absolute top-10 right-10 w-64 h-64 bg-blue/5 rounded-full blur-3xl animate-float" />
-      <div className="absolute bottom-10 left-10 w-64 h-64 bg-red/5 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />
-
-      <div className="w-full max-w-lg relative z-10">
-        {/* Header */}
-        <div className="text-center mb-16 animate-fade-in-up">
-          <Logo className="w-20 h-20 mx-auto mb-8 hover:scale-110 transition-transform duration-300 animate-float" />
-          <h1 className="text-5xl font-extrabold gradient-text">Login</h1>
-        </div>
-
-        {/* Form */}
-        <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(33,33,33,1)] p-12 hover:shadow-[12px_12px_0px_0px_rgba(33,33,33,1)] transition-all duration-300 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <Input
-              label="Email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-            />
-
-            <div>
-              <Input
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password"
-                required
-              />
-              <div className="mt-2 text-right">
-                <Link href="/auth/forgot-password" className="text-sm text-blue hover:underline font-bold">
-                  Forgot password?
-                </Link>
+    <div className="min-h-screen bg-blue flex flex-col">
+      {/* Header */}
+      <header className="bg-black text-white">
+        <div className="container">
+          <div className="flex items-center justify-between py-4">
+            <Link href="/" className="flex items-center gap-4">
+              <div className="w-10 h-10">
+                <LogoMark className="w-full h-full text-white" />
               </div>
-            </div>
-
-            {error && (
-              <div className="bg-red text-white p-3 border-2 border-black">
-                <p className="text-sm font-bold">{error}</p>
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              variant="primary"
-              className="w-full"
-              disabled={loading}
-            >
-              {loading ? 'Logging in...' : 'Login'}
-            </Button>
-          </form>
-
-          <div className="mt-8 pt-8 border-t-2 border-gray-200">
-            <p className="text-base text-center font-mono">
-              No account?{' '}
-              <Link href="/auth/signup" className="text-blue hover:underline font-bold">
-                Sign up
-              </Link>
-            </p>
+              <span className="text-sm font-bold tracking-[0.2em] uppercase">Echolock</span>
+            </Link>
           </div>
         </div>
+      </header>
+      <div className="h-2 hazard-stripe" />
 
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <Link href="/" className="text-base text-blue hover:underline font-bold font-mono">
-            ← Back
-          </Link>
+      {/* Content */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-md">
+          {/* Form Card */}
+          <div className="bg-white border-4 border-black">
+            <div className="bg-black text-white py-3 px-5 text-[10px] uppercase tracking-widest">
+              <span>User Authentication</span>
+            </div>
+            <div className="p-8">
+              <h1 className="text-2xl font-bold mb-6">Login</h1>
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <Input
+                  label="Email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                />
+
+                <div>
+                  <Input
+                    label="Password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter password"
+                    required
+                  />
+                  <div className="mt-2 text-right">
+                    <Link href="/auth/forgot-password" className="text-xs text-black hover:text-orange font-bold uppercase tracking-wider">
+                      Forgot password?
+                    </Link>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="bg-orange text-black p-3 border-2 border-black">
+                    <p className="text-sm font-bold">{error}</p>
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  className="w-full"
+                  disabled={loading}
+                >
+                  {loading ? 'Logging in...' : 'Login'}
+                </Button>
+              </form>
+
+              <div className="mt-6 pt-6 border-t-2 border-black/20">
+                <p className="text-sm text-center">
+                  No account?{' '}
+                  <Link href="/auth/signup" className="text-orange hover:underline font-bold">
+                    Sign up
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Back link */}
+          <div className="mt-6 text-center">
+            <Link href="/" className="text-sm text-black hover:text-orange font-bold">
+              ← Back to Home
+            </Link>
+          </div>
         </div>
       </div>
     </div>

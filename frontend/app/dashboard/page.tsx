@@ -96,7 +96,7 @@ export default function DashboardPage() {
 
       {/* Error */}
       {error && (
-        <div className="bg-red text-cream p-6 mb-8 border-2 border-black">
+        <div className="bg-orange text-black p-6 mb-8 border-2 border-black">
           <div className="flex items-start">
             <AlertCircle className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5" strokeWidth={2} />
             <p className="font-mono font-bold">{error}</p>
@@ -110,10 +110,10 @@ export default function DashboardPage() {
           <NostrRelayHealth />
           <div className="space-y-6">
             <SecurityStrengthIndicator compact={false} />
-            <Card className="bg-gray-100">
+            <Card className="bg-blue-light">
               <div className="flex items-center mb-4">
-                <Shield className="h-5 w-5 mr-2 text-blue" strokeWidth={2} />
-                <h4 className="font-bold">ACTIVE PROTECTION</h4>
+                <Shield className="h-5 w-5 mr-2 text-orange" strokeWidth={2} />
+                <h4 className="font-bold text-sm uppercase tracking-wider">Active Protection</h4>
               </div>
               <div className="space-y-2 font-mono text-sm">
                 <p><strong>{switches.length}</strong> switch{switches.length !== 1 ? 'es' : ''} monitored</p>
@@ -129,8 +129,8 @@ export default function DashboardPage() {
       {/* Empty state */}
       {switches.length === 0 && !error && (
         <Card className="text-center py-16">
-          <div className="w-24 h-24 bg-blue mx-auto mb-8 flex items-center justify-center border-2 border-black">
-            <Plus className="h-16 w-16 text-cream" strokeWidth={2} />
+          <div className="w-24 h-24 bg-orange mx-auto mb-8 flex items-center justify-center border-2 border-black">
+            <Plus className="h-16 w-16 text-black" strokeWidth={2} />
           </div>
           <h3 className="text-3xl font-bold mb-4">
             NO SWITCHES ACTIVE
@@ -159,14 +159,14 @@ export default function DashboardPage() {
 
               {/* Security Badge */}
               <div className="mb-4 flex items-center gap-2 flex-wrap">
-                <div className="px-2 py-1 bg-green border border-black text-xs font-bold flex items-center gap-1">
+                <div className="px-2 py-1 bg-orange border-2 border-black text-[10px] font-bold flex items-center gap-1 uppercase tracking-wider">
                   <Shield className="h-3 w-3" strokeWidth={2} />
                   AES-256
                 </div>
-                <div className="px-2 py-1 bg-blue text-cream border border-black text-xs font-bold">
+                <div className="px-2 py-1 bg-yellow text-black border-2 border-black text-[10px] font-bold uppercase tracking-wider">
                   SHAMIR 3/5
                 </div>
-                <div className="px-2 py-1 bg-purple text-cream border border-black text-xs font-bold">
+                <div className="px-2 py-1 bg-black text-white border-2 border-black text-[10px] font-bold uppercase tracking-wider">
                   NOSTR
                 </div>
               </div>

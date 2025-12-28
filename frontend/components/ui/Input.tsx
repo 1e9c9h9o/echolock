@@ -16,32 +16,30 @@ export default function Input({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-bold uppercase mb-3 text-black font-sans">
+        <label className="block text-[10px] font-bold uppercase tracking-widest mb-2 text-black">
           {label}
         </label>
       )}
       <input
         className={`
-          w-full px-4 py-4
+          w-full px-4 py-3
           border-2 border-black
           bg-white text-black
-          focus:outline-none focus:ring-4 focus:ring-blue/30 focus:border-blue
+          focus:outline-none focus:ring-2 focus:ring-orange focus:border-orange
           disabled:bg-gray-100 disabled:text-gray-400
-          text-base
+          text-sm
           font-mono
-          transition-all duration-200
-          hover:shadow-[4px_4px_0px_0px_rgba(93,93,255,0.2)]
-          focus:shadow-[4px_4px_0px_0px_rgba(93,93,255,0.4)]
-          ${error ? 'border-red focus:ring-red/30' : ''}
+          transition-all duration-150
+          ${error ? 'border-orange focus:ring-orange' : ''}
           ${className}
         `}
         {...props}
       />
       {helperText && !error && (
-        <p className="mt-2 text-sm text-gray-700 font-mono">{helperText}</p>
+        <p className="mt-2 text-xs text-black/60 font-mono">{helperText}</p>
       )}
       {error && (
-        <p className="mt-2 text-sm font-bold text-red font-mono">{error}</p>
+        <p className="mt-2 text-xs font-bold text-orange font-mono">{error}</p>
       )}
     </div>
   )
