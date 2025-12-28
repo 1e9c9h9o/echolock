@@ -17,6 +17,7 @@
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import { logger } from './logger.js';
+import { PBKDF2_ITERATIONS } from '../../crypto/keyDerivation.js';
 
 // Service master key for encrypting sensitive data in database
 // CRITICAL: This must be set as environment variable and NEVER committed to git
@@ -198,7 +199,7 @@ export function timingSafeEqual(a, b) {
  */
 export function generateMasterKeyFromPassphrase(passphrase, salt = null) {
   const keySalt = salt ? Buffer.from(salt, 'hex') : crypto.randomBytes(16);
-  const key = crypto.pbkdf2Sync(passphrase, keySalt, 100000, 32, 'sha256');
+  const key = crypto.pbkdf2Sync(passphrase, keySalt, PBKDF2_ITERATIONS, 32, 'sha256');
 
   return {
     key: key.toString('hex'),

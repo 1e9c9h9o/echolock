@@ -11,6 +11,7 @@ import { logger } from '../utils/logger.js';
 import { decryptWithServiceKey } from '../utils/crypto.js';
 import { decrypt } from '../../crypto/encryption.js';
 import { combineAuthenticatedShares } from '../../crypto/secretSharing.js';
+import { PBKDF2_ITERATIONS, zeroize } from '../../crypto/keyDerivation.js';
 import crypto from 'crypto';
 
 // Nostr imports
@@ -125,13 +126,20 @@ export async function retrieveAndReconstructMessage(switchData) {
     const authKeyBuffer = Buffer.from(authKeyHex, 'hex');
     const reconstructedKey = await combineAuthenticatedShares(validAuthenticatedShares, authKeyBuffer);
 
-    // Step 7: Decrypt the message with reconstructed key
-    const ciphertext = Buffer.from(switchData.encrypted_message_ciphertext, 'base64');
-    const iv = Buffer.from(switchData.encrypted_message_iv, 'base64');
-    const authTag = Buffer.from(switchData.encrypted_message_auth_tag, 'base64');
+    let reconstructedMessage;
+    try {
+      // Step 7: Decrypt the message with reconstructed key
+      const ciphertext = Buffer.from(switchData.encrypted_message_ciphertext, 'base64');
+      const iv = Buffer.from(switchData.encrypted_message_iv, 'base64');
+      const authTag = Buffer.from(switchData.encrypted_message_auth_tag, 'base64');
 
-    const decryptedMessage = decrypt(ciphertext, reconstructedKey, iv, authTag);
-    const reconstructedMessage = decryptedMessage.toString('utf8');
+      const decryptedMessage = decrypt(ciphertext, reconstructedKey, iv, authTag);
+      reconstructedMessage = decryptedMessage.toString('utf8');
+    } finally {
+      // SECURITY: Zeroize sensitive key material
+      zeroize(reconstructedKey);
+      zeroize(authKeyBuffer);
+    }
 
     logger.info('Message reconstructed successfully', {
       switchId: switchData.id,
@@ -276,26 +284,32 @@ function decryptFragment(fragment, salt, authKeyHex) {
       throw new Error('Invalid fragment format');
     }
 
-    // Derive encryption key from auth key and salt
+    // Derive encryption key from auth key and salt using OWASP-recommended iterations
     const key = crypto.pbkdf2Sync(
       Buffer.from(authKeyHex, 'hex'),
       Buffer.from(salt, 'hex'),
-      100000,
+      PBKDF2_ITERATIONS,
       32,
       'sha256'
     );
 
-    // Decrypt using AES-256-GCM
-    const decipher = crypto.createDecipheriv(
-      'aes-256-gcm',
-      key,
-      Buffer.from(ivHex, 'hex')
-    );
+    let decrypted;
+    try {
+      // Decrypt using AES-256-GCM
+      const decipher = crypto.createDecipheriv(
+        'aes-256-gcm',
+        key,
+        Buffer.from(ivHex, 'hex')
+      );
 
-    decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
+      decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
 
-    let decrypted = decipher.update(Buffer.from(ciphertextHex, 'hex'));
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
+      decrypted = decipher.update(Buffer.from(ciphertextHex, 'hex'));
+      decrypted = Buffer.concat([decrypted, decipher.final()]);
+    } finally {
+      // SECURITY: Always zeroize derived key
+      zeroize(key);
+    }
 
     // Decrypted data should be JSON: { share, hmac, index }
     const authenticatedShare = JSON.parse(decrypted.toString('utf8'));

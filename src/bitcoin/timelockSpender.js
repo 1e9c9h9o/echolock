@@ -9,6 +9,7 @@ import { ECPairFactory } from 'ecpair';
 import { CURRENT_NETWORK } from './constants.js';
 import { getUTXOs, selectUTXOs, estimateTxSize } from './utxoManager.js';
 import { getCurrentBlockHeight, getFeeEstimates, createTimelockScript } from './testnetClient.js';
+import { PBKDF2_ITERATIONS, zeroize } from '../crypto/keyDerivation.js';
 
 // Initialize bitcoinjs-lib with elliptic curve operations
 bitcoin.initEccLib(ecc);
@@ -216,9 +217,9 @@ export async function decryptPrivateKey(encryptedData, password) {
   const crypto = await import('crypto');
   const { decrypt } = await import('../crypto/encryption.js');
 
-  // Derive master key from password
+  // Derive master key from password using centralized iteration count
   const salt = Buffer.from(encryptedData.privateKeySalt, 'base64');
-  const masterKey = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
+  const masterKey = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 32, 'sha256');
 
   // Decrypt private key
   const ciphertext = Buffer.from(encryptedData.encryptedPrivateKey, 'base64');
@@ -227,5 +228,9 @@ export async function decryptPrivateKey(encryptedData, password) {
 
   const decryptedKey = decrypt(ciphertext, masterKey, iv, authTag);
 
+  // SECURITY: Zeroize master key after use
+  zeroize(masterKey);
+
+  // NOTE: Caller is responsible for zeroizing the returned decryptedKey after use
   return decryptedKey;
 }

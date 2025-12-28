@@ -14,6 +14,29 @@
 import crypto from 'crypto';
 
 /**
+ * Canonical JSON stringify with sorted keys
+ * Ensures consistent ordering across different JS engines for integrity hashing
+ * @param {*} obj - Object to stringify
+ * @returns {string} Canonical JSON string
+ */
+function stableStringify(obj) {
+  if (obj === null || typeof obj !== 'object') {
+    return JSON.stringify(obj);
+  }
+
+  if (Array.isArray(obj)) {
+    return '[' + obj.map(stableStringify).join(',') + ']';
+  }
+
+  const sortedKeys = Object.keys(obj).sort();
+  const pairs = sortedKeys.map(key => {
+    return JSON.stringify(key) + ':' + stableStringify(obj[key]);
+  });
+
+  return '{' + pairs.join(',') + '}';
+}
+
+/**
  * Create an atomic fragment payload bundling ALL cryptographic state
  * @param {Object} encryptedData - { ciphertext, iv, authTag }
  * @param {Object} metadata - { salt, iterations }
@@ -44,10 +67,11 @@ export function createFragmentPayload(encryptedData, metadata) {
   };
 
   // Compute integrity hash EXCLUDING the integrity field itself
+  // Use stableStringify for consistent ordering across JS engines
   const payloadForHash = { ...payload };
   delete payloadForHash.integrity;
   payload.integrity = crypto.createHash('sha256')
-    .update(JSON.stringify(payloadForHash))
+    .update(stableStringify(payloadForHash))
     .digest('hex');
 
   return payload;
@@ -65,11 +89,16 @@ export function verifyFragmentPayload(payload) {
   const expectedIntegrity = payloadForHash.integrity;
   delete payloadForHash.integrity;
 
+  // Use stableStringify for consistent ordering across JS engines
   const actualIntegrity = crypto.createHash('sha256')
-    .update(JSON.stringify(payloadForHash))
+    .update(stableStringify(payloadForHash))
     .digest('hex');
 
-  if (actualIntegrity !== expectedIntegrity) {
+  // SECURITY: Use timing-safe comparison to prevent timing attacks
+  // Both values must be same length for timingSafeEqual to work
+  if (!expectedIntegrity ||
+      actualIntegrity.length !== expectedIntegrity.length ||
+      !crypto.timingSafeEqual(Buffer.from(actualIntegrity), Buffer.from(expectedIntegrity))) {
     throw new Error('Fragment integrity verification failed - possible corruption or tampering');
   }
 

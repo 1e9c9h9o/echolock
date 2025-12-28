@@ -13,7 +13,7 @@ import {
   deriveAuthenticationKey
 } from '../crypto/secretSharing.js';
 import { encrypt, decrypt } from '../crypto/encryption.js';
-import { deriveKey } from '../crypto/keyDerivation.js';
+import { deriveKey, PBKDF2_ITERATIONS, zeroize } from '../crypto/keyDerivation.js';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { ECPairFactory } from 'ecpair';
@@ -105,6 +105,9 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
     3
   );
 
+  // SECURITY: Zeroize encryption key - it's now split into shares
+  zeroize(encryptionKey);
+
   // 4. Create Bitcoin timelock (if enabled)
   let bitcoinTimelock = null;
   if (useBitcoinTimelock) {
@@ -125,14 +128,19 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
       const keyPair = ECPair.fromPrivateKey(randomPrivateKey, { network: bitcoin.networks.testnet });
       const publicKey = keyPair.publicKey;
 
-      // Derive master key from password using PBKDF2
+      // Derive master key from password using PBKDF2 with OWASP-recommended iterations
       const salt = crypto.randomBytes(16);
-      const masterKey = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
+      const masterKey = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 32, 'sha256');
 
       // Encrypt the private key
       const privateKeyBuffer = Buffer.from(randomPrivateKey);
       const { ciphertext: encryptedPrivateKey, iv: privateKeyIV, authTag: privateKeyAuthTag } =
         encrypt(privateKeyBuffer, masterKey);
+
+      // SECURITY: Zeroize sensitive key material after encryption
+      zeroize(randomPrivateKey);
+      zeroize(privateKeyBuffer);
+      zeroize(masterKey);
 
       // Create timelock transaction structure
       const timelockTx = createTimelockTransaction(timelockHeight, publicKey);
