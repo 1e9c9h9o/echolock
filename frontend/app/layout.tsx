@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import ToastContainer from '@/components/ui/ToastContainer'
 import { ThemeProvider } from '@/contexts/ThemeContext'
+import ClientErrorBoundary from '@/components/ClientErrorBoundary'
 
 export const metadata: Metadata = {
   title: 'ECHOLOCK — Cryptographic Dead Man\'s Switch',
@@ -22,7 +23,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="bg-blue">
         <ThemeProvider>
-          {children}
+          <ClientErrorBoundary>
+            {children}
+          </ClientErrorBoundary>
           <ToastContainer />
         </ThemeProvider>
       </body>

@@ -44,6 +44,9 @@ import userRoutes from './routes/users.js';
 import securityRoutes from './routes/security.js';
 import adminRoutes from './routes/admin.js';
 
+// Import auth middleware for cleanup
+import { stopRateLimitCleanup } from './middleware/auth.js';
+
 // Import timer monitor (background job)
 import { startTimerMonitor } from './jobs/timerMonitor.js';
 import { startReminderMonitor } from './jobs/reminderMonitor.js';
@@ -386,9 +389,9 @@ async function startServer() {
   }
 }
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, shutting down gracefully...');
+// Graceful shutdown helper
+function gracefulShutdown(signal) {
+  logger.info(`${signal} received, shutting down gracefully...`);
 
   // Stop timer monitor if running
   if (app.locals.timerJob) {
@@ -402,34 +405,9 @@ process.on('SIGTERM', () => {
     logger.info('Reminder monitor stopped');
   }
 
-  // Shutdown WebSocket server
-  websocketService.shutdown();
-
-  // Close HTTP server
-  if (app.locals.httpServer) {
-    app.locals.httpServer.close(() => {
-      logger.info('HTTP server closed');
-      process.exit(0);
-    });
-  } else {
-    process.exit(0);
-  }
-});
-
-process.on('SIGINT', () => {
-  logger.info('SIGINT received, shutting down gracefully...');
-
-  // Stop timer monitor if running
-  if (app.locals.timerJob) {
-    app.locals.timerJob.stop();
-    logger.info('Timer monitor stopped');
-  }
-
-  // Stop reminder monitor if running
-  if (app.locals.reminderJob) {
-    app.locals.reminderJob.stop();
-    logger.info('Reminder monitor stopped');
-  }
+  // Stop rate limit cleanup interval
+  stopRateLimitCleanup();
+  logger.info('Rate limit cleanup stopped');
 
   // Shutdown WebSocket server
   websocketService.shutdown();
@@ -443,7 +421,10 @@ process.on('SIGINT', () => {
   } else {
     process.exit(0);
   }
-});
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (error) => {

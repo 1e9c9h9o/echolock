@@ -268,13 +268,25 @@ router.post('/refresh', async (req, res) => {
     // Generate new access token
     const accessToken = generateAccessToken(user);
 
-    // Set httpOnly cookie for new access token
+    // Token rotation: generate new refresh token for enhanced security
+    const newRefreshToken = generateRefreshToken(user);
+
+    // Set httpOnly cookies for both tokens
     res.cookie('accessToken', accessToken, getCookieConfig(15 * 60 * 1000)); // 15 minutes
+    res.cookie('refreshToken', newRefreshToken, getCookieConfig(7 * 24 * 60 * 60 * 1000)); // 7 days
+
+    // Log token rotation for security auditing
+    await query(
+      `INSERT INTO audit_log (user_id, event_type, ip_address, user_agent)
+       VALUES ($1, $2, $3, $4)`,
+      [user.id, 'TOKEN_REFRESHED', req.ip, req.get('user-agent')]
+    );
 
     res.json({
       message: 'Token refreshed',
       data: {
-        accessToken // Also return in body for backwards compatibility
+        accessToken, // For backwards compatibility
+        refreshToken: newRefreshToken // For backwards compatibility
       }
     });
   } catch (error) {

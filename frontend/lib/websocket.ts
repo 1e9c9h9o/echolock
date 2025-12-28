@@ -3,20 +3,17 @@
  * Handles persistent connection to backend for live switch updates
  */
 
-type MessageHandler = (data: any) => void
-type ConnectionHandler = () => void
+import { WebSocketMessage, WebSocketMessageType } from './types'
 
-interface WebSocketMessage {
-  type: 'switch_update' | 'switch_triggered' | 'check_in' | 'switch_deleted'
-  data: any
-}
+type MessageHandler<T = unknown> = (data: T) => void
+type ConnectionHandler = () => void
 
 class WebSocketService {
   private ws: WebSocket | null = null
   private reconnectAttempts = 0
   private maxReconnectAttempts = 5
   private reconnectDelay = 3000
-  private messageHandlers: Map<string, MessageHandler[]> = new Map()
+  private messageHandlers: Map<string, MessageHandler<unknown>[]> = new Map()
   private connectionHandlers: ConnectionHandler[] = []
   private disconnectionHandlers: ConnectionHandler[] = []
 
@@ -126,20 +123,20 @@ class WebSocketService {
   /**
    * Subscribe to specific message type
    */
-  on(type: string, handler: MessageHandler) {
+  on<T = unknown>(type: string | WebSocketMessageType, handler: MessageHandler<T>) {
     if (!this.messageHandlers.has(type)) {
       this.messageHandlers.set(type, [])
     }
-    this.messageHandlers.get(type)!.push(handler)
+    this.messageHandlers.get(type)!.push(handler as MessageHandler<unknown>)
   }
 
   /**
    * Unsubscribe from message type
    */
-  off(type: string, handler: MessageHandler) {
+  off<T = unknown>(type: string | WebSocketMessageType, handler: MessageHandler<T>) {
     const handlers = this.messageHandlers.get(type)
     if (handlers) {
-      const index = handlers.indexOf(handler)
+      const index = handlers.indexOf(handler as MessageHandler<unknown>)
       if (index > -1) {
         handlers.splice(index, 1)
       }
@@ -163,7 +160,7 @@ class WebSocketService {
   /**
    * Send message to server
    */
-  send(type: string, data: any) {
+  send<T = unknown>(type: string, data: T) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify({ type, data }))
     } else {
@@ -195,7 +192,7 @@ export const wsService = new WebSocketService()
 /**
  * React hook for WebSocket
  */
-export function useWebSocket(type: string, handler: MessageHandler) {
+export function useWebSocket<T = unknown>(type: string | WebSocketMessageType, handler: MessageHandler<T>) {
   if (typeof window === 'undefined') return
 
   useEffect(() => {

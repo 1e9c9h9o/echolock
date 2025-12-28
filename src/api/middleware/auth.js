@@ -300,19 +300,37 @@ export function checkRateLimit(userId, action, limit, windowMs) {
 
 /**
  * Clean up rate limit store periodically
+ * Store interval ID for cleanup on shutdown
  */
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, timestamps] of rateLimitStore.entries()) {
-    // Remove entries older than 1 hour
-    const validTimestamps = timestamps.filter(ts => now - ts < 3600000);
-    if (validTimestamps.length === 0) {
-      rateLimitStore.delete(key);
-    } else {
-      rateLimitStore.set(key, validTimestamps);
+let rateLimitCleanupInterval = null;
+
+export function startRateLimitCleanup() {
+  if (rateLimitCleanupInterval) return; // Already running
+
+  rateLimitCleanupInterval = setInterval(() => {
+    const now = Date.now();
+    for (const [key, timestamps] of rateLimitStore.entries()) {
+      // Remove entries older than 1 hour
+      const validTimestamps = timestamps.filter(ts => now - ts < 3600000);
+      if (validTimestamps.length === 0) {
+        rateLimitStore.delete(key);
+      } else {
+        rateLimitStore.set(key, validTimestamps);
+      }
     }
+  }, 600000); // Clean up every 10 minutes
+}
+
+export function stopRateLimitCleanup() {
+  if (rateLimitCleanupInterval) {
+    clearInterval(rateLimitCleanupInterval);
+    rateLimitCleanupInterval = null;
   }
-}, 600000); // Clean up every 10 minutes
+  rateLimitStore.clear();
+}
+
+// Start cleanup on module load
+startRateLimitCleanup();
 
 export default {
   generateAccessToken,
@@ -321,5 +339,7 @@ export default {
   authenticateToken,
   optionalAuth,
   requireEmailVerified,
-  checkRateLimit
+  checkRateLimit,
+  startRateLimitCleanup,
+  stopRateLimitCleanup
 };
