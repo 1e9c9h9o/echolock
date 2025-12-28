@@ -32,16 +32,44 @@ export async function retrieveAndReconstructMessage(switchData) {
       throw new Error('Failed to decrypt Nostr private key');
     }
 
-    // Step 2: Get relay URLs
-    const relayUrls = Array.isArray(switchData.relay_urls)
+    // Step 2: Get relay URLs and validate them
+    const rawRelayUrls = Array.isArray(switchData.relay_urls)
       ? switchData.relay_urls
       : JSON.parse(switchData.relay_urls || '[]');
 
+    // SECURITY: Validate relay URLs to prevent SSRF attacks
+    const relayUrls = rawRelayUrls.filter(url => {
+      try {
+        const parsed = new URL(url);
+        // Only allow wss:// (secure WebSocket) protocol for relays
+        // Block internal/private IP ranges
+        if (parsed.protocol !== 'wss:') {
+          logger.warn('Rejected non-wss relay URL', { url, switchId: switchData.id });
+          return false;
+        }
+        // Block obvious internal hostnames
+        const hostname = parsed.hostname.toLowerCase();
+        if (hostname === 'localhost' ||
+            hostname === '127.0.0.1' ||
+            hostname.startsWith('192.168.') ||
+            hostname.startsWith('10.') ||
+            hostname.endsWith('.local') ||
+            hostname.endsWith('.internal')) {
+          logger.warn('Rejected internal relay URL', { url, switchId: switchData.id });
+          return false;
+        }
+        return true;
+      } catch {
+        logger.warn('Rejected invalid relay URL', { url, switchId: switchData.id });
+        return false;
+      }
+    });
+
     if (relayUrls.length === 0) {
-      throw new Error('No relay URLs found for switch');
+      throw new Error('No valid relay URLs found for switch');
     }
 
-    logger.debug('Using relays', { relayUrls, switchId: switchData.id });
+    logger.debug('Using validated relays', { relayUrls, switchId: switchData.id });
 
     // Step 3: Retrieve fragments from Nostr
     const fragments = await retrieveFragmentsFromNostr(
@@ -113,7 +141,7 @@ export async function retrieveAndReconstructMessage(switchData) {
     return {
       success: true,
       message: reconstructedMessage,
-      sharesUsed: validShares.length
+      sharesUsed: validAuthenticatedShares.length
     };
 
   } catch (error) {

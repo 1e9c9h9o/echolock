@@ -36,8 +36,11 @@ const config = {
   connectionTimeoutMillis: 10000, // Timeout if connection takes >10s
 
   // SSL configuration (required for production)
+  // SECURITY: Default to strict SSL verification, allow override via env var for platforms
+  // that use self-signed certificates (e.g., Railway, some Heroku configs)
   ssl: process.env.NODE_ENV === 'production' ? {
-    rejectUnauthorized: false  // Allow self-signed certs (Railway uses them)
+    // Set DB_SSL_REJECT_UNAUTHORIZED=false only for platforms with self-signed certs
+    rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false'
   } : false
 };
 

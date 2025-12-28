@@ -17,9 +17,31 @@ class WebSocketService {
     this.wss = new WebSocketServer({
       server,
       path: '/ws',
-      // Verify origin in production
+      // Verify origin to prevent cross-site WebSocket hijacking
       verifyClient: (info, callback) => {
-        // Add origin verification here if needed
+        const origin = info.origin || info.req.headers.origin;
+
+        // Allow connections with no origin (e.g., from server-side or mobile apps)
+        if (!origin) {
+          return callback(true);
+        }
+
+        // Get allowed origins from environment
+        const allowedOrigins = process.env.CORS_ORIGINS
+          ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+          : ['http://localhost:3001', 'http://localhost:3000'];
+
+        // In production, require origin to be in allowed list
+        if (process.env.NODE_ENV === 'production') {
+          if (!allowedOrigins.includes(origin)) {
+            logger.warn('WebSocket connection rejected: Invalid origin', {
+              origin,
+              allowedOrigins
+            });
+            return callback(false, 403, 'Origin not allowed');
+          }
+        }
+
         callback(true);
       }
     });

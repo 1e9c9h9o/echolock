@@ -24,13 +24,10 @@ const SERVICE_MASTER_KEY = process.env.SERVICE_MASTER_KEY;
 const NODE_ENV = process.env.NODE_ENV;
 const IS_PRODUCTION = NODE_ENV === 'production';
 
-// Log environment for debugging Railway deployment
-if (IS_PRODUCTION) {
-  console.log('Environment check:', {
-    NODE_ENV,
-    HAS_SERVICE_MASTER_KEY: !!SERVICE_MASTER_KEY,
-    SERVICE_MASTER_KEY_LENGTH: SERVICE_MASTER_KEY ? SERVICE_MASTER_KEY.length : 0
-  });
+// SECURITY: Do not log key-related information in production
+// Only log presence/absence for startup diagnostics
+if (IS_PRODUCTION && !SERVICE_MASTER_KEY) {
+  console.error('FATAL: SERVICE_MASTER_KEY not set in production');
 }
 
 if (!SERVICE_MASTER_KEY && IS_PRODUCTION) {

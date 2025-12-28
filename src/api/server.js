@@ -108,7 +108,16 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Cookie parsing (required for httpOnly token cookies)
-app.use(cookieParser(process.env.COOKIE_SECRET || 'dev-cookie-secret'));
+// SECURITY: Require COOKIE_SECRET in production
+if (!process.env.COOKIE_SECRET && process.env.NODE_ENV === 'production') {
+  console.error('FATAL: COOKIE_SECRET environment variable is required in production');
+  throw new Error('COOKIE_SECRET environment variable is required in production');
+}
+const cookieSecret = process.env.COOKIE_SECRET || crypto.randomBytes(32).toString('hex');
+if (!process.env.COOKIE_SECRET) {
+  logger.warn('COOKIE_SECRET not set - using randomly generated secret (cookies will not persist across restarts)');
+}
+app.use(cookieParser(cookieSecret));
 
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
