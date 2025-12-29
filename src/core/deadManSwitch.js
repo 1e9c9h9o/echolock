@@ -26,9 +26,12 @@ import * as ecc from 'tiny-secp256k1';
 import { ECPairFactory } from 'ecpair';
 import {
   getCurrentBlockHeight,
-  createTimelockTransaction,
   getTimelockStatus
 } from '../bitcoin/testnetClient.js';
+import {
+  createTimelockSetup,
+  checkTimelockValidity
+} from '../bitcoin/timelockScript.js';
 import { loadConfig } from './config.js';
 import { publishFragment, retrieveFragments } from '../nostr/multiRelayClient.js';
 import { filterHealthyRelays } from '../nostr/relayHealthCheck.js';
@@ -157,24 +160,27 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
       zeroize(privateKeyBuffer);
       zeroize(bitcoinEncryptionKey);
 
-      // Create timelock transaction structure
-      const timelockTx = createTimelockTransaction(timelockHeight, publicKey);
+      // Create timelock setup with SegWit address (lower fees)
+      const timelockSetup = createTimelockSetup(timelockHeight, publicKey, { useSegWit: true });
 
       bitcoinTimelock = {
         enabled: true,
-        keyVersion: 2, // NEW: Indicates hierarchical key derivation
+        keyVersion: 2, // Indicates hierarchical key derivation
         currentHeight,
         timelockHeight,
         blocksUntilValid: timelockHeight - currentHeight,
-        address: timelockTx.address,
-        script: timelockTx.script,
-        scriptAsm: timelockTx.scriptAsm,
+        address: timelockSetup.address,
+        addressType: timelockSetup.addressType, // P2WSH (SegWit)
+        script: timelockSetup.script,
+        scriptAsm: timelockSetup.scriptAsm,
         publicKey: publicKey.toString('hex'),
         // Store encrypted private key (key derived from password + switchId)
         encryptedPrivateKey: encryptedPrivateKey.toString('base64'),
         privateKeyIV: privateKeyIV.toString('base64'),
         privateKeyAuthTag: privateKeyAuthTag.toString('base64'),
         privateKeySalt: bitcoinKeyHierarchy.salt.toString('base64'),
+        unlockEstimate: timelockSetup.unlockEstimate,
+        network: timelockSetup.network,
         status: 'pending',
         createdAt: now
       };
@@ -450,10 +456,16 @@ export async function getStatus(switchId, includeBitcoinStatus = false) {
   let bitcoinStatus = sw.bitcoinTimelock || null;
   if (includeBitcoinStatus && sw.bitcoinTimelock?.enabled) {
     try {
-      const liveStatus = await getTimelockStatus(sw.bitcoinTimelock.timelockHeight);
+      const currentHeight = await getCurrentBlockHeight();
+      const validity = checkTimelockValidity(sw.bitcoinTimelock.timelockHeight, currentHeight);
+
       bitcoinStatus = {
         ...sw.bitcoinTimelock,
-        ...liveStatus,
+        currentHeight,
+        blocksRemaining: validity.blocksRemaining || 0,
+        estimatedTimeRemaining: validity.estimatedTimeRemaining || 0,
+        isValid: validity.isValid,
+        validityReason: validity.reason,
         lastChecked: Date.now()
       };
     } catch (error) {
