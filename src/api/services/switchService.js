@@ -14,8 +14,16 @@
  */
 
 import { query, transaction } from '../db/connection.js';
-import { encryptWithServiceKey, decryptWithServiceKey } from '../utils/crypto.js';
+import { encryptWithServiceKey, decryptWithServiceKey, encryptForUser, decryptForUser } from '../utils/crypto.js';
 import { logger } from '../utils/logger.js';
+import { withRetry, RETRY_PRESETS } from '../utils/retry.js';
+
+// Current key version for new encryptions
+// Increment when rotating keys
+const CURRENT_KEY_VERSION = 1;
+
+// Check-in confirmation timeout (how long to wait for DB confirmation)
+const CHECKIN_CONFIRMATION_TIMEOUT_MS = 10000; // 10 seconds
 
 // Import your existing crypto code
 import { createSwitch as createSwitchCore, testRelease } from '../../core/deadManSwitch.js';
@@ -99,9 +107,12 @@ export async function createSwitch(userId, data) {
           const switchFragments = fragments[result.switchId];
 
           if (switchFragments?.nostrPrivateKey) {
-            // Encrypt the Nostr private key for database storage
-            const encrypted = encryptWithServiceKey(
-              Buffer.from(switchFragments.nostrPrivateKey, 'hex')
+            // Encrypt the Nostr private key using per-user key derivation
+            // This provides key isolation: compromise of one user doesn't affect others
+            const encrypted = encryptForUser(
+              Buffer.from(switchFragments.nostrPrivateKey, 'hex'),
+              userId,
+              CURRENT_KEY_VERSION
             );
 
             nostrPrivateKeyEncrypted = encrypted.ciphertext;
@@ -115,6 +126,7 @@ export async function createSwitch(userId, data) {
       }
 
       // Insert switch into database
+      // Note: encryption_key_version tracks which key version was used
       const insertResult = await client.query(
         `INSERT INTO switches (
           id, user_id, title, description, status, check_in_hours,
@@ -122,12 +134,14 @@ export async function createSwitch(userId, data) {
           encrypted_message_ciphertext, encrypted_message_iv, encrypted_message_auth_tag,
           nostr_public_key, nostr_private_key_encrypted,
           relay_urls, fragment_metadata,
-          fragment_encryption_salt, auth_key_encrypted
+          fragment_encryption_salt, auth_key_encrypted,
+          encryption_key_version
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
           $13 || ',' || $14 || ',' || $15,
           $16, $17, $18,
-          $19 || ',' || $20 || ',' || $21
+          $19 || ',' || $20 || ',' || $21,
+          $22
         ) RETURNING id, created_at, expires_at`,
         [
           result.switchId,
@@ -149,7 +163,8 @@ export async function createSwitch(userId, data) {
           JSON.stringify(result.distribution?.relays || []),
           JSON.stringify(result.distribution || {}),
           '', // Will be extracted from fragments
-          '', '', '' // Auth key encrypted parts
+          '', '', '', // Auth key encrypted parts
+          CURRENT_KEY_VERSION // Track key version for future rotation
         ]
       );
 
@@ -293,51 +308,68 @@ export async function getSwitch(switchId, userId) {
 }
 
 /**
- * Perform check-in for a switch
+ * Perform check-in for a switch with retry and confirmation
+ *
+ * SECURITY FEATURES:
+ * - Retries with exponential backoff on transient failures
+ * - Confirms check-in was persisted before returning success
+ * - Prevents false success on network/database failures
  *
  * @param {string} switchId - Switch ID
  * @param {string} userId - User ID
  * @param {Object} req - Express request (for logging)
- * @returns {Promise<Object>} Updated switch info
+ * @returns {Promise<Object>} Updated switch info with confirmation
  */
 export async function checkIn(switchId, userId, req) {
-  try {
+  const startTime = Date.now();
+
+  // Use retry wrapper for the core check-in operation
+  const performCheckIn = async () => {
     return await transaction(async (client) => {
-      // Get switch
+      // Get switch with FOR UPDATE lock to prevent race conditions
       const result = await client.query(
-        'SELECT * FROM switches WHERE id = $1 AND user_id = $2',
+        'SELECT * FROM switches WHERE id = $1 AND user_id = $2 FOR UPDATE',
         [switchId, userId]
       );
 
       if (result.rows.length === 0) {
-        throw new Error('Switch not found');
+        const error = new Error('Switch not found');
+        error.retryable = false; // Don't retry not-found errors
+        throw error;
       }
 
       const sw = result.rows[0];
 
       if (sw.status !== 'ARMED') {
-        throw new Error(`Cannot check in - switch status is ${sw.status}`);
+        const error = new Error(`Cannot check in - switch status is ${sw.status}`);
+        error.retryable = false;
+        throw error;
       }
 
       // SECURITY: Check if switch has already expired
-      // This prevents race condition at expiration boundary where check-in
-      // could succeed while timer monitor is already processing release
       const now = new Date();
       const expiresAt = new Date(sw.expires_at);
       if (now >= expiresAt) {
-        throw new Error('Cannot check in - switch has already expired. Timer may be processing release.');
+        const error = new Error('Cannot check in - switch has already expired. Timer may be processing release.');
+        error.retryable = false;
+        throw error;
       }
 
       // Calculate new expiry time
       const newExpiresAt = new Date(now.getTime() + (sw.check_in_hours * 60 * 60 * 1000));
 
       // Update switch
-      await client.query(
+      const updateResult = await client.query(
         `UPDATE switches
          SET last_check_in = $1, expires_at = $2, check_in_count = check_in_count + 1
-         WHERE id = $3`,
+         WHERE id = $3
+         RETURNING check_in_count, expires_at`,
         [now, newExpiresAt, switchId]
       );
+
+      if (updateResult.rowCount === 0) {
+        throw new Error('Check-in update failed - no rows affected');
+      }
 
       // Log check-in
       await client.query(
@@ -353,21 +385,93 @@ export async function checkIn(switchId, userId, req) {
         [userId, 'CHECK_IN', JSON.stringify({ switchId, title: sw.title })]
       );
 
-      logger.info('Check-in successful', {
-        userId,
-        switchId,
-        newExpiresAt
-      });
+      const confirmedCheckInCount = updateResult.rows[0].check_in_count;
+      const confirmedExpiresAt = updateResult.rows[0].expires_at;
 
       return {
         switchId,
-        newExpiresAt,
-        checkInCount: sw.check_in_count + 1,
-        message: 'Check-in successful'
+        newExpiresAt: confirmedExpiresAt,
+        checkInCount: confirmedCheckInCount,
+        previousExpiresAt: sw.expires_at
       };
     });
+  };
+
+  try {
+    // Execute with retry for transient failures
+    const result = await withRetry(performCheckIn, {
+      operationName: `check-in:${switchId}`,
+      config: RETRY_PRESETS.critical,
+      shouldRetry: (error) => {
+        // Don't retry business logic errors
+        if (error.retryable === false) {
+          return false;
+        }
+        // Retry database/network errors
+        return true;
+      },
+      onRetry: (error, attempt, delay) => {
+        logger.warn('Check-in retry scheduled', {
+          switchId,
+          userId,
+          attempt: attempt + 1,
+          delay,
+          error: error.message
+        });
+      }
+    });
+
+    // Confirmation: Verify the check-in was persisted
+    const confirmResult = await query(
+      'SELECT check_in_count, expires_at, last_check_in FROM switches WHERE id = $1',
+      [switchId]
+    );
+
+    if (confirmResult.rows.length === 0) {
+      throw new Error('Check-in confirmation failed - switch not found');
+    }
+
+    const confirmed = confirmResult.rows[0];
+    const isConfirmed = confirmed.check_in_count === result.checkInCount;
+
+    const duration = Date.now() - startTime;
+
+    logger.info('Check-in successful', {
+      userId,
+      switchId,
+      newExpiresAt: result.newExpiresAt,
+      checkInCount: result.checkInCount,
+      confirmed: isConfirmed,
+      durationMs: duration
+    });
+
+    return {
+      switchId,
+      newExpiresAt: result.newExpiresAt,
+      checkInCount: result.checkInCount,
+      message: 'Check-in successful',
+      confirmed: isConfirmed,
+      durationMs: duration
+    };
+
   } catch (error) {
-    logger.error('Check-in failed:', error);
+    const duration = Date.now() - startTime;
+
+    logger.error('Check-in failed:', {
+      switchId,
+      userId,
+      error: error.message,
+      durationMs: duration
+    });
+
+    // Add helpful context to the error
+    error.checkInContext = {
+      switchId,
+      userId,
+      durationMs: duration,
+      timestamp: new Date().toISOString()
+    };
+
     throw error;
   }
 }

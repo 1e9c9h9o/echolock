@@ -30,7 +30,9 @@ import {
 } from '../bitcoin/testnetClient.js';
 import {
   createTimelockSetup,
-  checkTimelockValidity
+  checkTimelockValidity,
+  isCheckInSafe,
+  MTP_SAFETY_MARGIN_MS
 } from '../bitcoin/timelockScript.js';
 import { loadConfig } from './config.js';
 import { publishFragment, retrieveFragments } from '../nostr/multiRelayClient.js';
@@ -376,10 +378,20 @@ async function storeFragmentsLocally(switchId, authenticatedShares, authKey) {
 
 /**
  * Perform check-in to reset timer
+ *
+ * SECURITY: If Bitcoin timelock is enabled, this function validates that
+ * the check-in is safe given the current blockchain state. Check-ins are
+ * rejected if too close to the Bitcoin timelock expiry (4-hour safety margin).
+ *
  * @param {string} switchId - The switch ID
- * @returns {Object} { success, newExpiryTime, message }
+ * @param {Object} options - Optional settings
+ * @param {boolean} options.skipBitcoinCheck - Skip Bitcoin safety validation (for testing)
+ * @param {number} options.currentBlockHeight - Override current block height (for testing)
+ * @returns {Promise<Object>} { success, newExpiryTime, message, bitcoinSafety? }
  */
-export function checkIn(switchId) {
+export async function checkIn(switchId, options = {}) {
+  const { skipBitcoinCheck = false, currentBlockHeight = null } = options;
+
   const switches = loadSwitches();
   const sw = switches[switchId];
 
@@ -392,6 +404,47 @@ export function checkIn(switchId) {
   }
 
   const now = Date.now();
+
+  // SECURITY: Validate Bitcoin timelock safety if enabled
+  let bitcoinSafety = null;
+  if (sw.bitcoinTimelock?.enabled && !skipBitcoinCheck) {
+    try {
+      // Get current block height (use override if provided for testing)
+      const blockHeight = currentBlockHeight ?? await getCurrentBlockHeight();
+
+      // Check if check-in is safe given the Bitcoin timelock
+      bitcoinSafety = isCheckInSafe(
+        sw.bitcoinTimelock.timelockHeight,
+        blockHeight,
+        sw.expiryTime
+      );
+
+      if (!bitcoinSafety.isSafe) {
+        return {
+          success: false,
+          message: `Check-in rejected: ${bitcoinSafety.reason}`,
+          bitcoinSafety,
+          recommendation: bitcoinSafety.recommendation
+        };
+      }
+
+      // Log warning if there's a desync between app timer and Bitcoin
+      if (bitcoinSafety.warningLevel === 'MEDIUM') {
+        console.warn(`[SECURITY WARNING] ${bitcoinSafety.reason}`);
+      }
+    } catch (error) {
+      // If we can't check Bitcoin status, log warning but allow check-in
+      // This prevents Bitcoin API issues from blocking check-ins entirely
+      console.warn(`Bitcoin safety check failed: ${error.message}. Proceeding with check-in.`);
+      bitcoinSafety = {
+        isSafe: true,
+        warningLevel: 'UNKNOWN',
+        reason: `Bitcoin check failed: ${error.message}`,
+        recommendation: 'Monitor Bitcoin timelock status manually.'
+      };
+    }
+  }
+
   const newExpiryTime = now + (sw.checkInHours * 60 * 60 * 1000);
 
   sw.expiryTime = newExpiryTime;
@@ -404,7 +457,8 @@ export function checkIn(switchId) {
   }
   sw.checkInHistory.push({
     timestamp: now,
-    timeRemaining: sw.expiryTime - now
+    timeRemaining: sw.expiryTime - now,
+    bitcoinSafety: bitcoinSafety?.warningLevel || 'N/A'
   });
 
   saveSwitches(switches);
@@ -413,7 +467,8 @@ export function checkIn(switchId) {
     success: true,
     newExpiryTime,
     checkInCount: sw.checkInCount,
-    message: 'Check-in successful'
+    message: 'Check-in successful',
+    bitcoinSafety
   };
 }
 

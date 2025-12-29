@@ -24,6 +24,13 @@ bitcoin.initEccLib(ecc);
 // MTP (Median Time Past) uncertainty window
 const MTP_WINDOW_SECONDS = 2 * 60 * 60; // 2 hours
 
+// Safety margin for check-ins near timelock expiry
+// Users should check in at least this far before Bitcoin MTP makes release valid
+// This prevents race conditions where user thinks check-in succeeded but
+// blockchain time has already passed the threshold
+export const MTP_SAFETY_MARGIN_SECONDS = 4 * 60 * 60; // 4 hours (conservative)
+export const MTP_SAFETY_MARGIN_MS = MTP_SAFETY_MARGIN_SECONDS * 1000;
+
 // Bitcoin timestamp threshold (values < 500000000 are block heights)
 const LOCKTIME_THRESHOLD = 500000000;
 
@@ -204,6 +211,84 @@ export function parseTimelockScript(script) {
   } catch {
     return null;
   }
+}
+
+/**
+ * Check if a check-in is safe given a Bitcoin timelock
+ *
+ * SECURITY: This prevents race conditions where a user thinks their check-in
+ * succeeded, but the Bitcoin Median Time Past (MTP) has already made the
+ * timelock valid, allowing premature release.
+ *
+ * The MTP can lag real time by up to ~2 hours. We use a 4-hour safety margin
+ * to be conservative.
+ *
+ * @param {number} timelockHeight - The Bitcoin block height when timelock becomes valid
+ * @param {number} currentBlockHeight - Current Bitcoin block height
+ * @param {number} applicationExpiryMs - When the application timer expires (ms timestamp)
+ * @returns {Object} { isSafe, reason, warningLevel, blocksUntilTimelock, timeUntilSafetyMargin }
+ */
+export function isCheckInSafe(timelockHeight, currentBlockHeight, applicationExpiryMs = null) {
+  const now = Date.now();
+  const blocksUntilTimelock = timelockHeight - currentBlockHeight;
+
+  // Convert blocks to approximate time (10 min per block)
+  const estimatedMsUntilTimelock = blocksUntilTimelock * 10 * 60 * 1000;
+
+  // If timelock is already valid, check-in is NOT safe
+  if (blocksUntilTimelock <= 0) {
+    return {
+      isSafe: false,
+      warningLevel: 'CRITICAL',
+      reason: 'Bitcoin timelock has already become valid. Message may be released.',
+      blocksUntilTimelock: 0,
+      timeUntilSafetyMargin: 0,
+      recommendation: 'Do not check in. The switch may have already been released.'
+    };
+  }
+
+  // If within safety margin (4 hours / ~24 blocks), warn user
+  const safetyMarginBlocks = Math.ceil(MTP_SAFETY_MARGIN_SECONDS / (10 * 60)); // ~24 blocks
+  const timeUntilSafetyMargin = estimatedMsUntilTimelock - MTP_SAFETY_MARGIN_MS;
+
+  if (blocksUntilTimelock <= safetyMarginBlocks) {
+    return {
+      isSafe: false,
+      warningLevel: 'HIGH',
+      reason: `Only ${blocksUntilTimelock} blocks (~${Math.round(estimatedMsUntilTimelock / 60000)} min) until Bitcoin timelock. MTP uncertainty makes check-in unsafe.`,
+      blocksUntilTimelock,
+      timeUntilSafetyMargin: Math.max(0, timeUntilSafetyMargin),
+      recommendation: 'Check-in rejected. Too close to Bitcoin timelock expiry.'
+    };
+  }
+
+  // Check application timer vs Bitcoin timelock desync
+  if (applicationExpiryMs) {
+    const appTimeRemaining = applicationExpiryMs - now;
+
+    // If app timer shows more time than Bitcoin timelock, warn about desync
+    if (appTimeRemaining > estimatedMsUntilTimelock + MTP_SAFETY_MARGIN_MS) {
+      return {
+        isSafe: true,
+        warningLevel: 'MEDIUM',
+        reason: 'Application timer and Bitcoin timelock are desynchronized. Bitcoin may trigger release earlier than expected.',
+        blocksUntilTimelock,
+        timeUntilSafetyMargin,
+        desyncMs: appTimeRemaining - estimatedMsUntilTimelock,
+        recommendation: 'Check-in allowed, but consider the Bitcoin timelock as the true expiry.'
+      };
+    }
+  }
+
+  // Safe to check in
+  return {
+    isSafe: true,
+    warningLevel: 'NONE',
+    reason: 'Check-in is safe. Sufficient time before Bitcoin timelock.',
+    blocksUntilTimelock,
+    timeUntilSafetyMargin,
+    recommendation: null
+  };
 }
 
 /**
