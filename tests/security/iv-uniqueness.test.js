@@ -268,23 +268,22 @@ describe('IV Format and Encoding', () => {
     expect(decoded).toHaveLength(12);
   });
 
-  test('should reject IV of wrong length', () => {
+  test('should always use 12-byte IV in encrypt function', () => {
+    // Note: Node.js GCM accepts various IV lengths (8, 12, 16 bytes)
+    // but 12 bytes is optimal for performance and is the NIST recommendation
+    // Our encrypt() function should ALWAYS use exactly 12 bytes
     const key = crypto.randomBytes(32);
-    const plaintext = Buffer.from('test');
-    const ciphertext = crypto.randomBytes(16);
-    const authTag = crypto.randomBytes(16);
-    
-    // Try IV that's too short
-    const shortIV = crypto.randomBytes(8);
-    expect(() => {
-      crypto.createDecipheriv('aes-256-gcm', key, shortIV);
-    }).toThrow();
-    
-    // Try IV that's too long
-    const longIV = crypto.randomBytes(16);
-    expect(() => {
-      crypto.createDecipheriv('aes-256-gcm', key, longIV);
-    }).toThrow();
+    const plaintext = Buffer.from('test message');
+
+    // Verify our encrypt function uses 12-byte IVs
+    const { iv } = encrypt(plaintext, key);
+    expect(iv).toHaveLength(12);
+
+    // Verify this is consistent across multiple calls
+    for (let i = 0; i < 10; i++) {
+      const { iv: testIv } = encrypt(plaintext, key);
+      expect(testIv).toHaveLength(12);
+    }
   });
 });
 

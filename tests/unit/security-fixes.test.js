@@ -18,7 +18,8 @@ import {
   createFragmentPayload,
   verifyFragmentPayload,
   serializePayload,
-  deserializeAndVerify
+  deserializeAndVerify,
+  stableStringify
 } from '../../src/nostr/fragmentFormat.js';
 import { encrypt, decrypt } from '../../src/crypto/encryption.js';
 
@@ -290,11 +291,11 @@ describe('Atomic Cryptographic Storage', () => {
     // Now delete a required field AFTER creating valid integrity
     delete payload.iv;
 
-    // Re-compute integrity for the corrupted payload
+    // Re-compute integrity for the corrupted payload using stableStringify
     const payloadForHash = { ...payload };
     delete payloadForHash.integrity;
     payload.integrity = crypto.createHash('sha256')
-      .update(JSON.stringify(payloadForHash))
+      .update(stableStringify(payloadForHash))
       .digest('hex');
 
     expect(() => verifyFragmentPayload(payload))
@@ -314,11 +315,11 @@ describe('Atomic Cryptographic Storage', () => {
     const payload = createFragmentPayload(encryptedData, metadata);
     payload.version = 99; // Unsupported version
 
-    // Need to recompute integrity for the test
+    // Need to recompute integrity for the test using stableStringify
     const payloadForHash = { ...payload };
     delete payloadForHash.integrity;
     payload.integrity = crypto.createHash('sha256')
-      .update(JSON.stringify(payloadForHash))
+      .update(stableStringify(payloadForHash))
       .digest('hex');
 
     expect(() => verifyFragmentPayload(payload))

@@ -19,7 +19,7 @@ import crypto from 'crypto';
  * @param {*} obj - Object to stringify
  * @returns {string} Canonical JSON string
  */
-function stableStringify(obj) {
+export function stableStringify(obj) {
   if (obj === null || typeof obj !== 'object') {
     return JSON.stringify(obj);
   }
