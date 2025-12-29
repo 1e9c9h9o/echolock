@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="robots" content="noindex, nofollow">
+  <title>EchoLock</title>
+  <style>
+    :root {
+      --black: #0a0a0a;
+      --white: #fafafa;
+      --gray: #666;
+      --accent: #00a8ff;
+      --grid: 8px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: -apple-system, 'Helvetica Neue', sans-serif;
+      background: var(--black);
+      color: var(--white);
+      line-height: 1.5;
+      padding: calc(var(--grid) * 4);
+      min-height: 100vh;
+      max-width: 390px;
+      margin: 0 auto;
+    }
+
+    /* Typography */
+    .mono {
+      font-family: 'SF Mono', 'Menlo', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.02em;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      margin-bottom: calc(var(--grid) * 2);
+    }
+
+    h2 {
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--gray);
+      margin-bottom: var(--grid);
+    }
+
+    p {
+      color: var(--gray);
+      font-size: 0.9375rem;
+      margin-bottom: calc(var(--grid) * 3);
+    }
+
+    /* Sections */
+    section {
+      margin-bottom: calc(var(--grid) * 6);
+    }
+
+    /* Flow Diagram */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: calc(var(--grid) * 2);
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      gap: calc(var(--grid) * 2);
+      align-items: start;
+    }
+
+    .step-num {
+      width: 48px;
+      height: 48px;
+      border: 1px solid var(--white);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 300;
+      flex-shrink: 0;
+    }
+
+    .step-content h3 {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .step-content p {
+      font-size: 0.8125rem;
+      margin-bottom: 0;
+      line-height: 1.4;
+    }
+
+    /* Connector lines */
+    .connector {
+      width: 1px;
+      height: 24px;
+      background: var(--white);
+      opacity: 0.2;
+      margin-left: 24px;
+    }
+
+    /* Visual: Fragmentation */
+    .visual-fragment {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: calc(var(--grid) * 4) 0;
+      margin-bottom: calc(var(--grid) * 3);
+    }
+
+    .shard {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      opacity: 0.9;
+      transform: rotate(45deg);
+      animation: float 3s ease-in-out infinite;
+    }
+
+    .shard:nth-child(1) { animation-delay: 0s; opacity: 1; }
+    .shard:nth-child(2) { animation-delay: 0.2s; opacity: 0.8; }
+    .shard:nth-child(3) { animation-delay: 0.4s; opacity: 0.6; }
+    .shard:nth-child(4) { animation-delay: 0.6s; opacity: 0.4; }
+    .shard:nth-child(5) { animation-delay: 0.8s; opacity: 0.2; }
+
+    @keyframes float {
+      0%, 100% { transform: rotate(45deg) translateY(0); }
+      50% { transform: rotate(45deg) translateY(-8px); }
+    }
+
+    /* Visual: Network */
+    .visual-network {
+      position: relative;
+      height: 120px;
+      margin-bottom: calc(var(--grid) * 3);
+    }
+
+    .node {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+    }
+
+    .node:nth-child(1) { top: 20%; left: 15%; }
+    .node:nth-child(2) { top: 60%; left: 25%; }
+    .node:nth-child(3) { top: 30%; left: 50%; }
+    .node:nth-child(4) { top: 70%; left: 55%; }
+    .node:nth-child(5) { top: 40%; left: 75%; }
+    .node:nth-child(6) { top: 80%; left: 85%; }
+    .node:nth-child(7) { top: 15%; left: 80%; }
+
+    .node::after {
+      content: '';
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--accent);
+      border-radius: 50%;
+      opacity: 0.3;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.3; }
+      50% { transform: scale(3); opacity: 0; }
+    }
+
+    /* Tech Stack */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: calc(var(--grid) * 2);
+    }
+
+    .tech-item {
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: calc(var(--grid) * 2);
+    }
+
+    .tech-item h4 {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .tech-item p {
+      font-size: 0.6875rem;
+      margin-bottom: 0;
+      line-height: 1.3;
+    }
+
+    /* Footer */
+    footer {
+      padding-top: calc(var(--grid) * 4);
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    footer p {
+      font-size: 0.75rem;
+      text-align: center;
+    }
+
+    /* Equation style */
+    .equation {
+      font-family: 'SF Mono', monospace;
+      font-size: 0.8125rem;
+      color: var(--accent);
+      padding: calc(var(--grid) * 2);
+      background: rgba(0,168,255,0.05);
+      border-left: 2px solid var(--accent);
+      margin-bottom: calc(var(--grid) * 3);
+    }
+  </style>
+</head>
+<body>
+
+  <header style="margin-bottom: calc(var(--grid) * 6);">
+    <p class="mono" style="color: var(--accent); margin-bottom: var(--grid);">ECHOLOCK</p>
+    <h1>Dead Man's Switch</h1>
+    <p>Cryptographic insurance for your digital legacy. No single point of failure.</p>
+  </header>
+
+  <section>
+    <h2>The Problem</h2>
+    <p>If something happens to you, how do your loved ones access critical information? Passwords die with you. Lawyers can be compromised. Cloud services get shut down.</p>
+  </section>
+
+  <section>
+    <h2>The Solution</h2>
+    <div class="equation">
+      message + time lock = autonomous release
+    </div>
+    <p>Write a message. Set a timer. Check in regularly. If you stop checking in, your message releases automatically to your chosen recipients.</p>
+  </section>
+
+  <section>
+    <h2>How It Works</h2>
+
+    <div class="visual-fragment">
+      <div class="shard"></div>
+      <div class="shard"></div>
+      <div class="shard"></div>
+      <div class="shard"></div>
+      <div class="shard"></div>
+    </div>
+
+    <div class="flow">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Encrypt</h3>
+          <p>Your message is encrypted with AES-256-GCM. Military-grade. Unbreakable.</p>
+        </div>
+      </div>
+
+      <div class="connector"></div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Shatter</h3>
+          <p>The encryption key is split into 5 fragments using Shamir's Secret Sharing. Need 3 to reconstruct.</p>
+        </div>
+      </div>
+
+      <div class="connector"></div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Scatter</h3>
+          <p>Fragments distributed across 7+ independent Nostr relays worldwide. No single server to compromise.</p>
+        </div>
+      </div>
+
+      <div class="connector"></div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>Timestamp</h3>
+          <p>Bitcoin blockchain anchors the timer. 800,000+ nodes verify. Unstoppable.</p>
+        </div>
+      </div>
+
+      <div class="connector"></div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h3>Release</h3>
+          <p>Timer expires. Fragments reunite. Message decrypts. Recipients notified.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Decentralized Network</h2>
+    <div class="visual-network">
+      <div class="node"></div>
+      <div class="node"></div>
+      <div class="node"></div>
+      <div class="node"></div>
+      <div class="node"></div>
+      <div class="node"></div>
+      <div class="node"></div>
+    </div>
+    <p>Your fragments live on independent Nostr relays run by different people in different countries. Even if 4 relays disappear, your message survives.</p>
+  </section>
+
+  <section>
+    <h2>Technology</h2>
+    <div class="tech-grid">
+      <div class="tech-item">
+        <h4>AES-256-GCM</h4>
+        <p>Authenticated encryption. Same standard protecting state secrets.</p>
+      </div>
+      <div class="tech-item">
+        <h4>Shamir SSS</h4>
+        <p>Mathematically proven secret sharing. 3-of-5 threshold.</p>
+      </div>
+      <div class="tech-item">
+        <h4>Nostr</h4>
+        <p>Censorship-resistant relay network. Permissionless. Global.</p>
+      </div>
+      <div class="tech-item">
+        <h4>Bitcoin</h4>
+        <p>BIP65 timelocks. Trustless time. No central clock.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Trust Model</h2>
+    <div class="equation">
+      trust no one = trust everyone
+    </div>
+    <p>You don't trust any single relay, server, or company. The math protects you. Even we can't read your message or stop the release.</p>
+  </section>
+
+  <footer>
+    <p>echolock.xyz</p>
+  </footer>
+
+</body>
+</html>
