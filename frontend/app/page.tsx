@@ -29,8 +29,8 @@ export default function HomePage() {
               <span className="text-sm font-bold tracking-[0.2em] uppercase">Echolock</span>
             </div>
             <nav className="flex items-center gap-2">
-              <a href="#" className="text-[11px] uppercase tracking-wider px-4 py-3 hover:bg-orange hover:text-black transition-colors">Docs</a>
-              <a href="#" className="text-[11px] uppercase tracking-wider px-4 py-3 hover:bg-orange hover:text-black transition-colors">Source</a>
+              <Link href="/docs" className="text-[11px] uppercase tracking-wider px-4 py-3 hover:bg-orange hover:text-black transition-colors">Docs</Link>
+              <Link href="/sources" className="text-[11px] uppercase tracking-wider px-4 py-3 hover:bg-orange hover:text-black transition-colors">Sources</Link>
               <Link href="/auth/login" className="btn">Initialize</Link>
             </nav>
           </div>
@@ -219,17 +219,17 @@ export default function HomePage() {
               <div className="footer-col">
                 <h4>Resources</h4>
                 <ul className="space-y-2">
-                  <li><a href="#">Documentation</a></li>
-                  <li><a href="#">API Reference</a></li>
-                  <li><a href="#">Security Policy</a></li>
+                  <li><Link href="/docs">Documentation</Link></li>
+                  <li><Link href="/docs#api">API Reference</Link></li>
+                  <li><Link href="/docs#security">Security Policy</Link></li>
                 </ul>
               </div>
               <div className="footer-col">
                 <h4>Source</h4>
                 <ul className="space-y-2">
                   <li><a href="https://github.com/1e9c9h9o/echolock" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-                  <li><a href="#">Contributing</a></li>
-                  <li><a href="#">Issues</a></li>
+                  <li><Link href="/sources">Sources & Credits</Link></li>
+                  <li><a href="https://github.com/1e9c9h9o/echolock/issues" target="_blank" rel="noopener noreferrer">Issues</a></li>
                 </ul>
               </div>
             </div>
