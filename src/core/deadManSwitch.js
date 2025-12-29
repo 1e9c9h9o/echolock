@@ -18,7 +18,8 @@ import {
   deriveKeyHierarchy,
   reconstructKeyHierarchy,
   PBKDF2_ITERATIONS,
-  zeroize
+  zeroize,
+  secureRandomBytes
 } from '../crypto/keyDerivation.js';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
@@ -97,8 +98,8 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
   const expiryTime = now + (checkInHours * 60 * 60 * 1000);
   const expiryTimestamp = Math.floor(expiryTime / 1000);
 
-  // 1. Generate encryption key (256 bits)
-  const encryptionKey = crypto.randomBytes(32);
+  // 1. Generate encryption key (256 bits) with entropy validation
+  const encryptionKey = secureRandomBytes(32);
 
   // 2. Encrypt the message
   const messageBuffer = Buffer.from(message, 'utf8');
@@ -131,8 +132,8 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
       const hoursToBlocks = Math.ceil((checkInHours * 60) / 10);
       const timelockHeight = currentHeight + hoursToBlocks;
 
-      // Generate Bitcoin keypair
-      const randomPrivateKey = crypto.randomBytes(32);
+      // Generate Bitcoin keypair with entropy validation
+      const randomPrivateKey = secureRandomBytes(32);
       const keyPair = ECPair.fromPrivateKey(randomPrivateKey, { network: bitcoin.networks.testnet });
       const publicKey = keyPair.publicKey;
 
@@ -232,9 +233,9 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
         // Zeroize fragment keys after use (they're derived, not stored)
         // Note: We keep encryptionKey and nostrKey for use below
       } else {
-        // Legacy: Random key if no password provided
-        fragmentEncryptionKey = crypto.randomBytes(32);
-        fragmentEncryptionSalt = crypto.randomBytes(32);
+        // Legacy: Random key if no password provided (with entropy validation)
+        fragmentEncryptionKey = secureRandomBytes(32);
+        fragmentEncryptionSalt = secureRandomBytes(32);
         nostrEncryptionKey = null;
         keyVersion = 1;
       }
@@ -569,6 +570,8 @@ export async function testRelease(switchId, password = null, dryRun = true) {
 
       // Derive/reconstruct fragment encryption key
       let fragmentEncryptionKey;
+      let nostrDecryptionKey = null;
+
       if (fragmentInfo.hasPassword) {
         if (!password) {
           return {
@@ -576,8 +579,24 @@ export async function testRelease(switchId, password = null, dryRun = true) {
             message: 'Password required to decrypt fragments'
           };
         }
+
         const fragmentSalt = Buffer.from(fragmentInfo.fragmentEncryptionSalt, 'base64');
-        fragmentEncryptionKey = deriveKey(password, fragmentSalt).key;
+        const keyVersion = fragmentInfo.keyVersion || 1;
+
+        if (keyVersion === 2) {
+          // NEW: Use hierarchical key derivation for context-bound keys
+          const keyHierarchy = reconstructKeyHierarchy(password, switchId, fragmentSalt);
+          fragmentEncryptionKey = keyHierarchy.encryptionKey;
+          nostrDecryptionKey = keyHierarchy.nostrKey;
+
+          // Zeroize keys we don't need
+          zeroize(keyHierarchy.authKey);
+          zeroize(keyHierarchy.bitcoinKey);
+          keyHierarchy.fragmentKeys.forEach(k => zeroize(k));
+        } else {
+          // Legacy: flat PBKDF2 derivation
+          fragmentEncryptionKey = deriveKey(password, fragmentSalt).key;
+        }
       } else {
         return {
           success: false,
@@ -630,13 +649,20 @@ export async function testRelease(switchId, password = null, dryRun = true) {
     const reconstructedKey = await combineAuthenticatedShares(authenticatedShares, authKey);
     console.log('✓ Share HMAC verification passed');
 
-    // 4. Decrypt the message
-    const ciphertext = Buffer.from(sw.encryptedMessage.ciphertext, 'base64');
-    const iv = Buffer.from(sw.encryptedMessage.iv, 'base64');
-    const authTag = Buffer.from(sw.encryptedMessage.authTag, 'base64');
+    let message;
+    try {
+      // 4. Decrypt the message
+      const ciphertext = Buffer.from(sw.encryptedMessage.ciphertext, 'base64');
+      const iv = Buffer.from(sw.encryptedMessage.iv, 'base64');
+      const authTag = Buffer.from(sw.encryptedMessage.authTag, 'base64');
 
-    const decryptedMessage = decrypt(ciphertext, reconstructedKey, iv, authTag);
-    const message = decryptedMessage.toString('utf8');
+      const decryptedMessage = decrypt(ciphertext, reconstructedKey, iv, authTag);
+      message = decryptedMessage.toString('utf8');
+    } finally {
+      // SECURITY: Zeroize all sensitive key material
+      zeroize(reconstructedKey);
+      zeroize(authKey);
+    }
 
     // 5. Update status
     sw.status = 'RELEASED';

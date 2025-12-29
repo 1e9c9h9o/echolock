@@ -16,7 +16,9 @@ import {
   deriveFragmentKey,
   deriveKeyHierarchy,
   reconstructKeyHierarchy,
-  deriveKey
+  deriveKey,
+  secureRandomBytes,
+  generateSecureKey
 } from '../../src/crypto/keyDerivation.js';
 
 describe('HKDF Implementation', () => {
@@ -295,5 +297,118 @@ describe('Version and Domain Separation', () => {
     // This test verifies the hierarchy includes version info
     expect(hierarchy.metadata.version).toBe(1);
     expect(hierarchy.metadata.algorithm).toBe('PBKDF2-HKDF-SHA256');
+  });
+});
+
+describe('Secure Random Bytes with Entropy Validation', () => {
+
+  test('should generate bytes of requested length', () => {
+    const bytes16 = secureRandomBytes(16);
+    const bytes32 = secureRandomBytes(32);
+    const bytes64 = secureRandomBytes(64);
+
+    expect(bytes16).toHaveLength(16);
+    expect(bytes32).toHaveLength(32);
+    expect(bytes64).toHaveLength(64);
+  });
+
+  test('should generate unique bytes each time', () => {
+    const bytes1 = secureRandomBytes(32);
+    const bytes2 = secureRandomBytes(32);
+    const bytes3 = secureRandomBytes(32);
+
+    expect(bytes1.equals(bytes2)).toBe(false);
+    expect(bytes2.equals(bytes3)).toBe(false);
+    expect(bytes1.equals(bytes3)).toBe(false);
+  });
+
+  test('should have sufficient entropy (unique bytes)', () => {
+    // Generate 100 samples and check entropy
+    for (let i = 0; i < 100; i++) {
+      const bytes = secureRandomBytes(32);
+      const uniqueCount = new Set(bytes).size;
+
+      // For 32 random bytes, we expect at least 8 unique values
+      // (probability of fewer than 8 is astronomically low)
+      expect(uniqueCount).toBeGreaterThanOrEqual(8);
+    }
+  });
+
+  test('should reject invalid length', () => {
+    expect(() => secureRandomBytes(0)).toThrow();
+    expect(() => secureRandomBytes(-1)).toThrow();
+    expect(() => secureRandomBytes(65537)).toThrow();
+    expect(() => secureRandomBytes('32')).toThrow();
+  });
+
+  test('generateSecureKey should default to 32 bytes', () => {
+    const key = generateSecureKey();
+    expect(key).toHaveLength(32);
+  });
+
+  test('generateSecureKey should support custom lengths', () => {
+    const key16 = generateSecureKey(16);
+    const key64 = generateSecureKey(64);
+
+    expect(key16).toHaveLength(16);
+    expect(key64).toHaveLength(64);
+  });
+});
+
+describe('End-to-End Security Properties', () => {
+
+  test('complete key hierarchy should be deterministic from password', () => {
+    const password = 'my-secret-password';
+    const switchId = 'switch-abc123';
+
+    const h1 = deriveKeyHierarchy(password, switchId);
+    const h2 = reconstructKeyHierarchy(password, switchId, h1.salt);
+
+    // All keys should match when reconstructed with same inputs
+    expect(h1.encryptionKey.equals(h2.encryptionKey)).toBe(true);
+    expect(h1.authKey.equals(h2.authKey)).toBe(true);
+    expect(h1.bitcoinKey.equals(h2.bitcoinKey)).toBe(true);
+    expect(h1.nostrKey.equals(h2.nostrKey)).toBe(true);
+
+    for (let i = 0; i < h1.fragmentKeys.length; i++) {
+      expect(h1.fragmentKeys[i].equals(h2.fragmentKeys[i])).toBe(true);
+    }
+  });
+
+  test('all purpose keys should be cryptographically independent', () => {
+    const password = 'test-password';
+    const switchId = 'test-switch';
+
+    const hierarchy = deriveKeyHierarchy(password, switchId);
+
+    // Collect all keys
+    const allKeys = [
+      hierarchy.encryptionKey,
+      hierarchy.authKey,
+      hierarchy.bitcoinKey,
+      hierarchy.nostrKey,
+      ...hierarchy.fragmentKeys
+    ];
+
+    // Verify no two keys are the same
+    for (let i = 0; i < allKeys.length; i++) {
+      for (let j = i + 1; j < allKeys.length; j++) {
+        expect(allKeys[i].equals(allKeys[j])).toBe(false);
+      }
+    }
+  });
+
+  test('different passwords should produce completely different hierarchies', () => {
+    const switchId = 'same-switch';
+    const salt = crypto.randomBytes(32);
+
+    const h1 = deriveKeyHierarchy('password1', switchId, salt);
+    const h2 = deriveKeyHierarchy('password2', switchId, salt);
+
+    // All keys should be different
+    expect(h1.encryptionKey.equals(h2.encryptionKey)).toBe(false);
+    expect(h1.authKey.equals(h2.authKey)).toBe(false);
+    expect(h1.bitcoinKey.equals(h2.bitcoinKey)).toBe(false);
+    expect(h1.nostrKey.equals(h2.nostrKey)).toBe(false);
   });
 });

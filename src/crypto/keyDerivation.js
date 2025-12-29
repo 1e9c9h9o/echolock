@@ -10,6 +10,66 @@
 
 import crypto from 'crypto';
 
+// ============================================================================
+// ENTROPY VALIDATION
+// ============================================================================
+
+/**
+ * Generate cryptographically secure random bytes with validation
+ * Validates that the CSPRNG is functioning correctly
+ *
+ * @param {number} length - Number of bytes to generate
+ * @returns {Buffer} Cryptographically secure random bytes
+ * @throws {Error} If CSPRNG appears to be malfunctioning
+ */
+export function secureRandomBytes(length) {
+  if (typeof length !== 'number' || length < 1 || length > 65536) {
+    throw new Error('Length must be a positive integer <= 65536');
+  }
+
+  const bytes = crypto.randomBytes(length);
+
+  // Validate we got the expected length
+  if (bytes.length !== length) {
+    throw new Error(`CSPRNG returned wrong length: expected ${length}, got ${bytes.length}`);
+  }
+
+  // For lengths >= 16 bytes, perform entropy validation
+  if (length >= 16) {
+    // Check for obvious CSPRNG failure patterns
+    const allZero = bytes.every(b => b === 0);
+    const allOne = bytes.every(b => b === 255);
+    const allSame = bytes.every(b => b === bytes[0]);
+
+    if (allZero || allOne || allSame) {
+      throw new Error('CSPRNG produced suspicious output - possible entropy failure');
+    }
+
+    // Simple entropy estimation: count unique bytes
+    // For 32 random bytes, we expect roughly 25-32 unique values
+    // Getting < 8 unique values in 32 bytes is extremely unlikely (p < 2^-50)
+    if (length >= 32) {
+      const uniqueBytes = new Set(bytes).size;
+      const minExpectedUnique = Math.min(8, Math.floor(length / 4));
+
+      if (uniqueBytes < minExpectedUnique) {
+        throw new Error(`CSPRNG entropy too low: only ${uniqueBytes} unique bytes in ${length}`);
+      }
+    }
+  }
+
+  return bytes;
+}
+
+/**
+ * Generate a cryptographically secure random key
+ * @param {number} [length=32] - Key length in bytes (default: 256 bits)
+ * @returns {Buffer} Random key
+ */
+export function generateSecureKey(length = 32) {
+  return secureRandomBytes(length);
+}
+
 const ALGORITHM = 'sha256';
 const KEY_LENGTH = 32; // 256 bits
 const SALT_LENGTH = 32; // 256 bits
