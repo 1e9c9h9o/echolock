@@ -44,5 +44,8 @@ export const EVENT_KINDS = {
   SECRET_FRAGMENT: 30000,
 
   // Custom event kind for metadata
-  METADATA: 30001
+  METADATA: 30001,
+
+  // Heartbeat/check-in events (NIP-78 parameterized replaceable)
+  HEARTBEAT: 30078
 };

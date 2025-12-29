@@ -22,7 +22,9 @@ function showHelp() {
   console.log(bright('\nAvailable Commands:'));
   console.log(dim('─'.repeat(60)));
   console.log(green('  create') + '             Create a new dead man\'s switch');
-  console.log(green('  check-in') + '           Reset the timer (perform check-in)');
+  console.log(green('  check-in') + '           Reset the timer (local check-in)');
+  console.log(green('  nostr-check-in') + '     Permissionless check-in via Nostr');
+  console.log(green('  verify-expiry') + '      Verify switch expiry via Nostr');
   console.log(green('  status') + '             Show current status');
   console.log(green('  list') + '               List all switches');
   console.log(green('  select <id>') + '        Select a switch by ID');
@@ -32,7 +34,8 @@ function showHelp() {
   console.log(green('  help') + '               Show this help message');
   console.log(green('  exit') + '               Quit the program');
   console.log(dim('─'.repeat(60)));
-  console.log();
+  console.log(dim('\n💡 Permissionless: nostr-check-in publishes to Nostr relays'));
+  console.log(dim('   Anyone can verify expiry without needing a server\n'));
 }
 
 async function handleCreate() {
@@ -332,6 +335,83 @@ async function handleDelete() {
   }
 }
 
+async function handleNostrCheckIn() {
+  if (!currentSwitchId) {
+    console.log(red('\n✗ No switch selected. Use "list" and "select <id>"\n'));
+    return;
+  }
+
+  console.log(yellow('\n🌐 Permissionless Nostr Check-In\n'));
+  console.log(dim('This publishes a cryptographic heartbeat to Nostr relays.'));
+  console.log(dim('Anyone can verify your switch is still active.\n'));
+
+  const password = await new Promise(resolve => {
+    rl.question(bright('Enter password (for encrypted keys): '), resolve);
+  });
+
+  console.log(dim('\n⏳ Publishing heartbeat to Nostr relays...'));
+
+  try {
+    const result = await dms.nostrCheckIn(currentSwitchId, password);
+
+    if (result.success) {
+      console.log(green('\n✓ Permissionless check-in successful!\n'));
+      console.log(bright('New expiry:    ') + new Date(result.newExpiryTime).toLocaleString());
+      console.log(bright('Check-ins:     ') + result.checkInCount);
+      console.log(bright('Nostr Event:   ') + cyan(result.nostr.eventId.substring(0, 16)) + '...');
+      console.log(bright('Published to:  ') + `${result.nostr.relayResults.successCount} relays`);
+      console.log(dim('\n🔗 Anyone can verify this heartbeat on Nostr relays\n'));
+    } else {
+      console.log(red(`\n✗ Check-in failed: ${result.message}\n`));
+    }
+  } catch (error) {
+    console.log(red(`\n✗ Error: ${error.message}\n`));
+  }
+}
+
+async function handleVerifyExpiry() {
+  if (!currentSwitchId) {
+    console.log(red('\n✗ No switch selected. Use "list" and "select <id>"\n'));
+    return;
+  }
+
+  console.log(yellow('\n🔍 Verifying Switch Expiry via Nostr\n'));
+  console.log(dim('Querying Nostr relays for latest heartbeat...\n'));
+
+  try {
+    const result = await dms.verifyNostrExpiry(currentSwitchId);
+
+    if (result.success) {
+      console.log(bright('Switch ID:     ') + cyan(currentSwitchId.substring(0, 16)) + '...');
+      console.log(bright('Status:        ') + (result.isExpired ? red('EXPIRED') : green('ACTIVE')));
+      console.log(bright('Message:       ') + result.message);
+
+      if (result.lastHeartbeat) {
+        console.log(dim('\n─'.repeat(60)));
+        console.log(bright('Last Heartbeat:'));
+        console.log(bright('  Event ID:    ') + cyan(result.lastHeartbeat.eventId.substring(0, 16)) + '...');
+        console.log(bright('  Timestamp:   ') + new Date(result.lastHeartbeat.timestamp * 1000).toLocaleString());
+        console.log(bright('  Expires:     ') + new Date(result.lastHeartbeat.expiresAt * 1000).toLocaleString());
+        console.log(bright('  Time Left:   ') + result.lastHeartbeat.timeRemainingHuman);
+        console.log(bright('  Pubkey:      ') + result.lastHeartbeat.pubkey.substring(0, 16) + '...');
+      }
+
+      if (result.proof) {
+        console.log(dim('\n─'.repeat(60)));
+        console.log(bright('Cryptographic Proof:'));
+        console.log(dim('  The signed Nostr event proves authenticity'));
+        console.log(dim('  Anyone can verify without trusting a server'));
+      }
+
+      console.log();
+    } else {
+      console.log(red(`✗ Verification failed: ${result.message}\n`));
+    }
+  } catch (error) {
+    console.log(red(`\n✗ Error: ${error.message}\n`));
+  }
+}
+
 async function processCommand(line) {
   const [cmd, ...args] = line.trim().split(/\s+/);
 
@@ -342,6 +422,15 @@ async function processCommand(line) {
     case 'check-in':
     case 'checkin':
       await handleCheckIn();
+      break;
+    case 'nostr-check-in':
+    case 'nostr-checkin':
+    case 'ncheckin':
+      await handleNostrCheckIn();
+      break;
+    case 'verify-expiry':
+    case 'verify':
+      await handleVerifyExpiry();
       break;
     case 'status':
       handleStatus();

@@ -33,6 +33,11 @@ import { loadConfig } from './config.js';
 import { publishFragment, retrieveFragments } from '../nostr/multiRelayClient.js';
 import { filterHealthyRelays } from '../nostr/relayHealthCheck.js';
 import { generateSecretKey, getPublicKey } from 'nostr-tools';
+import {
+  permissionlessCheckIn,
+  verifySwitchExpiry,
+  getNostrPubkey
+} from '../nostr/heartbeat.js';
 
 const ECPair = ECPairFactory(ecc);
 
@@ -718,4 +723,204 @@ export function deleteSwitch(switchId) {
   saveFragments(fragments);
 
   return { success: true };
+}
+
+// ============================================================================
+// PERMISSIONLESS CHECK-IN (NOSTR HEARTBEAT)
+// ============================================================================
+//
+// These functions enable check-in without a central server.
+// The heartbeat is published to Nostr relays and can be verified by anyone.
+//
+// ============================================================================
+
+/**
+ * Perform a permissionless check-in via Nostr
+ *
+ * This publishes a signed heartbeat event to Nostr relays, providing
+ * cryptographic proof-of-life that anyone can verify.
+ *
+ * @param {string} switchId - The switch ID
+ * @param {string} password - Password to decrypt Nostr private key
+ * @returns {Promise<Object>} Check-in result
+ */
+export async function nostrCheckIn(switchId, password) {
+  const switches = loadSwitches();
+  const fragments = loadFragments();
+
+  const sw = switches[switchId];
+  if (!sw) {
+    return { success: false, message: 'Switch not found' };
+  }
+
+  if (sw.status === 'TRIGGERED') {
+    return { success: false, message: 'Switch already triggered' };
+  }
+
+  const fragmentInfo = fragments[switchId];
+  if (!fragmentInfo) {
+    return { success: false, message: 'No fragment info found' };
+  }
+
+  // Get the Nostr private key
+  let nostrPrivateKey;
+
+  if (fragmentInfo.keyVersion === 2 && password) {
+    // Decrypt using hierarchical key derivation
+    const salt = Buffer.from(fragmentInfo.fragmentEncryptionSalt, 'base64');
+    const keyHierarchy = reconstructKeyHierarchy(password, switchId, salt);
+
+    // Nostr key is stored encrypted with nostrKey
+    if (fragmentInfo.encryptedNostrPrivateKey) {
+      const encryptedKey = Buffer.from(fragmentInfo.encryptedNostrPrivateKey, 'base64');
+      const iv = Buffer.from(fragmentInfo.nostrKeyIV, 'base64');
+      const authTag = Buffer.from(fragmentInfo.nostrKeyAuthTag, 'base64');
+
+      nostrPrivateKey = decrypt(encryptedKey, keyHierarchy.nostrKey, iv, authTag);
+
+      // Clean up other keys
+      zeroize(keyHierarchy.encryptionKey);
+      zeroize(keyHierarchy.authKey);
+      zeroize(keyHierarchy.bitcoinKey);
+      keyHierarchy.fragmentKeys.forEach(k => zeroize(k));
+    } else {
+      return { success: false, message: 'No encrypted Nostr key found' };
+    }
+  } else if (fragmentInfo.nostrPrivateKey) {
+    // Legacy: plaintext key (v1)
+    nostrPrivateKey = Buffer.from(fragmentInfo.nostrPrivateKey, 'hex');
+  } else {
+    return { success: false, message: 'No Nostr key found. Password required for v2 switches.' };
+  }
+
+  try {
+    // Perform the permissionless check-in
+    const result = await permissionlessCheckIn({
+      switchId,
+      checkInHours: sw.checkInHours,
+      nostrPrivateKey
+    });
+
+    // Zeroize the private key
+    zeroize(nostrPrivateKey);
+
+    if (result.success) {
+      // Also update local state for consistency
+      const now = Date.now();
+      const newExpiryTime = now + (sw.checkInHours * 60 * 60 * 1000);
+
+      sw.expiryTime = newExpiryTime;
+      sw.lastCheckIn = now;
+      sw.checkInCount += 1;
+      sw.status = 'ARMED';
+      sw.lastNostrHeartbeat = {
+        eventId: result.eventId,
+        pubkey: result.pubkey,
+        timestamp: result.timestamp,
+        expiresAt: result.expiresAt
+      };
+
+      if (!sw.checkInHistory) {
+        sw.checkInHistory = [];
+      }
+      sw.checkInHistory.push({
+        timestamp: now,
+        timeRemaining: newExpiryTime - now,
+        method: 'nostr',
+        eventId: result.eventId
+      });
+
+      saveSwitches(switches);
+
+      return {
+        success: true,
+        message: 'Permissionless check-in successful',
+        newExpiryTime,
+        checkInCount: sw.checkInCount,
+        nostr: {
+          eventId: result.eventId,
+          pubkey: result.pubkey,
+          relayResults: result.relayResults,
+          expiresAtHuman: result.expiresAtHuman
+        }
+      };
+    }
+
+    return result;
+
+  } catch (error) {
+    // Make sure to zeroize on error too
+    if (nostrPrivateKey) zeroize(nostrPrivateKey);
+    return {
+      success: false,
+      message: `Nostr check-in failed: ${error.message}`
+    };
+  }
+}
+
+/**
+ * Verify switch expiry via Nostr (permissionless verification)
+ *
+ * Anyone can call this to check if a switch has expired based on
+ * the last heartbeat event published to Nostr relays.
+ *
+ * @param {string} switchId - The switch ID
+ * @returns {Promise<Object>} Verification result with proof
+ */
+export async function verifyNostrExpiry(switchId) {
+  const switches = loadSwitches();
+  const fragments = loadFragments();
+
+  const sw = switches[switchId];
+  const fragmentInfo = fragments[switchId];
+
+  // Get the expected pubkey
+  let expectedPubkey = null;
+
+  if (fragmentInfo?.nostrPublicKey) {
+    expectedPubkey = fragmentInfo.nostrPublicKey;
+  } else if (sw?.lastNostrHeartbeat?.pubkey) {
+    expectedPubkey = sw.lastNostrHeartbeat.pubkey;
+  }
+
+  try {
+    const result = await verifySwitchExpiry(switchId, expectedPubkey);
+
+    return {
+      success: true,
+      switchId,
+      ...result,
+      localStatus: sw?.status,
+      localExpiry: sw?.expiryTime ? new Date(sw.expiryTime).toISOString() : null
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: `Verification failed: ${error.message}`
+    };
+  }
+}
+
+/**
+ * Get the Nostr public key for a switch
+ *
+ * @param {string} switchId - The switch ID
+ * @returns {string|null} Nostr public key (hex) or null
+ */
+export function getSwitchNostrPubkey(switchId) {
+  const fragments = loadFragments();
+  const fragmentInfo = fragments[switchId];
+
+  if (fragmentInfo?.nostrPublicKey) {
+    return fragmentInfo.nostrPublicKey;
+  }
+
+  const switches = loadSwitches();
+  const sw = switches[switchId];
+
+  if (sw?.lastNostrHeartbeat?.pubkey) {
+    return sw.lastNostrHeartbeat.pubkey;
+  }
+
+  return null;
 }
