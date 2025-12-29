@@ -9,9 +9,10 @@ export default function ExplainerPage() {
 
   // Demo state
   const [demoTime, setDemoTime] = useState(72) // hours remaining
-  const [demoPhase, setDemoPhase] = useState<'countdown' | 'warning' | 'checkin' | 'released'>('countdown')
+  const [demoPhase, setDemoPhase] = useState<'countdown' | 'warning' | 'checkin' | 'collecting' | 'decrypting' | 'delivering' | 'released'>('countdown')
   const [showCheckmark, setShowCheckmark] = useState(false)
   const [autoDemoRunning, setAutoDemoRunning] = useState(true)
+  const [releaseStep, setReleaseStep] = useState(0)
 
   // Check-in action
   const handleCheckIn = useCallback(() => {
@@ -31,14 +32,9 @@ export default function ExplainerPage() {
     const interval = setInterval(() => {
       setDemoTime(prev => {
         if (prev <= 1) {
-          // Trigger release
-          setDemoPhase('released')
-          setTimeout(() => {
-            setDemoPhase('countdown')
-            setAutoDemoRunning(true)
-            return
-          }, 3000)
+          // Start release sequence
           setAutoDemoRunning(false)
+          startReleaseSequence()
           return 0
         }
         if (prev <= 12 && demoPhase === 'countdown') {
@@ -51,12 +47,42 @@ export default function ExplainerPage() {
     return () => clearInterval(interval)
   }, [autoDemoRunning, demoPhase])
 
+  // Release sequence - shows full flow
+  const startReleaseSequence = useCallback(() => {
+    const steps = [
+      { phase: 'collecting' as const, step: 0, duration: 1500 },   // Collecting fragments
+      { phase: 'collecting' as const, step: 1, duration: 800 },    // Fragment 2
+      { phase: 'collecting' as const, step: 2, duration: 800 },    // Fragment 3
+      { phase: 'decrypting' as const, step: 3, duration: 1200 },   // Decrypting
+      { phase: 'delivering' as const, step: 4, duration: 1500 },   // Delivering
+      { phase: 'released' as const, step: 5, duration: 2500 },     // Done
+    ]
+
+    let totalDelay = 0
+    steps.forEach(({ phase, step, duration }) => {
+      setTimeout(() => {
+        setDemoPhase(phase)
+        setReleaseStep(step)
+      }, totalDelay)
+      totalDelay += duration
+    })
+
+    // Reset after sequence
+    setTimeout(() => {
+      setDemoTime(72)
+      setDemoPhase('countdown')
+      setReleaseStep(0)
+      setAutoDemoRunning(true)
+    }, totalDelay + 500)
+  }, [])
+
   // Reset demo when it ends
   useEffect(() => {
     if (demoPhase === 'released') {
       const timeout = setTimeout(() => {
         setDemoTime(72)
         setDemoPhase('countdown')
+        setReleaseStep(0)
         setAutoDemoRunning(true)
       }, 3500)
       return () => clearTimeout(timeout)
@@ -153,6 +179,28 @@ export default function ExplainerPage() {
         @keyframes messageReveal {
           0% { opacity: 0; transform: translateY(20px); }
           100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fragmentCollect {
+          0% { transform: rotate(45deg) scale(1); }
+          50% { transform: rotate(45deg) scale(1.1); }
+          100% { transform: rotate(45deg) scale(0.8) translateY(10px); }
+        }
+
+        @keyframes decrypt {
+          0% { opacity: 1; }
+          50% { opacity: 0.3; }
+          100% { opacity: 1; }
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes flyIn {
+          0% { transform: translateX(-50px) rotate(45deg); opacity: 0; }
+          100% { transform: translateX(0) rotate(45deg); opacity: 1; }
         }
 
         .hazard-stripe {
@@ -315,11 +363,17 @@ export default function ExplainerPage() {
               opacity: 0.5
             }}>{simpleMode ? 'LIVE DEMO' : 'CHECK-IN SIMULATION'}</span>
             <span style={{
-              color: demoPhase === 'warning' ? '#FF6B00' : '#7BA3C9',
+              color: demoPhase === 'warning' || demoPhase === 'collecting' || demoPhase === 'decrypting' || demoPhase === 'delivering' ? '#FF6B00' : '#7BA3C9',
               fontSize: '9px',
               letterSpacing: '0.1em',
               animation: demoPhase === 'warning' ? 'shake 0.3s infinite' : 'none'
-            }}>{demoPhase === 'released' ? 'TRIGGERED' : demoPhase === 'checkin' ? 'TIMER RESET' : 'WATCHING...'}</span>
+            }}>
+              {demoPhase === 'released' ? 'DELIVERED' :
+               demoPhase === 'collecting' ? `COLLECTING ${releaseStep + 1}/3` :
+               demoPhase === 'decrypting' ? 'DECRYPTING...' :
+               demoPhase === 'delivering' ? 'DELIVERING...' :
+               demoPhase === 'checkin' ? 'TIMER RESET' : 'WATCHING...'}
+            </span>
           </div>
 
           {/* Timer Display */}
@@ -345,13 +399,23 @@ export default function ExplainerPage() {
                 <circle
                   cx="60" cy="60" r="54"
                   fill="none"
-                  stroke={demoPhase === 'warning' ? '#FF6B00' : demoPhase === 'released' ? '#FF0000' : '#7BA3C9'}
+                  stroke={
+                    demoPhase === 'released' ? '#00FF88' :
+                    demoPhase === 'collecting' || demoPhase === 'decrypting' || demoPhase === 'delivering' ? '#FF6B00' :
+                    demoPhase === 'warning' ? '#FF6B00' : '#7BA3C9'
+                  }
                   strokeWidth="8"
                   strokeLinecap="round"
-                  strokeDasharray={`${(demoTime / 72) * 339} 339`}
+                  strokeDasharray={
+                    demoPhase === 'collecting' ? `${((releaseStep + 1) / 3) * 339} 339` :
+                    demoPhase === 'decrypting' || demoPhase === 'delivering' ? '339 339' :
+                    demoPhase === 'released' ? '339 339' :
+                    `${(demoTime / 72) * 339} 339`
+                  }
                   style={{
                     transition: 'stroke-dasharray 0.5s ease, stroke 0.3s ease',
-                    filter: demoPhase === 'warning' ? 'drop-shadow(0 0 10px #FF6B00)' : 'none'
+                    filter: (demoPhase === 'warning' || demoPhase === 'collecting' || demoPhase === 'decrypting' || demoPhase === 'delivering') ? 'drop-shadow(0 0 10px #FF6B00)' :
+                            demoPhase === 'released' ? 'drop-shadow(0 0 10px #00FF88)' : 'none'
                   }}
                 />
               </svg>
@@ -365,11 +429,42 @@ export default function ExplainerPage() {
                 textAlign: 'center'
               }}>
                 {demoPhase === 'released' ? (
-                  <div style={{
-                    animation: 'messageReveal 0.5s ease'
-                  }}>
-                    <div style={{ fontSize: '24px', marginBottom: '4px' }}>📨</div>
-                    <div style={{ color: '#FF6B00', fontSize: '8px', letterSpacing: '0.1em' }}>SENT</div>
+                  <div style={{ animation: 'messageReveal 0.5s ease' }}>
+                    <div style={{ fontSize: '28px', marginBottom: '4px' }}>📨</div>
+                    <div style={{ color: '#00FF88', fontSize: '9px', letterSpacing: '0.1em', fontWeight: 700 }}>SENT</div>
+                  </div>
+                ) : demoPhase === 'collecting' ? (
+                  <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                    {[0, 1, 2].map(i => (
+                      <div key={i} style={{
+                        width: '20px',
+                        height: '20px',
+                        background: i <= releaseStep ? '#FF6B00' : 'rgba(123, 163, 201, 0.3)',
+                        transform: 'rotate(45deg)',
+                        animation: i === releaseStep ? 'flyIn 0.4s ease forwards' : 'none',
+                        transition: 'background 0.3s ease'
+                      }} />
+                    ))}
+                  </div>
+                ) : demoPhase === 'decrypting' ? (
+                  <div>
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      border: '3px solid #FF6B00',
+                      borderTopColor: 'transparent',
+                      borderRadius: '50%',
+                      margin: '0 auto 8px',
+                      animation: 'spin 0.8s linear infinite'
+                    }} />
+                    <div style={{ color: '#FF6B00', fontSize: '8px', letterSpacing: '0.1em' }}>
+                      {simpleMode ? 'UNLOCKING' : 'AES-256'}
+                    </div>
+                  </div>
+                ) : demoPhase === 'delivering' ? (
+                  <div style={{ animation: 'pulse 0.5s ease infinite' }}>
+                    <div style={{ fontSize: '28px', marginBottom: '4px' }}>📤</div>
+                    <div style={{ color: '#FF6B00', fontSize: '8px', letterSpacing: '0.1em' }}>SENDING</div>
                   </div>
                 ) : showCheckmark ? (
                   <div style={{
@@ -418,27 +513,37 @@ export default function ExplainerPage() {
           {/* Check-in Button */}
           <button
             onClick={() => {
-              if (demoPhase !== 'released') {
+              if (demoPhase === 'countdown' || demoPhase === 'warning') {
                 handleCheckIn()
               }
             }}
-            disabled={demoPhase === 'released'}
+            disabled={demoPhase !== 'countdown' && demoPhase !== 'warning' && demoPhase !== 'checkin'}
             style={{
               width: '100%',
               padding: '16px',
-              background: demoPhase === 'released' ? 'rgba(255,255,255,0.1)' : '#FF6B00',
+              background:
+                demoPhase === 'released' ? '#00FF88' :
+                (demoPhase === 'collecting' || demoPhase === 'decrypting' || demoPhase === 'delivering') ? 'rgba(255, 107, 0, 0.3)' :
+                '#FF6B00',
               border: 'none',
-              color: demoPhase === 'released' ? 'rgba(255,255,255,0.3)' : '#0A0A0A',
+              color:
+                demoPhase === 'released' ? '#0A0A0A' :
+                (demoPhase === 'collecting' || demoPhase === 'decrypting' || demoPhase === 'delivering') ? '#FF6B00' :
+                '#0A0A0A',
               fontFamily: "'IBM Plex Mono', monospace",
               fontSize: '12px',
               fontWeight: 700,
               letterSpacing: '0.15em',
-              cursor: demoPhase === 'released' ? 'not-allowed' : 'pointer',
+              cursor: (demoPhase === 'countdown' || demoPhase === 'warning') ? 'pointer' : 'not-allowed',
               transition: 'all 0.2s ease',
               textTransform: 'uppercase'
             }}
           >
-            {demoPhase === 'released' ? 'Message Delivered' : simpleMode ? 'Tap to Check In' : 'Execute Check-In'}
+            {demoPhase === 'released' ? 'Message Delivered!' :
+             demoPhase === 'collecting' ? (simpleMode ? 'Gathering pieces...' : 'Collecting fragments...') :
+             demoPhase === 'decrypting' ? (simpleMode ? 'Unlocking message...' : 'Decrypting payload...') :
+             demoPhase === 'delivering' ? (simpleMode ? 'Sending message...' : 'Delivering to recipient...') :
+             simpleMode ? 'Tap to Check In' : 'Execute Check-In'}
           </button>
 
           {/* Demo explanation */}
