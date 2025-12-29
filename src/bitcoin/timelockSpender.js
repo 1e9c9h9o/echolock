@@ -9,7 +9,7 @@ import { ECPairFactory } from 'ecpair';
 import { CURRENT_NETWORK } from './constants.js';
 import { getUTXOs, selectUTXOs, estimateTxSize } from './utxoManager.js';
 import { getCurrentBlockHeight, getFeeEstimates, createTimelockScript } from './testnetClient.js';
-import { PBKDF2_ITERATIONS, zeroize } from '../crypto/keyDerivation.js';
+import { PBKDF2_ITERATIONS, zeroize, reconstructKeyHierarchy } from '../crypto/keyDerivation.js';
 
 // Initialize bitcoinjs-lib with elliptic curve operations
 bitcoin.initEccLib(ecc);
@@ -205,31 +205,55 @@ export async function verifyTimelockValidity(locktime) {
 
 /**
  * Decrypt Bitcoin private key using password
+ * Supports both legacy (v1) and hierarchical HKDF (v2) key derivation
+ *
  * @param {Object} encryptedData - Encrypted private key data
  * @param {string} encryptedData.encryptedPrivateKey - Base64 encoded ciphertext
  * @param {string} encryptedData.privateKeyIV - Base64 encoded IV
  * @param {string} encryptedData.privateKeyAuthTag - Base64 encoded auth tag
  * @param {string} encryptedData.privateKeySalt - Base64 encoded salt
+ * @param {number} [encryptedData.keyVersion] - Key version (1=legacy, 2=HKDF)
  * @param {string} password - Password to decrypt with
+ * @param {string} [switchId] - Switch ID (required for keyVersion 2)
  * @returns {Promise<Buffer>} Decrypted private key
  */
-export async function decryptPrivateKey(encryptedData, password) {
+export async function decryptPrivateKey(encryptedData, password, switchId = null) {
   const crypto = await import('crypto');
   const { decrypt } = await import('../crypto/encryption.js');
 
-  // Derive master key from password using centralized iteration count
   const salt = Buffer.from(encryptedData.privateKeySalt, 'base64');
-  const masterKey = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 32, 'sha256');
+  const keyVersion = encryptedData.keyVersion || 1;
+
+  let decryptionKey;
+
+  if (keyVersion === 2) {
+    // NEW: Use hierarchical key derivation with context binding
+    if (!switchId) {
+      throw new Error('switchId is required for keyVersion 2 decryption');
+    }
+
+    const keyHierarchy = reconstructKeyHierarchy(password, switchId, salt);
+    decryptionKey = keyHierarchy.bitcoinKey;
+
+    // Zeroize other keys we don't need
+    zeroize(keyHierarchy.encryptionKey);
+    zeroize(keyHierarchy.authKey);
+    zeroize(keyHierarchy.nostrKey);
+    keyHierarchy.fragmentKeys.forEach(k => zeroize(k));
+  } else {
+    // Legacy: Direct PBKDF2 derivation (no context binding)
+    decryptionKey = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 32, 'sha256');
+  }
 
   // Decrypt private key
   const ciphertext = Buffer.from(encryptedData.encryptedPrivateKey, 'base64');
   const iv = Buffer.from(encryptedData.privateKeyIV, 'base64');
   const authTag = Buffer.from(encryptedData.privateKeyAuthTag, 'base64');
 
-  const decryptedKey = decrypt(ciphertext, masterKey, iv, authTag);
+  const decryptedKey = decrypt(ciphertext, decryptionKey, iv, authTag);
 
-  // SECURITY: Zeroize master key after use
-  zeroize(masterKey);
+  // SECURITY: Zeroize decryption key after use
+  zeroize(decryptionKey);
 
   // NOTE: Caller is responsible for zeroizing the returned decryptedKey after use
   return decryptedKey;

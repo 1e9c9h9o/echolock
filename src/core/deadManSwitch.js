@@ -13,7 +13,13 @@ import {
   deriveAuthenticationKey
 } from '../crypto/secretSharing.js';
 import { encrypt, decrypt } from '../crypto/encryption.js';
-import { deriveKey, PBKDF2_ITERATIONS, zeroize } from '../crypto/keyDerivation.js';
+import {
+  deriveKey,
+  deriveKeyHierarchy,
+  reconstructKeyHierarchy,
+  PBKDF2_ITERATIONS,
+  zeroize
+} from '../crypto/keyDerivation.js';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
 import { ECPairFactory } from 'ecpair';
@@ -110,6 +116,8 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
 
   // 4. Create Bitcoin timelock (if enabled)
   let bitcoinTimelock = null;
+  let bitcoinKeyHierarchy = null; // Store for reuse in Nostr section
+
   if (useBitcoinTimelock) {
     // Validate password is provided
     if (!password) {
@@ -128,25 +136,27 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
       const keyPair = ECPair.fromPrivateKey(randomPrivateKey, { network: bitcoin.networks.testnet });
       const publicKey = keyPair.publicKey;
 
-      // Derive master key from password using PBKDF2 with OWASP-recommended iterations
-      const salt = crypto.randomBytes(16);
-      const masterKey = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 32, 'sha256');
+      // NEW: Use hierarchical key derivation for Bitcoin key encryption
+      // This binds the Bitcoin key to the specific switchId
+      bitcoinKeyHierarchy = deriveKeyHierarchy(password, switchId);
+      const bitcoinEncryptionKey = bitcoinKeyHierarchy.bitcoinKey;
 
-      // Encrypt the private key
+      // Encrypt the private key using context-bound bitcoinKey
       const privateKeyBuffer = Buffer.from(randomPrivateKey);
       const { ciphertext: encryptedPrivateKey, iv: privateKeyIV, authTag: privateKeyAuthTag } =
-        encrypt(privateKeyBuffer, masterKey);
+        encrypt(privateKeyBuffer, bitcoinEncryptionKey);
 
       // SECURITY: Zeroize sensitive key material after encryption
       zeroize(randomPrivateKey);
       zeroize(privateKeyBuffer);
-      zeroize(masterKey);
+      zeroize(bitcoinEncryptionKey);
 
       // Create timelock transaction structure
       const timelockTx = createTimelockTransaction(timelockHeight, publicKey);
 
       bitcoinTimelock = {
         enabled: true,
+        keyVersion: 2, // NEW: Indicates hierarchical key derivation
         currentHeight,
         timelockHeight,
         blocksUntilValid: timelockHeight - currentHeight,
@@ -154,11 +164,11 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
         script: timelockTx.script,
         scriptAsm: timelockTx.scriptAsm,
         publicKey: publicKey.toString('hex'),
-        // Store encrypted private key
+        // Store encrypted private key (key derived from password + switchId)
         encryptedPrivateKey: encryptedPrivateKey.toString('base64'),
         privateKeyIV: privateKeyIV.toString('base64'),
         privateKeyAuthTag: privateKeyAuthTag.toString('base64'),
-        privateKeySalt: salt.toString('base64'),
+        privateKeySalt: bitcoinKeyHierarchy.salt.toString('base64'),
         status: 'pending',
         createdAt: now
       };
@@ -203,19 +213,30 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
       // Filter healthy relays
       const healthyRelays = await filterHealthyRelays(config.nostr.relays);
 
-      // Generate encryption key for fragments (derived from password or random)
+      // Key derivation: Use hierarchical HKDF when password is provided
       let fragmentEncryptionSalt;
       let fragmentEncryptionKey;
+      let nostrEncryptionKey;
+      let keyVersion;
 
       if (password) {
-        // Derive fragment encryption key from password
-        const derivation = deriveKey(password);
-        fragmentEncryptionKey = derivation.key;
-        fragmentEncryptionSalt = derivation.salt;
+        // NEW: Use hierarchical key derivation for context binding
+        // This ensures each switch has cryptographically unique keys
+        const keyHierarchy = deriveKeyHierarchy(password, switchId);
+
+        fragmentEncryptionKey = keyHierarchy.encryptionKey;
+        fragmentEncryptionSalt = keyHierarchy.salt;
+        nostrEncryptionKey = keyHierarchy.nostrKey;
+        keyVersion = 2; // Hierarchical HKDF
+
+        // Zeroize fragment keys after use (they're derived, not stored)
+        // Note: We keep encryptionKey and nostrKey for use below
       } else {
-        // Use random key if no password provided
+        // Legacy: Random key if no password provided
         fragmentEncryptionKey = crypto.randomBytes(32);
         fragmentEncryptionSalt = crypto.randomBytes(32);
+        nostrEncryptionKey = null;
+        keyVersion = 1;
       }
 
       // Publish each authenticated share (encrypted) to multiple relays
@@ -238,7 +259,7 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
           switchId,
           i,
           encryptedShare, // { ciphertext, iv, authTag }
-          { salt: fragmentEncryptionSalt, iterations: 600000 }, // metadata
+          { salt: fragmentEncryptionSalt, iterations: PBKDF2_ITERATIONS }, // metadata
           { privkey: nostrPrivateKey, pubkey: nostrPublicKey },
           healthyRelays,
           expiryTimestamp
@@ -256,13 +277,28 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
       // Store Nostr metadata including encryption info
       const encryptedAuthKeyData = encrypt(authKey, fragmentEncryptionKey);
 
+      // SECURITY: Encrypt Nostr private key instead of storing plaintext
+      let encryptedNostrKey = null;
+      if (nostrEncryptionKey) {
+        const nostrKeyData = encrypt(Buffer.from(nostrPrivateKey), nostrEncryptionKey);
+        encryptedNostrKey = {
+          ciphertext: nostrKeyData.ciphertext.toString('base64'),
+          iv: nostrKeyData.iv.toString('base64'),
+          authTag: nostrKeyData.authTag.toString('base64')
+        };
+        zeroize(nostrEncryptionKey);
+      }
+
       const fragments = loadFragments();
       fragments[switchId] = {
         distributionStatus: 'NOSTR',
+        keyVersion: keyVersion, // 1 = legacy, 2 = hierarchical HKDF
         relayCount: healthyRelays.length,
         relays: healthyRelays,
         nostrPublicKey: Buffer.from(nostrPublicKey).toString('hex'),
-        nostrPrivateKey: Buffer.from(nostrPrivateKey).toString('hex'),
+        // SECURITY: Only store encrypted Nostr key in v2, plaintext in v1 (legacy)
+        nostrPrivateKey: keyVersion === 1 ? Buffer.from(nostrPrivateKey).toString('hex') : null,
+        encryptedNostrKey: encryptedNostrKey,
         // Store encrypted authKey for HMAC verification during retrieval
         encryptedAuthKey: {
           ciphertext: encryptedAuthKeyData.ciphertext.toString('base64'),
@@ -273,6 +309,9 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
         hasPassword: !!password
       };
       saveFragments(fragments);
+
+      // Zeroize fragment encryption key
+      zeroize(fragmentEncryptionKey);
 
       console.log(`Fragments published to ${healthyRelays.length} Nostr relays`);
     } catch (error) {
