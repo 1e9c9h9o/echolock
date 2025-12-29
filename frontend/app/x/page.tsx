@@ -643,7 +643,7 @@ export default function ExplainerPage() {
             fontSize: '9px',
             color: '#FF6B00',
             letterSpacing: '0.1em'
-          }}>{simpleMode ? 'NO ONE CAN STOP IT' : 'ZERO TRUST'}</span>
+          }}>{simpleMode ? 'NO ONE CAN STOP IT' : 'UNSTOPPABLE'}</span>
         </div>
       </div>
     </>
