@@ -1,11 +1,67 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 
 export default function ExplainerPage() {
   const [activeStep, setActiveStep] = useState(0)
   const [fragmentsVisible, setFragmentsVisible] = useState(false)
   const [simpleMode, setSimpleMode] = useState(false)
+
+  // Demo state
+  const [demoTime, setDemoTime] = useState(72) // hours remaining
+  const [demoPhase, setDemoPhase] = useState<'countdown' | 'warning' | 'checkin' | 'released'>('countdown')
+  const [showCheckmark, setShowCheckmark] = useState(false)
+  const [autoDemoRunning, setAutoDemoRunning] = useState(true)
+
+  // Check-in action
+  const handleCheckIn = useCallback(() => {
+    setDemoPhase('checkin')
+    setShowCheckmark(true)
+    setDemoTime(72)
+    setTimeout(() => {
+      setShowCheckmark(false)
+      setDemoPhase('countdown')
+    }, 1500)
+  }, [])
+
+  // Auto demo cycle
+  useEffect(() => {
+    if (!autoDemoRunning) return
+
+    const interval = setInterval(() => {
+      setDemoTime(prev => {
+        if (prev <= 1) {
+          // Trigger release
+          setDemoPhase('released')
+          setTimeout(() => {
+            setDemoPhase('countdown')
+            setAutoDemoRunning(true)
+            return
+          }, 3000)
+          setAutoDemoRunning(false)
+          return 0
+        }
+        if (prev <= 12 && demoPhase === 'countdown') {
+          setDemoPhase('warning')
+        }
+        return prev - 6 // Speed up for demo
+      })
+    }, 500)
+
+    return () => clearInterval(interval)
+  }, [autoDemoRunning, demoPhase])
+
+  // Reset demo when it ends
+  useEffect(() => {
+    if (demoPhase === 'released') {
+      const timeout = setTimeout(() => {
+        setDemoTime(72)
+        setDemoPhase('countdown')
+        setAutoDemoRunning(true)
+      }, 3500)
+      return () => clearTimeout(timeout)
+    }
+  }, [demoPhase])
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -75,6 +131,28 @@ export default function ExplainerPage() {
         @keyframes glow {
           0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 0, 0.5); }
           50% { box-shadow: 0 0 40px rgba(255, 107, 0, 0.8); }
+        }
+
+        @keyframes checkmark {
+          0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+          50% { transform: scale(1.2) rotate(-45deg); opacity: 1; }
+          100% { transform: scale(1) rotate(-45deg); opacity: 1; }
+        }
+
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+
+        @keyframes expand {
+          0% { transform: scale(1); opacity: 1; }
+          100% { transform: scale(20); opacity: 0; }
+        }
+
+        @keyframes messageReveal {
+          0% { opacity: 0; transform: translateY(20px); }
+          100% { opacity: 1; transform: translateY(0); }
         }
 
         .hazard-stripe {
@@ -212,6 +290,168 @@ export default function ExplainerPage() {
             {simpleMode
               ? "Write a message for someone. If you don't check in regularly, it gets sent to them automatically. Like a letter that mails itself."
               : "Messages encrypted, fragmented, distributed across global relay networks. Released only when you stop checking in."
+            }
+          </p>
+        </section>
+
+        {/* Interactive Check-in Demo */}
+        <section style={{
+          background: '#0A0A0A',
+          padding: '24px',
+          borderTop: '4px solid #FF6B00',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '20px'
+          }}>
+            <span style={{
+              color: '#FFFFFF',
+              fontSize: '9px',
+              letterSpacing: '0.15em',
+              opacity: 0.5
+            }}>{simpleMode ? 'LIVE DEMO' : 'CHECK-IN SIMULATION'}</span>
+            <span style={{
+              color: demoPhase === 'warning' ? '#FF6B00' : '#7BA3C9',
+              fontSize: '9px',
+              letterSpacing: '0.1em',
+              animation: demoPhase === 'warning' ? 'shake 0.3s infinite' : 'none'
+            }}>{demoPhase === 'released' ? 'TRIGGERED' : demoPhase === 'checkin' ? 'TIMER RESET' : 'WATCHING...'}</span>
+          </div>
+
+          {/* Timer Display */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '16px',
+            marginBottom: '24px',
+            position: 'relative'
+          }}>
+            {/* Circular progress */}
+            <div style={{ position: 'relative', width: '120px', height: '120px' }}>
+              <svg viewBox="0 0 120 120" style={{ transform: 'rotate(-90deg)' }}>
+                {/* Background circle */}
+                <circle
+                  cx="60" cy="60" r="54"
+                  fill="none"
+                  stroke="rgba(123, 163, 201, 0.2)"
+                  strokeWidth="8"
+                />
+                {/* Progress circle */}
+                <circle
+                  cx="60" cy="60" r="54"
+                  fill="none"
+                  stroke={demoPhase === 'warning' ? '#FF6B00' : demoPhase === 'released' ? '#FF0000' : '#7BA3C9'}
+                  strokeWidth="8"
+                  strokeLinecap="round"
+                  strokeDasharray={`${(demoTime / 72) * 339} 339`}
+                  style={{
+                    transition: 'stroke-dasharray 0.5s ease, stroke 0.3s ease',
+                    filter: demoPhase === 'warning' ? 'drop-shadow(0 0 10px #FF6B00)' : 'none'
+                  }}
+                />
+              </svg>
+
+              {/* Center content */}
+              <div style={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                textAlign: 'center'
+              }}>
+                {demoPhase === 'released' ? (
+                  <div style={{
+                    animation: 'messageReveal 0.5s ease'
+                  }}>
+                    <div style={{ fontSize: '24px', marginBottom: '4px' }}>📨</div>
+                    <div style={{ color: '#FF6B00', fontSize: '8px', letterSpacing: '0.1em' }}>SENT</div>
+                  </div>
+                ) : showCheckmark ? (
+                  <div style={{
+                    width: '32px',
+                    height: '16px',
+                    borderLeft: '4px solid #00FF88',
+                    borderBottom: '4px solid #00FF88',
+                    animation: 'checkmark 0.4s ease forwards'
+                  }} />
+                ) : (
+                  <>
+                    <div style={{
+                      fontFamily: "'IBM Plex Sans', sans-serif",
+                      fontSize: '28px',
+                      fontWeight: 700,
+                      color: demoPhase === 'warning' ? '#FF6B00' : '#FFFFFF',
+                      lineHeight: 1
+                    }}>{demoTime}</div>
+                    <div style={{
+                      color: '#7BA3C9',
+                      fontSize: '9px',
+                      letterSpacing: '0.1em',
+                      marginTop: '2px'
+                    }}>HOURS</div>
+                  </>
+                )}
+              </div>
+
+              {/* Pulse ring on warning */}
+              {demoPhase === 'warning' && (
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: '100%',
+                  height: '100%',
+                  border: '2px solid #FF6B00',
+                  borderRadius: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  animation: 'expand 1s ease-out infinite'
+                }} />
+              )}
+            </div>
+          </div>
+
+          {/* Check-in Button */}
+          <button
+            onClick={() => {
+              if (demoPhase !== 'released') {
+                handleCheckIn()
+              }
+            }}
+            disabled={demoPhase === 'released'}
+            style={{
+              width: '100%',
+              padding: '16px',
+              background: demoPhase === 'released' ? 'rgba(255,255,255,0.1)' : '#FF6B00',
+              border: 'none',
+              color: demoPhase === 'released' ? 'rgba(255,255,255,0.3)' : '#0A0A0A',
+              fontFamily: "'IBM Plex Mono', monospace",
+              fontSize: '12px',
+              fontWeight: 700,
+              letterSpacing: '0.15em',
+              cursor: demoPhase === 'released' ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s ease',
+              textTransform: 'uppercase'
+            }}
+          >
+            {demoPhase === 'released' ? 'Message Delivered' : simpleMode ? 'Tap to Check In' : 'Execute Check-In'}
+          </button>
+
+          {/* Demo explanation */}
+          <p style={{
+            fontSize: '10px',
+            color: 'rgba(255,255,255,0.4)',
+            textAlign: 'center',
+            marginTop: '16px',
+            lineHeight: 1.5
+          }}>
+            {simpleMode
+              ? "Watch the timer count down. Tap the button to reset it. If it reaches zero, your message is sent automatically."
+              : "Simulated 72h countdown. Check-in resets timer. Zero triggers autonomous message release."
             }
           </p>
         </section>
