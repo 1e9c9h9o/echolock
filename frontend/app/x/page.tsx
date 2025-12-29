@@ -1,278 +1,543 @@
-import { Metadata } from 'next'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'EchoLock',
-  robots: 'noindex, nofollow',
-}
+import { Metadata } from 'next'
+import { useEffect, useState } from 'react'
 
 export default function ExplainerPage() {
+  const [activeStep, setActiveStep] = useState(0)
+  const [fragmentsVisible, setFragmentsVisible] = useState(false)
+
+  useEffect(() => {
+    // Cycle through steps
+    const interval = setInterval(() => {
+      setActiveStep(prev => (prev + 1) % 5)
+    }, 3000)
+
+    // Show fragments after mount
+    setTimeout(() => setFragmentsVisible(true), 500)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const steps = [
+    { num: '01', label: 'ENCRYPT', desc: 'AES-256-GCM' },
+    { num: '02', label: 'FRAGMENT', desc: '3-of-5 Shamir' },
+    { num: '03', label: 'DISTRIBUTE', desc: '7+ Nostr relays' },
+    { num: '04', label: 'TIMESTAMP', desc: 'Bitcoin BIP65' },
+    { num: '05', label: 'RELEASE', desc: 'Autonomous trigger' },
+  ]
+
   return (
-    <div style={{
-      fontFamily: "-apple-system, 'Helvetica Neue', sans-serif",
-      background: '#0a0a0a',
-      color: '#fafafa',
-      lineHeight: 1.5,
-      padding: '32px',
-      minHeight: '100vh',
-      maxWidth: '390px',
-      margin: '0 auto',
-    }}>
+    <>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap');
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        @keyframes float {
-          0%, 100% { transform: rotate(45deg) translateY(0); }
-          50% { transform: rotate(45deg) translateY(-8px); }
+
+        :root {
+          --black: #0A0A0A;
+          --white: #FFFFFF;
+          --blue: #7BA3C9;
+          --blue-light: #A8C5DC;
+          --orange: #FF6B00;
+          --yellow: #FFD000;
         }
+
+        body {
+          background: var(--blue);
+          overflow-x: hidden;
+        }
+
         @keyframes pulse {
-          0%, 100% { transform: scale(1); opacity: 0.3; }
-          50% { transform: scale(3); opacity: 0; }
+          0%, 100% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        @keyframes rings {
+          0% { transform: scale(1) rotate(0deg); }
+          50% { transform: scale(1.02) rotate(180deg); }
+          100% { transform: scale(1) rotate(360deg); }
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotate(45deg); }
+          50% { transform: translateY(-12px) rotate(45deg); }
+        }
+
+        @keyframes scatter {
+          0% { transform: translateY(0) rotate(45deg) scale(1); opacity: 1; }
+          100% { transform: translateY(-200px) rotate(405deg) scale(0.3); opacity: 0; }
+        }
+
+        @keyframes slideIn {
+          from { transform: translateX(-100%); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes glow {
+          0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 0, 0.5); }
+          50% { box-shadow: 0 0 40px rgba(255, 107, 0, 0.8); }
+        }
+
+        .hazard-stripe {
+          background: repeating-linear-gradient(
+            -45deg,
+            var(--yellow),
+            var(--yellow) 10px,
+            var(--black) 10px,
+            var(--black) 20px
+          );
         }
       `}</style>
 
-      {/* Header */}
-      <header style={{ marginBottom: '48px' }}>
-        <p style={{
-          fontFamily: "'SF Mono', 'Menlo', monospace",
-          fontSize: '0.75rem',
-          letterSpacing: '0.02em',
-          color: '#00a8ff',
-          marginBottom: '8px'
-        }}>ECHOLOCK</p>
-        <h1 style={{
-          fontSize: '2rem',
-          fontWeight: 600,
-          letterSpacing: '-0.03em',
-          marginBottom: '16px'
-        }}>Dead Man's Switch</h1>
-        <p style={{ color: '#666', fontSize: '0.9375rem' }}>
-          Cryptographic insurance for your digital legacy. No single point of failure.
-        </p>
-      </header>
+      <div style={{
+        fontFamily: "'IBM Plex Mono', monospace",
+        background: '#7BA3C9',
+        minHeight: '100vh',
+        maxWidth: '390px',
+        margin: '0 auto',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
 
-      {/* Problem */}
-      <section style={{ marginBottom: '48px' }}>
-        <h2 style={{
-          fontSize: '0.75rem',
-          fontWeight: 500,
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-          color: '#666',
-          marginBottom: '8px'
-        }}>The Problem</h2>
-        <p style={{ color: '#666', fontSize: '0.9375rem' }}>
-          If something happens to you, how do your loved ones access critical information?
-          Passwords die with you. Lawyers can be compromised. Cloud services get shut down.
-        </p>
-      </section>
+        {/* Hazard stripe top */}
+        <div className="hazard-stripe" style={{ height: '8px' }} />
 
-      {/* Solution */}
-      <section style={{ marginBottom: '48px' }}>
-        <h2 style={{
-          fontSize: '0.75rem',
-          fontWeight: 500,
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-          color: '#666',
-          marginBottom: '8px'
-        }}>The Solution</h2>
-        <div style={{
-          fontFamily: "'SF Mono', monospace",
-          fontSize: '0.8125rem',
-          color: '#00a8ff',
-          padding: '16px',
-          background: 'rgba(0,168,255,0.05)',
-          borderLeft: '2px solid #00a8ff',
-          marginBottom: '24px'
-        }}>
-          message + time lock = autonomous release
-        </div>
-        <p style={{ color: '#666', fontSize: '0.9375rem' }}>
-          Write a message. Set a timer. Check in regularly. If you stop checking in,
-          your message releases automatically to your chosen recipients.
-        </p>
-      </section>
-
-      {/* How It Works */}
-      <section style={{ marginBottom: '48px' }}>
-        <h2 style={{
-          fontSize: '0.75rem',
-          fontWeight: 500,
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-          color: '#666',
-          marginBottom: '8px'
-        }}>How It Works</h2>
-
-        {/* Visual: Shards */}
-        <div style={{
+        {/* Header */}
+        <header style={{
+          background: '#0A0A0A',
+          padding: '20px 24px',
           display: 'flex',
-          justifyContent: 'center',
           alignItems: 'center',
-          gap: '8px',
-          padding: '32px 0',
-          marginBottom: '24px'
+          gap: '16px'
         }}>
-          {[1, 0.8, 0.6, 0.4, 0.2].map((opacity, i) => (
-            <div key={i} style={{
-              width: '32px',
-              height: '32px',
-              background: '#00a8ff',
-              opacity,
-              transform: 'rotate(45deg)',
-              animation: `float 3s ease-in-out infinite ${i * 0.2}s`
-            }} />
-          ))}
-        </div>
+          {/* Animated Logo */}
+          <div style={{ position: 'relative', width: '48px', height: '48px' }}>
+            <svg viewBox="0 0 100 100" style={{
+              width: '100%',
+              height: '100%',
+              animation: 'rings 20s linear infinite'
+            }}>
+              <circle cx="50" cy="50" r="44" fill="none" stroke="#FFFFFF" strokeWidth="5" opacity="0.3"/>
+              <circle cx="50" cy="50" r="30" fill="none" stroke="#FFFFFF" strokeWidth="5" opacity="0.6"/>
+              <circle cx="50" cy="50" r="16" fill="#FF6B00" style={{ animation: 'pulse 2s ease-in-out infinite' }}/>
+            </svg>
+          </div>
+          <div>
+            <div style={{
+              color: '#FFFFFF',
+              fontSize: '14px',
+              fontWeight: 700,
+              letterSpacing: '0.2em'
+            }}>ECHOLOCK</div>
+            <div style={{
+              color: '#FF6B00',
+              fontSize: '9px',
+              letterSpacing: '0.15em',
+              marginTop: '2px'
+            }}>DEAD MAN'S SWITCH</div>
+          </div>
+        </header>
 
-        {/* Steps */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {[
-            { num: '1', title: 'Encrypt', desc: 'Your message is encrypted with AES-256-GCM. Military-grade. Unbreakable.' },
-            { num: '2', title: 'Shatter', desc: 'The encryption key is split into 5 fragments using Shamir\'s Secret Sharing. Need 3 to reconstruct.' },
-            { num: '3', title: 'Scatter', desc: 'Fragments distributed across 7+ independent Nostr relays worldwide. No single server to compromise.' },
-            { num: '4', title: 'Timestamp', desc: 'Bitcoin blockchain anchors the timer. 800,000+ nodes verify. Unstoppable.' },
-            { num: '5', title: 'Release', desc: 'Timer expires. Fragments reunite. Message decrypts. Recipients notified.' },
-          ].map((step, i) => (
-            <div key={i}>
+        {/* Hero Section */}
+        <section style={{ padding: '32px 24px', position: 'relative' }}>
+          <div style={{
+            display: 'inline-block',
+            background: '#0A0A0A',
+            color: '#FFFFFF',
+            fontSize: '9px',
+            letterSpacing: '0.2em',
+            padding: '8px 12px',
+            marginBottom: '16px'
+          }}>CRYPTOGRAPHIC INFRASTRUCTURE</div>
+
+          <h1 style={{
+            fontFamily: "'IBM Plex Sans', sans-serif",
+            fontSize: '32px',
+            fontWeight: 800,
+            lineHeight: 1.1,
+            letterSpacing: '-0.03em',
+            color: '#0A0A0A',
+            marginBottom: '16px'
+          }}>
+            No single point<br/>
+            <span style={{ color: '#FF6B00' }}>of failure.</span>
+          </h1>
+
+          <p style={{
+            fontSize: '13px',
+            color: '#0A0A0A',
+            opacity: 0.7,
+            lineHeight: 1.6,
+            marginBottom: '24px'
+          }}>
+            Messages encrypted, fragmented, distributed across global relay networks.
+            Released only when you stop checking in.
+          </p>
+        </section>
+
+        {/* Animated Fragments Visual */}
+        <section style={{
+          padding: '24px',
+          background: '#FFFFFF',
+          borderTop: '4px solid #0A0A0A',
+          borderBottom: '4px solid #0A0A0A',
+          position: 'relative',
+          overflow: 'hidden',
+          minHeight: '180px'
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: '8px',
+            left: '12px',
+            fontSize: '9px',
+            letterSpacing: '0.15em',
+            opacity: 0.4
+          }}>FRAGMENT DISTRIBUTION</div>
+
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '12px',
+            paddingTop: '40px',
+            paddingBottom: '20px'
+          }}>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <div key={i} style={{
+                width: '40px',
+                height: '40px',
+                background: i < 3 ? '#FF6B00' : '#0A0A0A',
+                transform: 'rotate(45deg)',
+                opacity: fragmentsVisible ? 1 : 0,
+                animation: fragmentsVisible ? `float 2.5s ease-in-out infinite ${i * 0.15}s` : 'none',
+                transition: 'opacity 0.5s ease',
+                transitionDelay: `${i * 0.1}s`,
+                boxShadow: i < 3 ? '0 4px 20px rgba(255, 107, 0, 0.4)' : '0 4px 20px rgba(0, 0, 0, 0.2)'
+              }} />
+            ))}
+          </div>
+
+          <div style={{
+            textAlign: 'center',
+            fontSize: '11px',
+            color: '#0A0A0A'
+          }}>
+            <span style={{ color: '#FF6B00', fontWeight: 700 }}>3</span> of <span style={{ fontWeight: 700 }}>5</span> fragments required
+          </div>
+        </section>
+
+        {/* Orange accent bar */}
+        <div style={{ height: '12px', background: '#FF6B00' }} />
+
+        {/* Flow Steps */}
+        <section style={{
+          background: '#0A0A0A',
+          padding: '0'
+        }}>
+          <div style={{
+            padding: '16px 24px',
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <span style={{
+              color: '#FFFFFF',
+              fontSize: '9px',
+              letterSpacing: '0.15em'
+            }}>SYSTEM OPERATION FLOW</span>
+            <span style={{
+              color: '#FF6B00',
+              fontSize: '9px',
+              letterSpacing: '0.1em'
+            }}>REF: EL-001</span>
+          </div>
+
+          {steps.map((step, i) => (
+            <div key={i} style={{
+              display: 'flex',
+              borderBottom: i < 4 ? '1px solid rgba(255,255,255,0.1)' : 'none',
+              animation: `slideIn 0.5s ease ${i * 0.1}s both`
+            }}>
               <div style={{
-                display: 'grid',
-                gridTemplateColumns: '48px 1fr',
-                gap: '16px',
-                alignItems: 'start'
+                width: '56px',
+                background: activeStep === i ? '#FF6B00' : 'rgba(123, 163, 201, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '11px',
+                fontWeight: 700,
+                color: activeStep === i ? '#0A0A0A' : '#FFFFFF',
+                transition: 'all 0.3s ease'
+              }}>{step.num}</div>
+              <div style={{
+                flex: 1,
+                padding: '16px 20px'
               }}>
                 <div style={{
-                  width: '48px',
-                  height: '48px',
-                  border: '1px solid #fafafa',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.25rem',
-                  fontWeight: 300
-                }}>{step.num}</div>
-                <div>
-                  <h3 style={{ fontSize: '1rem', fontWeight: 500, marginBottom: '4px' }}>{step.title}</h3>
-                  <p style={{ fontSize: '0.8125rem', color: '#666', lineHeight: 1.4 }}>{step.desc}</p>
-                </div>
-              </div>
-              {i < 4 && (
+                  color: '#FFFFFF',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  letterSpacing: '0.05em',
+                  marginBottom: '4px'
+                }}>{step.label}</div>
                 <div style={{
-                  width: '1px',
-                  height: '24px',
-                  background: '#fafafa',
-                  opacity: 0.2,
-                  marginLeft: '24px'
+                  color: '#7BA3C9',
+                  fontSize: '11px'
+                }}>{step.desc}</div>
+              </div>
+              {activeStep === i && (
+                <div style={{
+                  width: '4px',
+                  background: '#FF6B00',
+                  animation: 'glow 1.5s ease-in-out infinite'
                 }} />
               )}
             </div>
           ))}
-        </div>
-      </section>
+        </section>
 
-      {/* Network Visual */}
-      <section style={{ marginBottom: '48px' }}>
-        <h2 style={{
-          fontSize: '0.75rem',
-          fontWeight: 500,
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-          color: '#666',
-          marginBottom: '8px'
-        }}>Decentralized Network</h2>
-        <div style={{ position: 'relative', height: '120px', marginBottom: '24px' }}>
-          {[
-            { top: '20%', left: '15%' },
-            { top: '60%', left: '25%' },
-            { top: '30%', left: '50%' },
-            { top: '70%', left: '55%' },
-            { top: '40%', left: '75%' },
-            { top: '80%', left: '85%' },
-            { top: '15%', left: '80%' },
-          ].map((pos, i) => (
-            <div key={i} style={{
-              position: 'absolute',
-              width: '8px',
-              height: '8px',
-              background: '#00a8ff',
-              borderRadius: '50%',
-              top: pos.top,
-              left: pos.left
-            }} />
-          ))}
-        </div>
-        <p style={{ color: '#666', fontSize: '0.9375rem' }}>
-          Your fragments live on independent Nostr relays run by different people in different countries.
-          Even if 4 relays disappear, your message survives.
-        </p>
-      </section>
-
-      {/* Technology */}
-      <section style={{ marginBottom: '48px' }}>
-        <h2 style={{
-          fontSize: '0.75rem',
-          fontWeight: 500,
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-          color: '#666',
-          marginBottom: '8px'
-        }}>Technology</h2>
-        <div style={{
+        {/* Specs Grid */}
+        <section style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
-          gap: '16px'
+          gap: '4px',
+          padding: '4px',
+          background: '#A8C5DC'
         }}>
           {[
-            { title: 'AES-256-GCM', desc: 'Authenticated encryption. Same standard protecting state secrets.' },
-            { title: 'Shamir SSS', desc: 'Mathematically proven secret sharing. 3-of-5 threshold.' },
-            { title: 'Nostr', desc: 'Censorship-resistant relay network. Permissionless. Global.' },
-            { title: 'Bitcoin', desc: 'BIP65 timelocks. Trustless time. No central clock.' },
-          ].map((tech, i) => (
+            { label: 'ENCRYPTION', value: 'AES-256' },
+            { label: 'KEY SPLIT', value: '3-of-5' },
+            { label: 'RELAYS', value: '7+ nodes' },
+            { label: 'TIMELOCK', value: 'Bitcoin' }
+          ].map((spec, i) => (
             <div key={i} style={{
-              border: '1px solid rgba(255,255,255,0.1)',
-              padding: '16px'
+              background: '#FFFFFF',
+              padding: '20px 16px',
+              borderLeft: '4px solid #FF6B00'
             }}>
-              <h4 style={{ fontSize: '0.8125rem', fontWeight: 500, marginBottom: '4px' }}>{tech.title}</h4>
-              <p style={{ fontSize: '0.6875rem', color: '#666', lineHeight: 1.3 }}>{tech.desc}</p>
+              <div style={{
+                fontSize: '8px',
+                letterSpacing: '0.15em',
+                color: '#0A0A0A',
+                opacity: 0.5,
+                marginBottom: '6px'
+              }}>{spec.label}</div>
+              <div style={{
+                fontFamily: "'IBM Plex Sans', sans-serif",
+                fontSize: '16px',
+                fontWeight: 700,
+                color: '#0A0A0A'
+              }}>{spec.value}</div>
             </div>
           ))}
-        </div>
-      </section>
+        </section>
 
-      {/* Trust Model */}
-      <section style={{ marginBottom: '48px' }}>
-        <h2 style={{
-          fontSize: '0.75rem',
-          fontWeight: 500,
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-          color: '#666',
-          marginBottom: '8px'
-        }}>Trust Model</h2>
-        <div style={{
-          fontFamily: "'SF Mono', monospace",
-          fontSize: '0.8125rem',
-          color: '#00a8ff',
-          padding: '16px',
-          background: 'rgba(0,168,255,0.05)',
-          borderLeft: '2px solid #00a8ff',
-          marginBottom: '24px'
+        {/* Trust Model */}
+        <section style={{
+          background: '#FFFFFF',
+          borderTop: '4px solid #0A0A0A',
+          padding: '32px 24px'
         }}>
-          trust no one = trust everyone
-        </div>
-        <p style={{ color: '#666', fontSize: '0.9375rem' }}>
-          You don't trust any single relay, server, or company. The math protects you.
-          Even we can't read your message or stop the release.
-        </p>
-      </section>
+          <div style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '16px',
+            marginBottom: '20px'
+          }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              background: '#FF6B00',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px',
+              fontWeight: 700,
+              color: '#0A0A0A',
+              flexShrink: 0
+            }}>!</div>
+            <div>
+              <div style={{
+                fontFamily: "'IBM Plex Sans', sans-serif",
+                fontSize: '16px',
+                fontWeight: 700,
+                color: '#0A0A0A',
+                marginBottom: '8px'
+              }}>Zero Trust Architecture</div>
+              <p style={{
+                fontSize: '12px',
+                color: '#0A0A0A',
+                opacity: 0.7,
+                lineHeight: 1.6
+              }}>
+                You don't trust any single relay, server, or company.
+                The math protects you. Even we can't read your message or stop the release.
+              </p>
+            </div>
+          </div>
 
-      {/* Footer */}
-      <footer style={{
-        paddingTop: '32px',
-        borderTop: '1px solid rgba(255,255,255,0.1)'
-      }}>
-        <p style={{ fontSize: '0.75rem', textAlign: 'center', color: '#666' }}>echolock.xyz</p>
-      </footer>
-    </div>
+          <div style={{
+            fontFamily: "'IBM Plex Mono', monospace",
+            fontSize: '13px',
+            color: '#FF6B00',
+            padding: '16px',
+            background: 'rgba(255, 107, 0, 0.1)',
+            borderLeft: '4px solid #FF6B00'
+          }}>
+            trust_no_one == trust_everyone
+          </div>
+        </section>
+
+        {/* Network Visual */}
+        <section style={{
+          background: '#0A0A0A',
+          padding: '32px 24px',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          <div style={{
+            fontSize: '9px',
+            letterSpacing: '0.15em',
+            color: '#FFFFFF',
+            opacity: 0.5,
+            marginBottom: '24px'
+          }}>GLOBAL RELAY NETWORK</div>
+
+          <div style={{
+            position: 'relative',
+            height: '140px'
+          }}>
+            {/* Network nodes */}
+            {[
+              { x: '10%', y: '20%', delay: 0 },
+              { x: '30%', y: '60%', delay: 0.2 },
+              { x: '45%', y: '25%', delay: 0.4 },
+              { x: '60%', y: '70%', delay: 0.6 },
+              { x: '75%', y: '35%', delay: 0.8 },
+              { x: '88%', y: '55%', delay: 1.0 },
+              { x: '50%', y: '85%', delay: 1.2 },
+            ].map((node, i) => (
+              <div key={i} style={{
+                position: 'absolute',
+                left: node.x,
+                top: node.y,
+                width: '12px',
+                height: '12px',
+                background: i < 3 ? '#FF6B00' : '#7BA3C9',
+                borderRadius: '50%',
+                animation: `pulse 2s ease-in-out infinite ${node.delay}s`,
+                boxShadow: i < 3
+                  ? '0 0 20px rgba(255, 107, 0, 0.6)'
+                  : '0 0 15px rgba(123, 163, 201, 0.4)'
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: '30px',
+                  height: '30px',
+                  border: `1px solid ${i < 3 ? '#FF6B00' : '#7BA3C9'}`,
+                  borderRadius: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  opacity: 0.3,
+                  animation: `pulse 2s ease-in-out infinite ${node.delay}s`
+                }} />
+              </div>
+            ))}
+
+            {/* Connection lines (simplified) */}
+            <svg style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              opacity: 0.2
+            }}>
+              <line x1="10%" y1="20%" x2="30%" y2="60%" stroke="#FFFFFF" strokeWidth="1"/>
+              <line x1="30%" y1="60%" x2="45%" y2="25%" stroke="#FFFFFF" strokeWidth="1"/>
+              <line x1="45%" y1="25%" x2="60%" y2="70%" stroke="#FFFFFF" strokeWidth="1"/>
+              <line x1="60%" y1="70%" x2="75%" y2="35%" stroke="#FFFFFF" strokeWidth="1"/>
+              <line x1="75%" y1="35%" x2="88%" y2="55%" stroke="#FFFFFF" strokeWidth="1"/>
+              <line x1="45%" y1="25%" x2="75%" y2="35%" stroke="#FFFFFF" strokeWidth="1"/>
+              <line x1="30%" y1="60%" x2="60%" y2="70%" stroke="#FFFFFF" strokeWidth="1"/>
+            </svg>
+          </div>
+
+          <p style={{
+            fontSize: '11px',
+            color: '#FFFFFF',
+            opacity: 0.6,
+            marginTop: '20px',
+            lineHeight: 1.6
+          }}>
+            Fragments distributed across independent Nostr relays.
+            Even if 4 disappear, your message survives.
+          </p>
+        </section>
+
+        {/* Hazard Warning */}
+        <section style={{
+          background: '#FFFFFF',
+          borderTop: '4px solid #0A0A0A',
+          display: 'flex'
+        }}>
+          <div className="hazard-stripe" style={{ width: '48px', flexShrink: 0 }} />
+          <div style={{ padding: '20px 16px' }}>
+            <div style={{
+              fontFamily: "'IBM Plex Sans', sans-serif",
+              fontSize: '12px',
+              fontWeight: 700,
+              color: '#0A0A0A',
+              marginBottom: '4px'
+            }}>Development Status: Prototype</div>
+            <p style={{
+              fontSize: '10px',
+              color: '#0A0A0A',
+              opacity: 0.6,
+              lineHeight: 1.5
+            }}>
+              Experimental. Bitcoin Testnet. Security audit pending.
+            </p>
+          </div>
+        </section>
+
+        {/* Footer */}
+        <footer style={{
+          background: '#0A0A0A',
+          padding: '24px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <svg width="24" height="24" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="44" fill="none" stroke="#FFFFFF" strokeWidth="5" opacity="0.3"/>
+              <circle cx="50" cy="50" r="30" fill="none" stroke="#FFFFFF" strokeWidth="5" opacity="0.6"/>
+              <circle cx="50" cy="50" r="16" fill="#FF6B00"/>
+            </svg>
+            <span style={{
+              color: '#FFFFFF',
+              fontSize: '11px',
+              letterSpacing: '0.15em'
+            }}>ECHOLOCK</span>
+          </div>
+          <span style={{
+            color: '#FFFFFF',
+            fontSize: '9px',
+            opacity: 0.4
+          }}>v0.1.0-alpha</span>
+        </footer>
+
+        {/* Hazard stripe bottom */}
+        <div className="hazard-stripe" style={{ height: '8px' }} />
+      </div>
+    </>
   )
 }
