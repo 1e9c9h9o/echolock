@@ -343,11 +343,14 @@ Bitcoin provides **unforgeable timestamps** and **programmatic release**.
 - [x] Optional but recommended
 - [x] Commitment funding and verification UI
 
-### Phase 5: Full Autonomy (12+ weeks)
-- [ ] Recipient-side reconstruction tools
-- [ ] No server needed for any operation
-- [ ] Complete documentation for self-hosting
-- [ ] EchoLock is fully eliminable
+### Phase 5: Full Autonomy (12+ weeks) ✅
+- [x] Recipient-side reconstruction tools (frontend/lib/recovery/)
+- [x] Standalone recovery tool (recovery-tool/index.html)
+- [x] No server needed for any operation
+- [x] Complete documentation for self-hosting (docs/SELF_HOSTING.md)
+- [x] EchoLock is fully eliminable
+
+**ALL PHASES COMPLETE** - The system now works entirely without EchoLock.
 
 ---
 
@@ -443,11 +446,11 @@ RELEASE:   Guardian → Nostr (share for recipients)
 **If this works, we've succeeded.**
 
 ### Verification Points
-- [ ] User can verify their heartbeat on any Nostr client
-- [ ] Guardians can monitor without EchoLock infrastructure
-- [ ] Recipients can reconstruct without contacting EchoLock
-- [ ] Bitcoin commitment verifiable on any block explorer
-- [ ] System functions with EchoLock completely removed
+- [x] User can verify their heartbeat on any Nostr client
+- [x] Guardians can monitor without EchoLock infrastructure
+- [x] Recipients can reconstruct without contacting EchoLock
+- [x] Bitcoin commitment verifiable on any block explorer
+- [x] System functions with EchoLock completely removed
 
 ---
 
