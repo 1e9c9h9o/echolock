@@ -33,7 +33,8 @@ router.use(authenticateToken);
 
 /**
  * POST /api/switches
- * Create a new dead man's switch
+ * Create a new dead man's switch (LEGACY - server-side encryption)
+ * @deprecated Use POST /api/switches/encrypted for client-side encryption
  */
 router.post('/', requireEmailVerified, validateCreateSwitch, async (req, res) => {
   try {
@@ -70,6 +71,113 @@ router.post('/', requireEmailVerified, validateCreateSwitch, async (req, res) =>
     res.status(500).json({
       error: 'Server error',
       message: 'Failed to create switch'
+    });
+  }
+});
+
+/**
+ * POST /api/switches/encrypted
+ * Create a new dead man's switch with CLIENT-SIDE encryption
+ *
+ * This is the new, secure way to create switches:
+ * - All keys are generated client-side
+ * - Server only receives encrypted blobs and public keys
+ * - Server can NEVER decrypt the message
+ *
+ * @see CLAUDE.md - Phase 1: User-Controlled Keys
+ */
+router.post('/encrypted', requireEmailVerified, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Rate limit: max 5 switches per hour
+    if (checkRateLimit(userId, 'create_switch', 5, 3600000)) {
+      return res.status(429).json({
+        error: 'Rate limit exceeded',
+        message: 'You can only create 5 switches per hour'
+      });
+    }
+
+    const {
+      title,
+      checkInHours,
+      recipients,
+      encryptedMessage,
+      shares,
+      nostrPublicKey,
+      clientSideEncryption
+    } = req.body;
+
+    // Validate required fields
+    if (!clientSideEncryption) {
+      return res.status(400).json({
+        error: 'Invalid request',
+        message: 'This endpoint requires client-side encryption'
+      });
+    }
+
+    if (!encryptedMessage || !encryptedMessage.ciphertext || !encryptedMessage.iv || !encryptedMessage.authTag) {
+      return res.status(400).json({
+        error: 'Invalid encrypted message',
+        message: 'Encrypted message must include ciphertext, iv, and authTag'
+      });
+    }
+
+    if (!shares || !Array.isArray(shares) || shares.length < 3) {
+      return res.status(400).json({
+        error: 'Invalid shares',
+        message: 'At least 3 Shamir shares are required'
+      });
+    }
+
+    if (!nostrPublicKey) {
+      return res.status(400).json({
+        error: 'Invalid Nostr public key',
+        message: 'Nostr public key is required'
+      });
+    }
+
+    if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+      return res.status(400).json({
+        error: 'Invalid recipients',
+        message: 'At least one recipient is required'
+      });
+    }
+
+    // Import services for client-encrypted switches
+    const { createClientEncryptedSwitch } = await import('../services/switchService.js');
+
+    const switchData = await createClientEncryptedSwitch(userId, {
+      title: title || `Switch created ${new Date().toLocaleDateString()}`,
+      checkInHours: checkInHours || 72,
+      recipients,
+      encryptedMessage,
+      shares,
+      nostrPublicKey
+    });
+
+    // Send WebSocket notification
+    websocketService.notifySwitchUpdate(userId, switchData);
+
+    logger.info('Client-encrypted switch created', {
+      userId,
+      switchId: switchData.id,
+      clientSideEncryption: true
+    });
+
+    res.status(201).json({
+      message: 'Switch created with client-side encryption',
+      data: {
+        ...switchData,
+        clientSideEncryption: true
+      }
+    });
+  } catch (error) {
+    logger.error('Create encrypted switch error:', error);
+
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to create encrypted switch'
     });
   }
 });

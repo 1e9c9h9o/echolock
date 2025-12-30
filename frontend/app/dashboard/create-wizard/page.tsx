@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Plus, X } from 'lucide-react'
+import { ArrowLeft, Plus, X, Shield, Key } from 'lucide-react'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -16,6 +16,11 @@ import {
 } from '@/components/WizardSteps'
 import { switchesAPI } from '@/lib/api'
 import { showToast } from '@/components/ui/ToastContainer'
+import {
+  createEncryptedSwitch,
+  prepareServerPayload,
+} from '@/lib/crypto'
+import { storeSwitch } from '@/lib/keystore'
 
 interface Recipient {
   email: string
@@ -40,6 +45,7 @@ export default function CreateWizardPage() {
   // Loading state
   const [loading, setLoading] = useState(false)
   const [createdSwitch, setCreatedSwitch] = useState<any>(null)
+  const [cryptoProgress, setCryptoProgress] = useState('')
 
   // Recipient management
   const addRecipient = () => {
@@ -67,9 +73,12 @@ export default function CreateWizardPage() {
     setCurrentStep((prev) => Math.max(prev - 1, 1))
   }
 
-  // Submit handler
+  // Submit handler - CLIENT-SIDE ENCRYPTION
+  // Keys are generated in the browser and NEVER sent to the server
+  // See CLAUDE.md - Phase 1: User-Controlled Keys
   const handleSubmit = async () => {
     setLoading(true)
+    setCryptoProgress('Validating...')
 
     try {
       const validRecipients = recipients.filter((r) => r.email.trim() && r.name.trim())
@@ -80,21 +89,47 @@ export default function CreateWizardPage() {
         return
       }
 
-      const response = await switchesAPI.create({
-        title: title.trim() || `Switch created ${new Date().toLocaleDateString()}`,
-        message: message.trim(),
-        checkInHours: parseInt(checkInHours),
-        password: password.trim(),
-        recipients: validRecipients,
-      })
+      // Step 1: Generate encryption key and encrypt message CLIENT-SIDE
+      setCryptoProgress('Generating encryption keys...')
+      const encryptedSwitch = await createEncryptedSwitch(
+        message.trim(),
+        password.trim()
+      )
 
-      setCreatedSwitch(response)
+      // Step 2: Store keys locally in IndexedDB (encrypted with password)
+      setCryptoProgress('Securing keys locally...')
+      const switchTitle = title.trim() || `Switch created ${new Date().toLocaleDateString()}`
+      await storeSwitch(encryptedSwitch, password.trim(), switchTitle)
+
+      // Step 3: Prepare server payload (NO private keys, NO encryption key)
+      setCryptoProgress('Preparing secure payload...')
+      const serverPayload = prepareServerPayload(
+        encryptedSwitch,
+        switchTitle,
+        parseInt(checkInHours),
+        validRecipients
+      )
+
+      // Step 4: Send to server for distribution
+      setCryptoProgress('Distributing to network...')
+      const response = await switchesAPI.createEncrypted(serverPayload)
+
+      setCreatedSwitch({
+        ...response,
+        // Include local switch ID for reference
+        localSwitchId: encryptedSwitch.switchId,
+      })
       setCurrentStep(totalSteps) // Move to success step
-      showToast('Switch created successfully!', 'success')
+      showToast('Switch created with client-side encryption!', 'success')
     } catch (error: any) {
-      showToast(error.response?.data?.message || 'Failed to create switch', 'error')
+      console.error('Switch creation error:', error)
+      showToast(
+        error.response?.data?.message || error.message || 'Failed to create switch',
+        'error'
+      )
     } finally {
       setLoading(false)
+      setCryptoProgress('')
     }
   }
 
@@ -274,16 +309,25 @@ export default function CreateWizardPage() {
         </Card>
       )}
 
-      {/* Step 5: Loading state */}
+      {/* Step 5: Loading state with crypto progress */}
       {currentStep === 5 && loading && (
-        <Step4Confirmation
-          message={message}
-          checkInHours={checkInHours}
-          recipientCount={recipients.filter((r) => r.email.trim() && r.name.trim()).length}
-          onConfirm={handleSubmit}
-          onBack={prevStep}
-          loading={loading}
-        />
+        <Card>
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-blue/10 rounded-full mb-6">
+              <Key className="w-10 h-10 text-blue animate-pulse" />
+            </div>
+            <h2 className="text-2xl font-bold mb-4">Creating Secure Switch</h2>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Shield className="w-5 h-5 text-green-600" />
+              <span className="font-mono text-sm">Client-Side Encryption Active</span>
+            </div>
+            <p className="text-lg font-mono text-blue mb-2">{cryptoProgress}</p>
+            <p className="text-sm text-gray-600 max-w-md mx-auto">
+              Your keys are being generated locally and will never leave your device.
+              Only encrypted data is sent to the server.
+            </p>
+          </div>
+        </Card>
       )}
 
       {/* Step 6: Success */}

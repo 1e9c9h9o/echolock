@@ -60,6 +60,11 @@ CREATE TABLE switches (
   fragment_encryption_salt VARCHAR(255) NOT NULL,
   auth_key_encrypted TEXT NOT NULL, -- Encrypted HMAC auth key
 
+  -- Client-side encryption flag (Phase 1: User-Controlled Keys)
+  -- true: Keys were generated client-side, server cannot decrypt
+  -- false/null: Legacy switch with server-side encryption
+  client_side_encryption BOOLEAN DEFAULT FALSE,
+
   -- Timestamps
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
@@ -71,6 +76,7 @@ CREATE TABLE switches (
 CREATE INDEX idx_switches_user_id ON switches(user_id);
 CREATE INDEX idx_switches_status ON switches(status);
 CREATE INDEX idx_switches_expires_at ON switches(expires_at);
+CREATE INDEX idx_switches_client_side_encryption ON switches(client_side_encryption);
 
 -- Check-ins table (audit trail)
 CREATE TABLE check_ins (

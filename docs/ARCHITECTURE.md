@@ -1,14 +1,45 @@
 # ECHOLOCK Architecture
 
-## Overview
-ECHOLOCK is a cryptographic dead man's switch that combines Bitcoin timelocks with Nostr protocol for distributed secret storage.
+> **Read [CLAUDE.md](../CLAUDE.md) first** - It contains the architectural vision and target state.
 
-## Core Concept
+---
+
+## Critical Notice: Current vs. Target Architecture
+
+This document describes the **current implementation** (v0.x), which is a **centralized prototype**.
+
+| Aspect | Current (v0.x) | Target (v1.0) |
+|--------|----------------|---------------|
+| Key Generation | Server-side | Client-side only |
+| Timer | Database + cron job | Guardian Network + Nostr heartbeats |
+| Release Trigger | Server process | Distributed guardian consensus |
+| Server Dependency | **Required** | Optional convenience layer |
+| Survival | Dies with server | Works without any company |
+
+**The current architecture is a stepping stone, not the destination.**
+
+For the target architecture (Guardian Network, user-controlled keys, autonomous release), see [CLAUDE.md](../CLAUDE.md).
+
+---
+
+## Current Implementation Overview
+
+ECHOLOCK v0.x is a cryptographic dead man's switch that combines Bitcoin timelocks with Nostr protocol for distributed secret storage. **However, the current implementation relies on a central server for all critical operations.**
+
+## Core Concept (Current Implementation)
 1. User splits a secret into N shares using Shamir's Secret Sharing (K-of-N threshold)
 2. Shares are encrypted and distributed across Nostr relays
-3. A Bitcoin timelock transaction controls when shares can be reassembled
-4. User must periodically "check in" to extend the timelock
-5. If user fails to check in, timelock expires and secret can be recovered
+3. **Server stores encryption keys and checks timer via cron job**
+4. User must periodically "check in" via the server API
+5. **Server reconstructs and delivers the message when timer expires**
+
+## Core Concept (Target Architecture - See CLAUDE.md)
+1. User generates ALL keys locally (never sent to server)
+2. User appoints 5 Guardians who each hold one Shamir share
+3. User publishes heartbeats to Nostr (signed with own nsec)
+4. Guardians independently watch for heartbeats
+5. When heartbeats stop, guardians publish shares to Nostr
+6. Recipients reconstruct message from Nostr (no server needed)
 
 ---
 

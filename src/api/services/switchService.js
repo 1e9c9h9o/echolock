@@ -574,8 +574,173 @@ export async function deleteSwitch(switchId, userId) {
   }
 }
 
+/**
+ * Create a switch with CLIENT-SIDE encryption
+ *
+ * The client has already:
+ * 1. Generated the encryption key
+ * 2. Encrypted the message
+ * 3. Split the key into Shamir shares
+ * 4. Generated Nostr keypair
+ *
+ * The server only receives:
+ * - Encrypted message (ciphertext, iv, authTag)
+ * - Shamir shares (for distribution to Nostr)
+ * - Nostr PUBLIC key only
+ *
+ * The server can NEVER decrypt the message because:
+ * - Encryption key is only on the client
+ * - Nostr private key is only on the client
+ *
+ * @see CLAUDE.md - Phase 1: User-Controlled Keys
+ */
+export async function createClientEncryptedSwitch(userId, data) {
+  const {
+    title,
+    checkInHours,
+    recipients,
+    encryptedMessage,
+    shares,
+    nostrPublicKey
+  } = data;
+
+  // Validate recipient emails
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  for (const recipient of recipients) {
+    if (!recipient.email || !emailRegex.test(recipient.email)) {
+      throw new Error(`Invalid recipient email: ${recipient.email || 'empty'}`);
+    }
+  }
+
+  try {
+    logger.info('Creating client-encrypted switch', {
+      userId,
+      title,
+      checkInHours,
+      recipientCount: recipients.length,
+      shareCount: shares.length,
+      clientSideEncryption: true
+    });
+
+    // Generate switch ID
+    const crypto = await import('crypto');
+    const switchId = crypto.randomBytes(16).toString('hex');
+
+    // Calculate expiry time
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + (checkInHours * 60 * 60 * 1000));
+
+    // Store in database using a transaction
+    const switchData = await transaction(async (client) => {
+      // Insert switch with client-encrypted data
+      const insertResult = await client.query(
+        `INSERT INTO switches (
+          id, user_id, title, description, status, check_in_hours,
+          last_check_in, expires_at,
+          encrypted_message_ciphertext, encrypted_message_iv, encrypted_message_auth_tag,
+          nostr_public_key,
+          fragment_metadata,
+          encryption_key_version,
+          client_side_encryption
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+        ) RETURNING id, created_at, expires_at`,
+        [
+          switchId,
+          userId,
+          title,
+          '',  // description
+          'ARMED',
+          checkInHours,
+          now,
+          expiresAt,
+          encryptedMessage.ciphertext,
+          encryptedMessage.iv,
+          encryptedMessage.authTag,
+          nostrPublicKey,
+          JSON.stringify({ shares, clientSideEncryption: true }),
+          1,  // encryption_key_version
+          true  // client_side_encryption flag
+        ]
+      );
+
+      const sw = insertResult.rows[0];
+
+      // Insert recipients
+      for (const recipient of recipients) {
+        await client.query(
+          'INSERT INTO recipients (switch_id, email, name) VALUES ($1, $2, $3)',
+          [sw.id, recipient.email, recipient.name || null]
+        );
+      }
+
+      // Log audit event
+      await client.query(
+        `INSERT INTO audit_log (user_id, event_type, event_data)
+         VALUES ($1, $2, $3)`,
+        [userId, 'SWITCH_CREATED', JSON.stringify({
+          switchId: sw.id,
+          title,
+          clientSideEncryption: true
+        })]
+      );
+
+      return sw;
+    });
+
+    // Distribute shares to Nostr relays
+    // Note: We distribute encrypted shares but server cannot decrypt them
+    try {
+      const { publishFragment, filterHealthyRelays } = await import('../../nostr/multiRelayClient.js');
+
+      const healthyRelays = await filterHealthyRelays();
+
+      // Publish each share to Nostr
+      for (const share of shares) {
+        await publishFragment(
+          switchId,
+          share.index,
+          share.data,
+          healthyRelays.slice(0, 7)  // Use up to 7 relays
+        );
+      }
+
+      logger.info('Shares distributed to Nostr', {
+        switchId,
+        shareCount: shares.length,
+        relayCount: Math.min(healthyRelays.length, 7)
+      });
+    } catch (nostrError) {
+      // Log but don't fail - shares are stored in DB as backup
+      logger.warn('Nostr distribution partially failed', {
+        switchId,
+        error: nostrError.message
+      });
+    }
+
+    logger.info('Client-encrypted switch stored in database', {
+      switchId: switchData.id,
+      clientSideEncryption: true
+    });
+
+    return {
+      id: switchData.id,
+      title,
+      checkInHours,
+      expiresAt: switchData.expires_at,
+      status: 'ARMED',
+      recipientCount: recipients.length,
+      clientSideEncryption: true
+    };
+  } catch (error) {
+    logger.error('Failed to create client-encrypted switch:', error);
+    throw new Error(`Switch creation failed: ${error.message}`);
+  }
+}
+
 export default {
   createSwitch,
+  createClientEncryptedSwitch,
   listSwitches,
   getSwitch,
   checkIn,

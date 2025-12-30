@@ -1,20 +1,70 @@
 # ECHOLOCK Threat Model
 
 ## Document Information
-- **Version**: 1.1.0
-- **Last Updated**: 2025-10-02
+- **Version**: 2.0.0
+- **Last Updated**: 2025-12-29
 - **Status**: Development - Pre-Audit
 - **Scope**: ECHOLOCK v0.1.0 cryptographic dead man's switch system
+- **Architecture Status**: Centralized prototype (see CLAUDE.md for target)
 
 ## Executive Summary
 
-ECHOLOCK is a cryptographic dead man's switch that combines Bitcoin timelocks with Nostr-based distributed storage and Shamir Secret Sharing. The system is designed to automatically release encrypted secrets after a specified timelock expires, unless the user performs regular check-ins. This threat model identifies security risks across cryptographic, network, operational, and adversarial dimensions.
+ECHOLOCK is a cryptographic dead man's switch that combines Bitcoin timelocks with Nostr-based distributed storage and Shamir Secret Sharing. The system is designed to automatically release encrypted secrets after a specified timelock expires, unless the user performs regular check-ins.
 
-**Critical Risk Areas:**
-1. Cryptographic implementation errors (premature disclosure or permanent loss)
-2. Timelock misconfiguration (incorrect release timing)
-3. Insufficient relay redundancy (data availability failure)
-4. Key management vulnerabilities (unauthorized access)
+**CRITICAL NOTICE**: The current implementation (v0.x) is **centralized**. The server controls all keys, checks all timers, and performs all message releases. This represents the single largest threat to the system and is being addressed in v1.0.
+
+**Critical Risk Areas (Current Architecture):**
+1. **Central server dependency (CRITICAL - architectural flaw)**
+2. Cryptographic implementation errors (premature disclosure or permanent loss)
+3. Timelock misconfiguration (incorrect release timing)
+4. Insufficient relay redundancy (data availability failure)
+5. Key management vulnerabilities (unauthorized access)
+
+---
+
+## CRITICAL THREAT: Central Server Dependency
+
+### Description
+The current architecture has a **single point of failure**: the EchoLock server.
+
+### Attack Surface
+| Attack Vector | Impact | Likelihood |
+|---------------|--------|------------|
+| Server shutdown (bankruptcy, legal) | All messages permanently lost | Medium |
+| Server compromise (hack) | All messages disclosed | Medium |
+| Server coercion (subpoena) | Targeted messages disclosed | Medium-High |
+| Server operator malice | Any message readable/modifiable | Low |
+
+### Current State Analysis
+
+**What the server controls:**
+- All encryption keys (derived from SERVICE_MASTER_KEY)
+- All Nostr private keys (stored encrypted in database)
+- All timer state (database + cron job)
+- Message decryption and delivery
+
+**What happens if server fails:**
+- Timer stops being checked
+- Messages never release
+- Fragments on Nostr are unrecoverable (keys are lost)
+- **All user data is permanently inaccessible**
+
+### Mitigation Status
+
+| Mitigation | Status |
+|------------|--------|
+| Eliminate server key control | ⚠️ Phase 1 of migration |
+| Distributed timer (Guardian Network) | ⚠️ Phase 3 of migration |
+| User-controlled Nostr keys | ⚠️ Phase 2 of migration |
+| Autonomous release mechanism | ⚠️ Phase 5 of migration |
+
+**Timeline**: See [ROADMAP.md](../ROADMAP.md) for migration phases.
+
+### Target Architecture
+
+See [CLAUDE.md](../CLAUDE.md) for the Guardian Network architecture that eliminates this threat.
+
+---
 
 ---
 

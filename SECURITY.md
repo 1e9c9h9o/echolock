@@ -6,9 +6,44 @@
 
 ECHOLOCK v0.1.0 is in **development/testnet phase** and has **NOT** undergone a professional security audit. Do not use this software to protect actual sensitive data.
 
-**Last Updated**: 2025-10-02
+**Last Updated**: 2025-12-29
 **Version**: 0.1.0
 **Security Audit Status**: Pre-audit
+**Architecture Status**: Centralized prototype (migrating to decentralized)
+
+---
+
+## Honest Trust Model Disclosure
+
+### Current Reality (v0.x)
+
+**You must fully trust the EchoLock server.** The current implementation is centralized:
+
+| What You Must Trust | Why |
+|---------------------|-----|
+| EchoLock servers stay online | Timer is a server cron job |
+| EchoLock doesn't read your messages | Server decrypts messages before sending |
+| EchoLock isn't compromised | Server holds all encryption keys |
+| EchoLock isn't coerced | Server can release messages early if subpoenaed |
+
+**If EchoLock servers go offline, all messages are permanently lost.**
+
+This is unacceptable for the stated mission and is being addressed in v1.0.
+
+### Target Trust Model (v1.0)
+
+**You will NOT need to trust EchoLock.** The target architecture eliminates the server as a dependency:
+
+| What You Trust | Why |
+|----------------|-----|
+| Your own device | Keys generated and stored locally |
+| 3 of 5 guardians | Threshold prevents any single failure |
+| Nostr relay network | Redundancy across 7+ relays |
+| Cryptographic primitives | AES-256, Shamir SSS, secp256k1 |
+
+**EchoLock becomes an optional convenience layer, not a trusted party.**
+
+See [CLAUDE.md](CLAUDE.md) for the target architecture.
 
 ---
 

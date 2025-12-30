@@ -7,15 +7,16 @@ import crypto from 'crypto';
 import { encrypt, decrypt } from '../../src/crypto/encryption.js';
 import { selectUTXOs, estimateTxSize } from '../../src/bitcoin/utxoManager.js';
 import { decryptPrivateKey } from '../../src/bitcoin/timelockSpender.js';
+import { PBKDF2_ITERATIONS } from '../../src/crypto/keyDerivation.js';
 
 describe('Bitcoin Key Encryption/Decryption', () => {
   const testPassword = 'test-password-123';
   const testPrivateKey = crypto.randomBytes(32);
 
   it('should encrypt and decrypt a private key with password', async () => {
-    // Derive master key from password
+    // Derive master key from password using consistent iteration count
     const salt = crypto.randomBytes(16);
-    const masterKey = crypto.pbkdf2Sync(testPassword, salt, 100000, 32, 'sha256');
+    const masterKey = crypto.pbkdf2Sync(testPassword, salt, PBKDF2_ITERATIONS, 32, 'sha256');
 
     // Encrypt private key
     const { ciphertext, iv, authTag } = encrypt(testPrivateKey, masterKey);
@@ -28,12 +29,12 @@ describe('Bitcoin Key Encryption/Decryption', () => {
 
   it('should fail decryption with wrong password', async () => {
     const salt = crypto.randomBytes(16);
-    const masterKey = crypto.pbkdf2Sync(testPassword, salt, 100000, 32, 'sha256');
+    const masterKey = crypto.pbkdf2Sync(testPassword, salt, PBKDF2_ITERATIONS, 32, 'sha256');
     const { ciphertext, iv, authTag } = encrypt(testPrivateKey, masterKey);
 
     // Try with wrong password
     const wrongPassword = 'wrong-password';
-    const wrongMasterKey = crypto.pbkdf2Sync(wrongPassword, salt, 100000, 32, 'sha256');
+    const wrongMasterKey = crypto.pbkdf2Sync(wrongPassword, salt, PBKDF2_ITERATIONS, 32, 'sha256');
 
     expect(() => {
       decrypt(ciphertext, wrongMasterKey, iv, authTag);
@@ -42,7 +43,7 @@ describe('Bitcoin Key Encryption/Decryption', () => {
 
   it('should decrypt with decryptPrivateKey helper', async () => {
     const salt = crypto.randomBytes(16);
-    const masterKey = crypto.pbkdf2Sync(testPassword, salt, 100000, 32, 'sha256');
+    const masterKey = crypto.pbkdf2Sync(testPassword, salt, PBKDF2_ITERATIONS, 32, 'sha256');
     const { ciphertext, iv, authTag } = encrypt(testPrivateKey, masterKey);
 
     const encryptedData = {
@@ -59,8 +60,8 @@ describe('Bitcoin Key Encryption/Decryption', () => {
 
   it('should use consistent salt for same password', () => {
     const salt = crypto.randomBytes(16);
-    const masterKey1 = crypto.pbkdf2Sync(testPassword, salt, 100000, 32, 'sha256');
-    const masterKey2 = crypto.pbkdf2Sync(testPassword, salt, 100000, 32, 'sha256');
+    const masterKey1 = crypto.pbkdf2Sync(testPassword, salt, PBKDF2_ITERATIONS, 32, 'sha256');
+    const masterKey2 = crypto.pbkdf2Sync(testPassword, salt, PBKDF2_ITERATIONS, 32, 'sha256');
 
     expect(masterKey1).toEqual(masterKey2);
   });
@@ -190,7 +191,7 @@ describe('Bitcoin Key Storage Format', () => {
     const password = 'test-password';
     const privateKey = crypto.randomBytes(32);
     const salt = crypto.randomBytes(16);
-    const masterKey = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
+    const masterKey = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 32, 'sha256');
     const { ciphertext, iv, authTag } = encrypt(privateKey, masterKey);
 
     const stored = {
@@ -216,7 +217,7 @@ describe('Bitcoin Key Storage Format', () => {
     const password = 'test-password';
     const privateKey = crypto.randomBytes(32);
     const salt = crypto.randomBytes(16);
-    const masterKey = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
+    const masterKey = crypto.pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, 32, 'sha256');
     const { ciphertext, iv, authTag } = encrypt(privateKey, masterKey);
 
     expect(ciphertext.length).toBe(32); // AES-256-GCM preserves length

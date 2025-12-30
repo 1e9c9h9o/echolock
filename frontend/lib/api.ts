@@ -143,6 +143,7 @@ export const switchesAPI = {
     return response.data.data
   },
 
+  // Legacy: Server-side encryption (deprecated, will be removed)
   create: async (data: {
     title: string
     message: string
@@ -151,6 +152,29 @@ export const switchesAPI = {
     recipients: Array<{ email: string; name: string }>
   }) => {
     const response = await api.post('/switches', data)
+    return response.data.data
+  },
+
+  // NEW: Client-side encryption - keys never leave the browser
+  // See CLAUDE.md - Phase 1: User-Controlled Keys
+  createEncrypted: async (data: {
+    title: string
+    checkInHours: number
+    recipients: Array<{ email: string; name: string }>
+    encryptedMessage: {
+      ciphertext: string
+      iv: string
+      authTag: string
+    }
+    shares: Array<{
+      index: number
+      data: string
+      hmac: string
+    }>
+    nostrPublicKey: string
+    clientSideEncryption: true
+  }) => {
+    const response = await api.post('/switches/encrypted', data)
     return response.data.data
   },
 

@@ -17,6 +17,7 @@
     "nostr-demo": "node src/cli/nostrDemo.js",
     "test-release": "node src/cli/testRelease.js",
     "db:migrate": "psql $DATABASE_URL -f src/api/db/schema.sql",
+    "db:migrate:js": "node src/api/db/runMigrations.js",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:unit": "NODE_OPTIONS='--experimental-vm-modules' jest tests/unit",
     "test:integration": "NODE_OPTIONS='--experimental-vm-modules' jest tests/integration --runInBand",

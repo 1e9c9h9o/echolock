@@ -50,13 +50,14 @@ export default function HomePage() {
                 Cryptographic Infrastructure
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-[56px] font-extrabold leading-[1.05] mb-6 tracking-tight text-black">
-                Decentralized dead man's switch.<br/>
-                <span className="text-orange">No single point of failure.</span>
+                Cryptographic dead man's switch.<br/>
+                <span className="text-orange">Building toward full decentralization.</span>
               </h1>
               <p className="text-sm text-black/80 mb-8 max-w-md">
                 Encrypt. Fragment. Distribute. Release. Messages secured with AES-256-GCM,
-                split via Shamir's Secret Sharing, broadcast across global Nostr relays,
-                timestamped on Bitcoin.
+                split via Shamir's Secret Sharing, broadcast across global Nostr relays.
+                Currently a working prototype — migrating to user-controlled keys and
+                autonomous release.
               </p>
               <div className="flex gap-3 flex-wrap">
                 <Link href="/auth/login" className="btn">Initialize Switch</Link>
@@ -189,10 +190,11 @@ export default function HomePage() {
           <div className="p-8 flex items-center gap-6">
             <div className="warning-icon">!</div>
             <div>
-              <h3 className="text-base font-bold mb-1">Development Status: Prototype</h3>
+              <h3 className="text-base font-bold mb-1">Honest Status: Centralized Prototype</h3>
               <p className="text-xs opacity-70 max-w-xl">
-                Experimental software. Requires security audit prior to production.
-                Currently on Bitcoin Testnet. Do not use for sensitive information.
+                Current version relies on our server for key management and timer checking.
+                We are migrating to user-controlled keys and a Guardian Network for true
+                decentralization. Do not use for sensitive information until v1.0.
               </p>
             </div>
           </div>

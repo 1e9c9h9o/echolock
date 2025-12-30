@@ -11,6 +11,46 @@
                 Cryptographic Dead Man's Switch
 ```
 
+---
+
+## The Vision
+
+> **A system where the user controls their keys, the timer is on-chain or distributed, and the message releases automatically without any company being involved. The company should be eliminable - if EchoLock disappeared, the system should work exactly the same.**
+
+See [CLAUDE.md](CLAUDE.md) for the complete architectural vision.
+
+---
+
+## Honest Status: Where We Are vs. Where We're Going
+
+### Current Reality (v0.x - Centralized Prototype)
+
+| Component | What It Claims | What It Actually Does |
+|-----------|----------------|----------------------|
+| **Timer** | Bitcoin timelock | Server cron job checking database |
+| **Storage** | Nostr distributed | Encrypted blobs with server-controlled keys |
+| **Release** | Automatic | Server decrypts and sends email |
+| **Keys** | User-controlled | Server holds encryption keys |
+| **Survival** | Trustless | **Dies with the server** |
+
+**If EchoLock servers go down today, all messages are permanently lost.**
+
+This is a working prototype that demonstrates the concept. It is NOT the final architecture.
+
+### Target Architecture (v1.0 - Truly Decentralized)
+
+| Component | How It Will Work |
+|-----------|------------------|
+| **Keys** | Generated client-side, never leave user's device |
+| **Timer** | Guardian Network watches Nostr heartbeats |
+| **Storage** | Fragments encrypted to guardians' public keys |
+| **Release** | Guardians publish shares when heartbeats stop |
+| **Survival** | Works identically without EchoLock |
+
+See [CLAUDE.md](CLAUDE.md) for the Guardian Network architecture.
+
+---
+
 ## Overview
 Cryptographic dead man's switch using Bitcoin timelocks and Nostr protocol for distributed secret storage.
 

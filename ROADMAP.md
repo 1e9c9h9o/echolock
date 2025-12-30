@@ -1,16 +1,157 @@
 # ECHOLOCK Roadmap
 
-This document outlines the development roadmap for ECHOLOCK, a cryptographic dead man's switch using Bitcoin timelocks and Nostr protocol.
+> **The Goal**: A system where the user controls their keys, the timer is on-chain or distributed, and the message releases automatically without any company being involved. The company should be eliminable - if EchoLock disappeared, the system should work exactly the same.
 
-**Last Updated**: 2025-10-24
-**Current Version**: 0.1.0 (Development/Testnet)
-**Status**: Pre-audit, not production ready
+See [CLAUDE.md](CLAUDE.md) for the complete architectural vision.
+
+**Last Updated**: 2025-12-29
+**Current Version**: 0.1.0 (Centralized Prototype)
+**Target Version**: 1.0.0 (Truly Decentralized)
+**Status**: Migrating from centralized to decentralized architecture
 
 ---
 
-## Overview
+## The Journey: Centralized → Decentralized
 
-ECHOLOCK is currently in active development with core functionality complete. The primary blocker for production use is a professional security audit.
+### Where We Are (v0.x)
+- Server controls all keys
+- Server checks timers via cron job
+- Server reconstructs and delivers messages
+- **If server dies, all messages are lost**
+
+### Where We're Going (v1.0)
+- User controls all keys (generated client-side)
+- Guardian Network watches Nostr heartbeats
+- Guardians publish shares when heartbeats stop
+- **System works identically without EchoLock**
+
+---
+
+## Migration Phases
+
+### Phase 1: User-Controlled Keys (IMMEDIATE PRIORITY)
+**Goal**: Keys never leave the user's device
+
+- [ ] Move key generation to client-side (browser WebCrypto / CLI)
+- [ ] Store keys in browser IndexedDB / local keychain
+- [ ] Server receives only encrypted blobs + public keys
+- [ ] Add encrypted key export/backup functionality
+- [ ] User can verify their keys locally
+
+**Success Metric**: Server has zero access to plaintext or encryption keys
+
+---
+
+### Phase 2: Nostr-Native Heartbeats (2-4 weeks)
+**Goal**: Anyone can verify if a user is alive without contacting EchoLock
+
+- [ ] Define NIP for heartbeat events (kind: 30078)
+- [ ] User signs heartbeats with their own nsec
+- [ ] Heartbeats published directly to Nostr relays
+- [ ] Remove server-side timer checking (server becomes optional verifier)
+- [ ] Build heartbeat verification tool (standalone, no server needed)
+
+**Success Metric**: Third parties can independently verify heartbeat status
+
+---
+
+### Phase 3: Guardian Network (4-8 weeks)
+**Goal**: Distributed entities watch for heartbeats and release shares
+
+- [ ] Design guardian enrollment protocol
+- [ ] Implement guardian monitoring daemon (open source)
+- [ ] Create self-hosted guardian package (Docker)
+- [ ] Build guardian selection UI (choose friends, lawyers, services)
+- [ ] EchoLock becomes one optional guardian (not privileged)
+- [ ] Guardian acknowledgment protocol (NIP-XX)
+
+**Guardian Types**:
+| Type | Example | Trust | Reliability |
+|------|---------|-------|-------------|
+| Personal | Friend, family | High | Variable |
+| Professional | Lawyer, executor | Legal duty | High |
+| Institutional | EchoLock service | None needed | High availability |
+| Self-Hosted | User's VPS | Full | User-controlled |
+
+**Success Metric**: Message releases with EchoLock completely offline
+
+---
+
+### Phase 4: Bitcoin Commitments (8-12 weeks)
+**Goal**: Cryptographic proof of timer on Bitcoin mainnet
+
+- [ ] Mainnet timelock transactions (post-audit)
+- [ ] On-chain proof of timer creation
+- [ ] Verifiable on any block explorer
+- [ ] Guardian can reference Bitcoin as trigger signal
+- [ ] Optional layer (system works without it)
+
+**Success Metric**: Anyone can verify timer existence on blockchain
+
+---
+
+### Phase 5: Full Autonomy (12+ weeks)
+**Goal**: EchoLock is completely eliminable
+
+- [ ] Recipient-side reconstruction tools (CLI + web)
+- [ ] Complete documentation for self-hosting everything
+- [ ] No server needed for any operation
+- [ ] EchoLock is pure convenience layer
+- [ ] Open source all components
+
+**The Ultimate Test**:
+1. User creates a switch
+2. User stops all check-ins
+3. EchoLock goes bankrupt (all servers offline)
+4. Message still delivers to recipients
+
+**Success Metric**: This test passes
+
+---
+
+## Completed Phases (Prototype Foundation)
+
+### ✅ Phase 0.1: Core Cryptographic Implementation
+- [x] AES-256-GCM encryption
+- [x] Shamir Secret Sharing (3-of-5) using audited library
+- [x] PBKDF2 key derivation (600k iterations)
+- [x] Property-based testing
+
+### ✅ Phase 0.2: Dead Man's Switch Core
+- [x] Timer-based check-in system
+- [x] Automatic release on expiry
+- [x] Multiple switch management
+- [x] Interactive CLI
+
+### ✅ Phase 0.3: Bitcoin Integration (Testnet)
+- [x] OP_CHECKLOCKTIMEVERIFY scripts
+- [x] Transaction creation (testnet only)
+- [x] Block height tracking
+
+### ✅ Phase 0.4: Nostr Distribution
+- [x] Multi-relay client (7+ relays)
+- [x] NIP-78 fragment format
+- [x] Health checking with backoff
+- [x] Fragment retrieval and verification
+
+### ✅ Phase 0.5: Full-Stack Web Application
+- [x] REST API with Express.js
+- [x] JWT authentication
+- [x] PostgreSQL database
+- [x] Next.js frontend
+- [x] Real-time WebSocket updates
+- [x] Email notifications
+
+### ✅ Phase 0.6: Enhanced Dashboard
+- [x] Dark mode
+- [x] Keyboard shortcuts
+- [x] Export (CSV/PDF)
+- [x] QR code sharing
+- [x] Multi-language support (4 languages)
+- [x] Calendar integration
+- [x] Onboarding flow
+
+---
 
 ## Current Status
 

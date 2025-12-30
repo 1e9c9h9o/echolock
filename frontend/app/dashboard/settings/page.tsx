@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
+import KeyBackup from '@/components/KeyBackup'
 import { useAuthStore } from '@/lib/store'
 import { userAPI } from '@/lib/api'
 
@@ -126,6 +127,9 @@ export default function SettingsPage() {
       </div>
 
       <div className="space-y-grid-6 max-w-2xl">
+        {/* Key Management - Critical for client-side encryption */}
+        <KeyBackup />
+
         {/* Account information */}
         <Card>
           <h2 className="text-xl font-bold text-secondary mb-grid-4">
