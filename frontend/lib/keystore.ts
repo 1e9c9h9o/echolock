@@ -30,7 +30,7 @@ const META_STORE = 'metadata';
 /**
  * Stored switch data (encrypted at rest)
  */
-interface StoredSwitch {
+export interface StoredSwitch {
   switchId: string;
 
   // Encrypted key bundle (contains authKey, nostr.privateKey)

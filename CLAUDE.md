@@ -316,17 +316,18 @@ Bitcoin provides **unforgeable timestamps** and **programmatic release**.
 
 ## Migration Path
 
-### Phase 1: User-Controlled Keys (Immediate)
-- [ ] Move key generation to client-side (browser/CLI)
-- [ ] Store keys in browser IndexedDB / local keychain
-- [ ] Server only receives encrypted blobs + public keys
-- [ ] Add key export/backup functionality
+### Phase 1: User-Controlled Keys (Immediate) ✅
+- [x] Move key generation to client-side (browser/CLI)
+- [x] Store keys in browser IndexedDB / local keychain
+- [x] Server only receives encrypted blobs + public keys
+- [x] Add key export/backup functionality
 
-### Phase 2: Nostr-Native Heartbeats (2-4 weeks)
-- [ ] Define NIP for heartbeat events
-- [ ] User signs heartbeats with own nsec
-- [ ] Remove server-side timer checking
-- [ ] Anyone can verify heartbeat status
+### Phase 2: Nostr-Native Heartbeats (2-4 weeks) ✅
+- [x] Define NIP for heartbeat events (kind 30078)
+- [x] User signs heartbeats with own nsec (BIP-340 Schnorr)
+- [x] Publish heartbeats to Nostr relays
+- [x] Anyone can verify heartbeat status
+- [ ] Remove server-side timer checking (requires Phase 3)
 
 ### Phase 3: Guardian Network (4-8 weeks)
 - [ ] Design guardian enrollment protocol
