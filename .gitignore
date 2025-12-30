@@ -33,3 +33,16 @@ out/
 # Deployment
 .vercel
 .fly
+
+# Design exploration / prototypes (local only)
+frontend/app/page-prototype.tsx
+frontend/app/prototype/
+frontend/*.html
+frontend/tsconfig.tsbuildinfo
+
+# Local project files
+CLAUDE_DESKTOP_PROJECT_MEMORY.md
+*.jpg
+*.png
+*.gif
+!frontend/public/**

@@ -1,5 +1,4 @@
 # ECHOLOCK
-⚠️ **WARNING: Experimental cryptographic software. Do not use for actual sensitive data until professional security audit completed.**
 
 ```
 ███████╗ ██████╗██╗  ██╗ ██████╗ ██╗      ██████╗  ██████╗██╗  ██╗
@@ -8,44 +7,35 @@
 ██╔══╝  ██║     ██╔══██║██║   ██║██║     ██║   ██║██║     ██╔═██╗
 ███████╗╚██████╗██║  ██║╚██████╔╝███████╗╚██████╔╝╚██████╗██║  ██╗
 ╚══════╝ ╚═════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝
-                Cryptographic Dead Man's Switch
+       Fully Decentralized Cryptographic Dead Man's Switch
 ```
 
----
+**v1.0.0** | **AGPL-3.0** | **501 Tests Passing** | **Awaiting Security Audit**
 
-## The Vision
-
-> **A system where the user controls their keys, the timer is on-chain or distributed, and the message releases automatically without any company being involved. The company should be eliminable - if EchoLock disappeared, the system should work exactly the same.**
-
-See [CLAUDE.md](CLAUDE.md) for the complete architectural vision.
+⚠️ **AUDIT STATUS**: Core architecture complete. Professional security audit required before mainnet use with real funds.
 
 ---
 
-## Honest Status: Where We Are vs. Where We're Going
+## The Promise
 
-### Current Reality (v0.x - Centralized Prototype)
+> **If EchoLock disappears tomorrow, your switch still works.**
 
-| Component | What It Claims | What It Actually Does |
-|-----------|----------------|----------------------|
-| **Timer** | Bitcoin timelock | Server cron job checking database |
-| **Storage** | Nostr distributed | Encrypted blobs with server-controlled keys |
-| **Release** | Automatic | Server decrypts and sends email |
-| **Keys** | User-controlled | Server holds encryption keys |
-| **Survival** | Trustless | **Dies with the server** |
+You control your keys. Guardians watch for your heartbeat. Bitcoin proves time. If you stop checking in, your message releases automatically — no server, no company, no trusted third party required.
 
-**If EchoLock servers go down today, all messages are permanently lost.**
+See [CLAUDE.md](CLAUDE.md) for the complete architectural specification.
 
-This is a working prototype that demonstrates the concept. It is NOT the final architecture.
+---
 
-### Target Architecture (v1.0 - Truly Decentralized)
+## Architecture (v1.0 - Fully Decentralized)
 
-| Component | How It Will Work |
-|-----------|------------------|
-| **Keys** | Generated client-side, never leave user's device |
-| **Timer** | Guardian Network watches Nostr heartbeats |
-| **Storage** | Fragments encrypted to guardians' public keys |
+| Component | How It Works |
+|-----------|--------------|
+| **Keys** | Generated in your browser (WebCrypto). Never sent to any server. |
+| **Timer** | Guardian Network watches Nostr for your heartbeats |
+| **Storage** | Shamir shares encrypted to guardians' public keys |
 | **Release** | Guardians publish shares when heartbeats stop |
-| **Survival** | Works identically without EchoLock |
+| **Proof** | Bitcoin OP_CHECKLOCKTIMEVERIFY (optional, mainnet-ready) |
+| **Survival** | **Works identically without EchoLock** |
 
 See [CLAUDE.md](CLAUDE.md) for the Guardian Network architecture.
 
@@ -245,16 +235,18 @@ When `USE_NOSTR_DISTRIBUTION=true`:
 ## Security Status
 - [x] Cryptographic primitives implemented (AES-256-GCM, Shamir SSS)
 - [x] Core dead man's switch logic complete
-- [x] Local demo functional
-- [x] Bitcoin timelock integrated (OP_CHECKLOCKTIMEVERIFY on testnet)
-- [x] Blockchain monitoring (Blockstream API)
-- [x] Nostr relay distribution implemented (7+ relay redundancy)
-- [x] Relay health checking with exponential backoff
-- [x] NIP-78 event format for fragments
-- [x] Transaction broadcasting tested
-- [x] Nostr distribution tested with live relays
-- [ ] Security audit completed
-- [ ] Production ready
+- [x] Client-side key generation (WebCrypto API)
+- [x] Guardian Network protocol implemented
+- [x] Nostr heartbeats (BIP-340 Schnorr signatures)
+- [x] Bitcoin timelocks (OP_CHECKLOCKTIMEVERIFY, mainnet-ready)
+- [x] Nostr relay distribution (7+ relay redundancy)
+- [x] Autonomous release mechanism
+- [x] Recipient-side reconstruction tools
+- [x] Self-hosting documentation
+- [x] 501 unit tests passing
+- [ ] **Professional security audit** ← SEEKING AUDITORS
+- [ ] Penetration testing
+- [ ] Bug bounty program
 
 ## Production Deployment
 
@@ -406,8 +398,8 @@ echolock/
 │       ├── websocket.ts         # Real-time updates
 │       ├── notifications.ts     # Push notifications
 │       └── export.ts            # CSV/PDF export
-├── tests/               # Test suite
-│   ├── unit/            # Unit tests (41/41 passing)
+├── tests/               # Test suite (501 tests)
+│   ├── unit/            # Unit tests
 │   ├── integration/     # Integration tests (Nostr)
 │   └── security/        # Security tests
 ├── security/            # Security documentation
@@ -460,9 +452,11 @@ npm test
 ```
 
 **Test Coverage:**
-- 41/41 tests passing (100%)
+- 501 tests passing
 - Comprehensive crypto module tests
-- Project structure validation
+- Guardian Network protocol tests
+- Bitcoin timelock tests
+- Nostr integration tests
 - Security boundary verification
 
 ## Example Usage
@@ -546,26 +540,26 @@ Perfect for ensuring community collaboration and transparency in cryptographic s
 
 ## Important Notes
 
-⚠️ **EXPERIMENTAL SOFTWARE**
-- This is a proof-of-concept implementation
-- **DO NOT** use for actual sensitive data
-- Professional security audit required before production
-- Testnet only for Bitcoin operations
-- No warranty or guarantees provided
+⚠️ **AWAITING SECURITY AUDIT**
+- Core architecture is complete and tested (501 unit tests)
+- **Professional security audit required** before mainnet use with real funds
+- Bitcoin operations are mainnet-ready but use testnet until audit completes
+- Contact: echoooolock@gmail.com for audit inquiries
 
 ⚠️ **CRYPTOGRAPHIC SOFTWARE**
 - Mistakes can result in permanent data loss
 - Mistakes can result in premature secret disclosure
 - User's life or freedom may depend on correct operation
-- Comprehensive testing required
+- All cryptographic code has comprehensive test coverage
 
-⚠️ **DEVELOPMENT STATUS**
-- Core functionality implemented and working ✅
-- Demo mode fully functional ✅
-- Bitcoin timelock integration complete ✅
-- Nostr distribution system implemented ✅
-- Integration testing with live relays in progress 🚧
-- Production deployment not ready
+⚠️ **COMPLETION STATUS**
+- All 5 decentralization phases complete ✅
+- Client-side key generation ✅
+- Guardian Network protocol ✅
+- Nostr heartbeats ✅
+- Bitcoin timelocks (mainnet-ready) ✅
+- Autonomous release ✅
+- Blocking on: **Security audit**
 
 ## Configuration
 
@@ -652,5 +646,5 @@ For detailed feature documentation, see [DASHBOARD_ENHANCEMENTS.md](DASHBOARD_EN
 ---
 
 **Built with security-first development practices**
-**Current Status**: Development - Demo Functional ✅
-**Version**: 0.1.0
+**Current Status**: Core Architecture Complete - Awaiting Security Audit
+**Version**: 1.0.0

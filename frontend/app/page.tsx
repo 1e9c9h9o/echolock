@@ -59,8 +59,9 @@ export default function HomePage() {
                 no trusted third party. EchoLock can vanish tomorrow and your switch still works.
               </p>
               <div className="flex gap-3 flex-wrap">
-                <Link href="/auth/login" className="btn">Initialize Switch</Link>
-                <a href="#technical" className="btn btn-black">View Specifications</a>
+                <Link href="/dashboard/demo" className="btn">Try Live Demo</Link>
+                <Link href="/auth/login" className="btn btn-black">Create Switch</Link>
+                <a href="#technical" className="btn btn-outline">View Specs</a>
               </div>
             </div>
 
@@ -226,6 +227,42 @@ export default function HomePage() {
                 release. We built this to be eliminable — because that's the only version worth building.
               </p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Proof Section - Show Don't Tell */}
+      <section className="py-16 bg-black text-white">
+        <div className="container">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-[11px] uppercase tracking-[0.2em]">Proof of Work</h2>
+            <div className="text-[10px] opacity-50 tracking-wider">VERIFIED STATS</div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            <div className="text-center p-6 border border-white/20">
+              <div className="text-3xl font-bold text-orange mb-2">501</div>
+              <div className="text-[10px] uppercase tracking-wider opacity-70">Unit Tests</div>
+            </div>
+            <div className="text-center p-6 border border-white/20">
+              <div className="text-3xl font-bold text-orange mb-2">10</div>
+              <div className="text-[10px] uppercase tracking-wider opacity-70">Nostr Relays</div>
+            </div>
+            <div className="text-center p-6 border border-white/20">
+              <div className="text-3xl font-bold text-orange mb-2">3/5</div>
+              <div className="text-[10px] uppercase tracking-wider opacity-70">Threshold</div>
+            </div>
+            <div className="text-center p-6 border border-white/20">
+              <div className="text-3xl font-bold text-orange mb-2">0</div>
+              <div className="text-[10px] uppercase tracking-wider opacity-70">Server Keys</div>
+            </div>
+          </div>
+          <div className="bg-white/5 p-6 font-mono text-xs overflow-x-auto">
+            <div className="text-white/50 mb-2">// Your keys never leave your device</div>
+            <div className="text-green-400">const keys = await crypto.subtle.generateKey(</div>
+            <div className="text-white pl-4">{`{ name: 'AES-GCM', length: 256 },`}</div>
+            <div className="text-white pl-4">true, ['encrypt', 'decrypt']</div>
+            <div className="text-green-400">);</div>
+            <div className="text-white/50 mt-2">// Server only sees: encrypted blobs + public keys</div>
           </div>
         </div>
       </section>

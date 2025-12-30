@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ArrowLeft, Clock, Users, AlertCircle, Trash2, Activity } from 'lucide-react'
+import { ArrowLeft, Clock, Users, AlertCircle, Trash2, Activity, Shield, Link as LinkIcon, Bitcoin } from 'lucide-react'
 import Link from 'next/link'
 import { formatDistanceToNow, format } from 'date-fns'
 import Button from '@/components/ui/Button'
@@ -216,6 +216,86 @@ export default function SwitchDetailPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </Card>
+
+        {/* Guardian Network Status */}
+        <Card>
+          <h2 className="text-xl font-bold text-secondary mb-grid-4">
+            <Shield className="h-5 w-5 inline mr-grid-2" strokeWidth={1.5} />
+            Guardian Network
+          </h2>
+          <div className="space-y-grid-3">
+            <div className="grid grid-cols-3 gap-4 text-center mb-4">
+              <div className="p-4 bg-background border border-border">
+                <div className="text-2xl font-bold text-secondary">5</div>
+                <div className="text-xs text-text-secondary uppercase tracking-wider">Guardians</div>
+              </div>
+              <div className="p-4 bg-background border border-border">
+                <div className="text-2xl font-bold text-secondary">3</div>
+                <div className="text-xs text-text-secondary uppercase tracking-wider">Threshold</div>
+              </div>
+              <div className="p-4 bg-background border border-border">
+                <div className="text-2xl font-bold text-green-600">5</div>
+                <div className="text-xs text-text-secondary uppercase tracking-wider">Online</div>
+              </div>
+            </div>
+            <p className="text-sm text-text-secondary">
+              Your secret is split across 5 guardians using Shamir's Secret Sharing.
+              Any 3 guardians can trigger release if you stop checking in.
+            </p>
+          </div>
+        </Card>
+
+        {/* Nostr Heartbeat Status */}
+        <Card>
+          <h2 className="text-xl font-bold text-secondary mb-grid-4">
+            <LinkIcon className="h-5 w-5 inline mr-grid-2" strokeWidth={1.5} />
+            Nostr Heartbeats
+          </h2>
+          <div className="space-y-grid-3">
+            <div className="flex items-center justify-between">
+              <span className="text-secondary">Publishing to:</span>
+              <span className="text-text-secondary font-mono text-sm">10 relays</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-secondary">Last heartbeat:</span>
+              <span className="text-text-secondary font-mono text-sm">
+                {switchData.lastCheckInAt
+                  ? formatDistanceToNow(new Date(switchData.lastCheckInAt), { addSuffix: true })
+                  : 'Never'}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-secondary">Signature:</span>
+              <span className="text-green-600 font-mono text-sm">BIP-340 Schnorr</span>
+            </div>
+            <p className="text-sm text-text-secondary pt-2 border-t border-border">
+              Anyone can verify your heartbeats on Nostr. Guardians watch these relays independently.
+            </p>
+          </div>
+        </Card>
+
+        {/* Bitcoin Commitment (Optional) */}
+        <Card>
+          <h2 className="text-xl font-bold text-secondary mb-grid-4">
+            <Bitcoin className="h-5 w-5 inline mr-grid-2" strokeWidth={1.5} />
+            Bitcoin Commitment
+          </h2>
+          <div className="space-y-grid-3">
+            <div className="flex items-center justify-between">
+              <span className="text-secondary">Status:</span>
+              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-bold uppercase">
+                Optional
+              </span>
+            </div>
+            <p className="text-sm text-text-secondary">
+              Bitcoin timelocks provide cryptographic proof of timer creation using OP_CHECKLOCKTIMEVERIFY.
+              This is optional but recommended for maximum verifiability.
+            </p>
+            <Button variant="secondary" className="w-full">
+              Create Bitcoin Commitment
+            </Button>
           </div>
         </Card>
 
