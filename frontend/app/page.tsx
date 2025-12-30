@@ -59,7 +59,7 @@ export default function HomePage() {
                 no trusted third party. EchoLock can vanish tomorrow and your switch still works.
               </p>
               <div className="flex gap-3 flex-wrap">
-                <Link href="/dashboard/demo" className="btn">Try Live Demo</Link>
+                <Link href="/demo" className="btn">Try Live Demo</Link>
                 <Link href="/auth/login" className="btn btn-black">Create Switch</Link>
                 <a href="#technical" className="btn btn-outline">View Specs</a>
               </div>
