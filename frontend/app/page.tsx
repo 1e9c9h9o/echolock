@@ -61,7 +61,7 @@ export default function HomePage() {
               <div className="flex gap-3 flex-wrap">
                 <Link href="/demo" className="btn">Try Live Demo</Link>
                 <Link href="/auth/login" className="btn btn-black">Create Switch</Link>
-                <a href="#technical" className="btn btn-outline">View Specs</a>
+                <a href="#technical" className="bg-white text-black px-6 py-3 font-bold border-4 border-black hover:bg-black hover:text-white transition-colors text-sm">View Specs</a>
               </div>
             </div>
 
