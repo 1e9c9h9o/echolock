@@ -47,17 +47,16 @@ export default function HomePage() {
             {/* Hero content */}
             <div>
               <div className="inline-block text-[10px] uppercase tracking-[0.2em] bg-black text-white px-4 py-2 mb-6">
-                Cryptographic Infrastructure
+                Trustless Infrastructure
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-[56px] font-extrabold leading-[1.05] mb-6 tracking-tight text-black">
                 Cryptographic dead man's switch.<br/>
-                <span className="text-orange">Building toward full decentralization.</span>
+                <span className="text-orange">Fully decentralized. No company required.</span>
               </h1>
               <p className="text-sm text-black/80 mb-8 max-w-md">
-                Encrypt. Fragment. Distribute. Release. Messages secured with AES-256-GCM,
-                split via Shamir's Secret Sharing, broadcast across global Nostr relays.
-                Currently a working prototype — migrating to user-controlled keys and
-                autonomous release.
+                You control your keys. Guardians watch for your heartbeat. Bitcoin proves time.
+                If you disappear, your message releases automatically — no server, no company,
+                no trusted third party. EchoLock can vanish tomorrow and your switch still works.
               </p>
               <div className="flex gap-3 flex-wrap">
                 <Link href="/auth/login" className="btn">Initialize Switch</Link>
@@ -68,7 +67,7 @@ export default function HomePage() {
             {/* Diagram panel */}
             <div className="diagram-panel">
               <div className="diagram-header">
-                <span>System Operation Flow</span>
+                <span>Guardian Network Protocol</span>
                 <span>REF: EL-001</span>
               </div>
               <div className="diagram-body">
@@ -76,36 +75,36 @@ export default function HomePage() {
                   <div className="diagram-step">
                     <div className="diagram-num active">01</div>
                     <div className="diagram-content">
-                      <div className="diagram-label">Encrypt Message</div>
-                      <div className="diagram-text">AES-256-GCM authenticated encryption</div>
+                      <div className="diagram-label">Generate Keys Locally</div>
+                      <div className="diagram-text">Nostr + Bitcoin + encryption keys in your browser</div>
                     </div>
                   </div>
                   <div className="diagram-step">
                     <div className="diagram-num">02</div>
                     <div className="diagram-content">
-                      <div className="diagram-label">Fragment Key</div>
-                      <div className="diagram-text">Shamir's Secret Sharing (3-of-5)</div>
+                      <div className="diagram-label">Encrypt & Fragment</div>
+                      <div className="diagram-text">AES-256-GCM + Shamir's Secret Sharing (3-of-5)</div>
                     </div>
                   </div>
                   <div className="diagram-step">
                     <div className="diagram-num">03</div>
                     <div className="diagram-content">
-                      <div className="diagram-label">Distribute</div>
-                      <div className="diagram-text">7+ Nostr relays globally</div>
+                      <div className="diagram-label">Distribute to Guardians</div>
+                      <div className="diagram-text">Friends, lawyers, services hold encrypted shares</div>
                     </div>
                   </div>
                   <div className="diagram-step">
                     <div className="diagram-num">04</div>
                     <div className="diagram-content">
-                      <div className="diagram-label">Timelock</div>
-                      <div className="diagram-text">Bitcoin OP_CHECKLOCKTIMEVERIFY</div>
+                      <div className="diagram-label">Sign Heartbeats</div>
+                      <div className="diagram-text">Nostr events prove you're alive. Anyone can verify.</div>
                     </div>
                   </div>
                   <div className="diagram-step">
                     <div className="diagram-num">05</div>
                     <div className="diagram-content">
-                      <div className="diagram-label">Release</div>
-                      <div className="diagram-text">Check-in failure → reconstruction</div>
+                      <div className="diagram-label">Autonomous Release</div>
+                      <div className="diagram-text">No heartbeat → Guardians publish → Recipients reconstruct</div>
                     </div>
                   </div>
                 </div>
@@ -122,20 +121,20 @@ export default function HomePage() {
       <section className="bg-black text-white">
         <div className="grid grid-cols-2 lg:grid-cols-4">
           <div className="spec">
-            <div className="spec-label">Encryption</div>
-            <div className="spec-value">AES-256-GCM</div>
+            <div className="spec-label">Keys</div>
+            <div className="spec-value">User-Controlled</div>
           </div>
           <div className="spec">
-            <div className="spec-label">Key Split</div>
-            <div className="spec-value">3-of-5 SSS</div>
+            <div className="spec-label">Timer</div>
+            <div className="spec-value">Guardian Network</div>
           </div>
           <div className="spec lg:border-r lg:border-white/20">
-            <div className="spec-label">Relay Network</div>
-            <div className="spec-value">7+ Nodes</div>
+            <div className="spec-label">Proof</div>
+            <div className="spec-value">Bitcoin</div>
           </div>
           <div className="spec">
-            <div className="spec-label">Timestamp</div>
-            <div className="spec-value">Bitcoin</div>
+            <div className="spec-label">Server Required</div>
+            <div className="spec-value">None</div>
           </div>
         </div>
       </section>
@@ -154,48 +153,128 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-1">
             <div className="tech-item">
               <div className="tech-num">001</div>
-              <div className="tech-title">Encryption Layer</div>
+              <div className="tech-title">Client-Side Cryptography</div>
               <div className="tech-desc">
-                Message payload encrypted using AES-256-GCM authenticated encryption.
-                Provides confidentiality and integrity verification upon decryption.
+                All keys generated in your browser. AES-256-GCM encryption, Nostr keypairs,
+                and Bitcoin keys never leave your device. Server sees only encrypted blobs.
               </div>
-              <div className="tech-spec">256-bit key</div>
+              <div className="tech-spec">Zero-knowledge</div>
             </div>
             <div className="tech-item">
               <div className="tech-num">002</div>
-              <div className="tech-title">Key Fragmentation</div>
+              <div className="tech-title">Guardian Network</div>
               <div className="tech-desc">
-                Encryption key split using Shamir's Secret Sharing scheme.
-                Any 3 of 5 fragments sufficient for key reconstruction.
+                Choose 5 guardians (friends, lawyers, services). Each holds one Shamir share.
+                Any 3 can trigger release. No single guardian has power alone.
               </div>
-              <div className="tech-spec">k=3, n=5</div>
+              <div className="tech-spec">3-of-5 threshold</div>
             </div>
             <div className="tech-item">
               <div className="tech-num">003</div>
-              <div className="tech-title">Distribution</div>
+              <div className="tech-title">Nostr Heartbeats</div>
               <div className="tech-desc">
-                Fragments distributed to geographically diverse Nostr relay servers.
-                Protocol ensures censorship resistance and availability.
+                You sign heartbeat events with your Nostr key. Published to 7+ relays.
+                Anyone can verify your proof-of-life. Guardians watch independently.
               </div>
-              <div className="tech-spec">NIP-01</div>
+              <div className="tech-spec">BIP-340 Schnorr</div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-1 mt-1">
+            <div className="tech-item">
+              <div className="tech-num">004</div>
+              <div className="tech-title">Bitcoin Timelocks</div>
+              <div className="tech-desc">
+                Optional OP_CHECKLOCKTIMEVERIFY commitment. Provides unforgeable timestamp
+                proof. Verifiable on any block explorer without trusting EchoLock.
+              </div>
+              <div className="tech-spec">Mainnet ready</div>
+            </div>
+            <div className="tech-item">
+              <div className="tech-num">005</div>
+              <div className="tech-title">Autonomous Release</div>
+              <div className="tech-desc">
+                When guardians detect silence, they publish shares to Nostr. Recipients
+                collect 3+ shares, reconstruct the key, decrypt. No server involved.
+              </div>
+              <div className="tech-spec">Fully autonomous</div>
+            </div>
+            <div className="tech-item">
+              <div className="tech-num">006</div>
+              <div className="tech-title">Self-Hostable</div>
+              <div className="tech-desc">
+                Run your own guardian daemon. Recovery tools work offline.
+                Complete documentation for self-hosting. EchoLock is optional.
+              </div>
+              <div className="tech-spec">AGPL-3.0</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Warning */}
+      {/* The Promise */}
       <section className="bg-white border-t-4 border-b-4 border-black">
         <div className="flex items-stretch">
-          <div className="w-16 flex-shrink-0 hazard-stripe" />
+          <div className="w-16 flex-shrink-0 bg-orange" />
           <div className="p-8 flex items-center gap-6">
-            <div className="warning-icon">!</div>
+            <div className="w-12 h-12 bg-black text-white flex items-center justify-center text-2xl font-bold">✓</div>
             <div>
-              <h3 className="text-base font-bold mb-1">Honest Status: Centralized Prototype</h3>
+              <h3 className="text-base font-bold mb-1">The EchoLock Promise</h3>
               <p className="text-xs opacity-70 max-w-xl">
-                Current version relies on our server for key management and timer checking.
-                We are migrating to user-controlled keys and a Guardian Network for true
-                decentralization. Do not use for sensitive information until v1.0.
+                If EchoLock disappears tomorrow, your switch still works. You have your keys.
+                Your guardians are watching. Your heartbeats are on Nostr. Your message will
+                release. We built this to be eliminable — because that's the only version worth building.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Trust Model */}
+      <section className="py-16 bg-blue-light">
+        <div className="container">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-[11px] uppercase tracking-[0.2em]">Trust Assumptions</h2>
+            <div className="text-[10px] opacity-50 tracking-wider">SECURITY MODEL</div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-sm font-bold mb-4 text-orange">Must Trust</h3>
+              <ul className="space-y-2 text-xs">
+                <li className="flex items-start gap-2">
+                  <span className="text-orange">→</span>
+                  <span>Cryptographic primitives (AES-256-GCM, secp256k1, Shamir)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-orange">→</span>
+                  <span>Your device security (where keys are generated)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-orange">→</span>
+                  <span>At least 3 of your 5 guardians are honest and available</span>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold mb-4">Need NOT Trust</h3>
+              <ul className="space-y-2 text-xs opacity-70">
+                <li className="flex items-start gap-2">
+                  <span>✗</span>
+                  <span>EchoLock (or any single company)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span>✗</span>
+                  <span>Any individual Nostr relay</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span>✗</span>
+                  <span>Any individual guardian (2 colluding cannot access)</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span>✗</span>
+                  <span>Network infrastructure or ISPs</span>
+                </li>
+              </ul>
             </div>
           </div>
         </div>
@@ -213,8 +292,8 @@ export default function HomePage() {
                 <span className="text-sm font-bold tracking-[0.2em] uppercase">Echolock</span>
               </div>
               <p className="text-[11px] opacity-50 max-w-[280px] leading-relaxed">
-                Open-source cryptographic dead man's switch.
-                AGPL-3.0 license. Contributions welcome.
+                Fully decentralized cryptographic dead man's switch.
+                AGPL-3.0 license. Self-hostable. Company eliminable.
               </p>
             </div>
             <div className="flex gap-12">
@@ -237,9 +316,9 @@ export default function HomePage() {
             </div>
           </div>
           <div className="mt-12 pt-6 border-t border-white/10 text-[10px] opacity-40 flex justify-between flex-wrap gap-4 tracking-wider">
-            <span>ECHOLOCK v0.1.0-alpha</span>
-            <span>Network: Bitcoin Testnet</span>
-            <span>Status: Development</span>
+            <span>ECHOLOCK v1.0</span>
+            <span>Network: Bitcoin Mainnet Ready</span>
+            <span>Status: Fully Autonomous</span>
           </div>
         </div>
       </footer>
