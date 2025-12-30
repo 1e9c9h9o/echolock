@@ -78,7 +78,7 @@ export async function collectReleasedShares(
   // Parse share release events
   const shares: ReleasedShare[] = [];
 
-  for (const event of uniqueEvents.values()) {
+  for (const event of Array.from(uniqueEvents.values())) {
     try {
       // Check if this is for our switch
       const dTag = event.tags.find((t) => t[0] === 'd');
