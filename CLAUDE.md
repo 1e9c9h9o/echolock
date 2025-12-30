@@ -329,11 +329,12 @@ Bitcoin provides **unforgeable timestamps** and **programmatic release**.
 - [x] Anyone can verify heartbeat status
 - [ ] Remove server-side timer checking (requires Phase 3)
 
-### Phase 3: Guardian Network (4-8 weeks)
-- [ ] Design guardian enrollment protocol
-- [ ] Implement guardian monitoring daemon
-- [ ] Create self-hosted guardian package
-- [ ] EchoLock becomes one optional guardian
+### Phase 3: Guardian Network (4-8 weeks) ✅
+- [x] Design guardian enrollment protocol (NIP-44 encrypted shares)
+- [x] Implement guardian monitoring daemon (guardian-daemon/)
+- [x] Create self-hosted guardian package (guardian.example.json)
+- [x] EchoLock becomes one optional guardian
+- [x] Guardian management UI component
 
 ### Phase 4: Bitcoin Commitments (8-12 weeks)
 - [ ] Mainnet timelock transactions

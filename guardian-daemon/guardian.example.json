@@ -1,0 +1,14 @@
+{
+  "privateKey": "YOUR_NOSTR_PRIVATE_KEY_HEX",
+  "publicKey": "YOUR_NOSTR_PUBLIC_KEY_HEX",
+  "relayUrls": [
+    "wss://relay.damus.io",
+    "wss://relay.nostr.band",
+    "wss://nos.lol",
+    "wss://relay.snort.social",
+    "wss://nostr.wine"
+  ],
+  "checkIntervalMinutes": 5,
+  "gracePeriodHours": 1,
+  "webhookUrl": null
+}
