@@ -336,11 +336,12 @@ Bitcoin provides **unforgeable timestamps** and **programmatic release**.
 - [x] EchoLock becomes one optional guardian
 - [x] Guardian management UI component
 
-### Phase 4: Bitcoin Commitments (8-12 weeks)
-- [ ] Mainnet timelock transactions
-- [ ] On-chain proof of timer setting
-- [ ] Verifiable by block explorers
-- [ ] Optional but recommended
+### Phase 4: Bitcoin Commitments (8-12 weeks) ✅
+- [x] Mainnet timelock transactions (OP_CHECKLOCKTIMEVERIFY)
+- [x] On-chain proof of timer setting
+- [x] Verifiable by block explorers (mempool.space integration)
+- [x] Optional but recommended
+- [x] Commitment funding and verification UI
 
 ### Phase 5: Full Autonomy (12+ weeks)
 - [ ] Recipient-side reconstruction tools
