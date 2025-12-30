@@ -1,23 +1,35 @@
 'use strict';
 
 // Nostr relay configuration
-// List of reliable relay URLs for production use
 //
-// SECURITY: Relays must be geographically distributed
-// No single entity should control multiple relays in this list
+// Philosophy: Decentralized, community-run, geographically diverse.
+// No single entity should control multiple relays in this list.
+// Users can override via NOSTR_RELAYS environment variable.
+//
+// Selection criteria:
+// - Community-operated (not corporate)
+// - Geographic diversity
+// - Proven reliability
+// - Open source relay software preferred
 
 export const RELIABLE_RELAYS = [
-  // NOTE: These are example relays - verify availability before production
-  'wss://relay.damus.io',
-  'wss://relay.nostr.band',
-  'wss://nostr.wine',
-  'wss://relay.snort.social',
-  'wss://nos.lol',
-  'wss://nostr.mom',
-  'wss://relay.current.fyi',
-  'wss://nostr-pub.wellorder.net',
-  'wss://relay.nostr.bg',
-  'wss://nostr.orangepill.dev'
+  // Major community relays
+  'wss://relay.damus.io',      // Damus (iOS client) - North America
+  'wss://relay.snort.social',  // Snort (web client) - Europe
+  'wss://nos.lol',             // Community favorite - Europe
+  'wss://relay.nostr.band',    // Search/indexing - Global
+
+  // Paid/premium relays (sustainable model)
+  'wss://nostr.wine',          // Paid relay - quality filtering
+
+  // Geographic diversity
+  'wss://relay.nostr.bg',      // Bulgaria
+  'wss://nostr-pub.wellorder.net', // North America
+  'wss://relay.current.fyi',   // Current app relay
+
+  // Additional community relays
+  'wss://nostr.mom',           // Community relay
+  'wss://purplepag.es',        // NIP-65 relay discovery
 ];
 
 // Relay selection criteria
