@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Play, RotateCcw, Clock, Shield, CheckCircle, Key, Lock, Users, Radio, Bitcoin, AlertTriangle, Eye, EyeOff, Server, Zap, GraduationCap, Code } from 'lucide-react'
+import { ArrowLeft, Play, RotateCcw, Clock, Shield, CheckCircle, Key, Lock, Users, Radio, Bitcoin, Eye, EyeOff, GraduationCap, Code, ArrowRight, Info } from 'lucide-react'
 
 type DemoPhase = 'intro' | 'creating' | 'armed' | 'triggered' | 'released'
 type ExplainMode = 'eli5' | 'technical'
@@ -17,11 +17,16 @@ interface DemoSwitch {
   checkInCount: number
   encryptionKey: string
   nostrPubkey: string
-  guardians: string[]
+  guardians: { name: string; type: string }[]
   shares: string[]
 }
 
-const DEMO_SECRET = 'My Bitcoin wallet seed phrase is: abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+// More relatable secret examples
+const SECRET_EXAMPLES = [
+  { label: 'Gmail Password', value: 'Gmail: john.smith@gmail.com\nPassword: MyS3cur3P@ss!2024' },
+  { label: 'Bank Safe Box', value: 'First National Bank\nSafe Deposit Box #4521\nAccess Code: 7-29-14-33' },
+  { label: 'Bitcoin Wallet', value: 'Coinbase recovery phrase:\nabandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about' },
+]
 
 const DEMO_INTERVAL_SECONDS = 60
 
@@ -79,6 +84,7 @@ export default function PublicDemoPage() {
   const [creationStep, setCreationStep] = useState(0)
   const [showSecret, setShowSecret] = useState(false)
   const [triggerStep, setTriggerStep] = useState(0)
+  const [selectedSecret, setSelectedSecret] = useState(0)
 
   const isEli5 = mode === 'eli5'
 
@@ -101,19 +107,7 @@ export default function PublicDemoPage() {
     }
   }, [phase, demoSwitch])
 
-  useEffect(() => {
-    if (phase === 'creating' && creationStep < 5) {
-      const timer = setTimeout(() => {
-        setCreationStep((prev) => prev + 1)
-      }, 1500)
-      return () => clearTimeout(timer)
-    } else if (phase === 'creating' && creationStep === 5) {
-      setTimeout(() => {
-        setPhase('armed')
-      }, 1000)
-    }
-  }, [phase, creationStep])
-
+  // Trigger phase auto-advances
   useEffect(() => {
     if (phase === 'triggered' && triggerStep < 4) {
       const timer = setTimeout(() => {
@@ -133,7 +127,7 @@ export default function PublicDemoPage() {
 
     const newSwitch: DemoSwitch = {
       id: 'demo-' + Date.now(),
-      secret: DEMO_SECRET,
+      secret: SECRET_EXAMPLES[selectedSecret].value,
       status: 'active',
       checkInInterval: DEMO_INTERVAL_SECONDS,
       nextCheckInAt: nextCheckIn.toISOString(),
@@ -141,9 +135,13 @@ export default function PublicDemoPage() {
       checkInCount: 0,
       encryptionKey: generateFakeKey(),
       nostrPubkey: generateFakeNpub(),
-      guardians: isEli5
-        ? ['Your friend Alice', 'Your lawyer Bob', 'Your sister Carol', 'EchoLock (helper)', 'Your own computer']
-        : ['Friend (Alice)', 'Lawyer (Bob)', 'Family (Carol)', 'EchoLock Service', 'Self-hosted Server'],
+      guardians: [
+        { name: 'Alice (your sister)', type: 'family' },
+        { name: 'Bob (your lawyer)', type: 'professional' },
+        { name: 'Carol (your best friend)', type: 'friend' },
+        { name: 'Dave (your accountant)', type: 'professional' },
+        { name: 'EchoLock Service', type: 'service' },
+      ],
       shares: Array.from({ length: 5 }, () => generateFakeKey().substring(0, 32)),
     }
 
@@ -152,6 +150,14 @@ export default function PublicDemoPage() {
     setCreationStep(0)
     setTimeElapsed(0)
     setTimeRemaining(DEMO_INTERVAL_SECONDS)
+  }
+
+  const advanceCreationStep = () => {
+    if (creationStep < 5) {
+      setCreationStep(creationStep + 1)
+    } else {
+      setPhase('armed')
+    }
   }
 
   const resetDemo = () => {
@@ -200,12 +206,9 @@ export default function PublicDemoPage() {
               </div>
               <span className="text-sm font-bold tracking-[0.2em] uppercase">Echolock</span>
             </Link>
-            <div className="flex items-center gap-3">
-              <ModeToggle mode={mode} setMode={setMode} />
-              <Link href="/auth/login" className="text-[11px] uppercase tracking-wider px-4 py-2 bg-orange text-black font-bold hover:bg-white transition-colors hidden sm:block">
-                Sign Up
-              </Link>
-            </div>
+            <Link href="/auth/login" className="text-[11px] uppercase tracking-wider px-4 py-2 bg-orange text-black font-bold hover:bg-white transition-colors hidden sm:block">
+              Sign Up
+            </Link>
           </div>
         </div>
       </header>
@@ -228,10 +231,16 @@ export default function PublicDemoPage() {
               <h1 className="text-3xl md:text-4xl font-extrabold text-black mb-4">
                 {isEli5 ? "What's a Dead Man's Switch?" : "What is a Dead Man's Switch?"}
               </h1>
+
+              {/* Toggle moved here, right below heading */}
+              <div className="mb-6">
+                <ModeToggle mode={mode} setMode={setMode} />
+              </div>
+
               <p className="text-lg text-black/70 max-w-2xl">
                 {isEli5
-                  ? "Imagine you have a secret (like a treasure map). You want your family to have it if something happens to you, but NOT before. This system automatically shares your secret only if you stop \"checking in\" - like a safety timer that shares information when you're not around to stop it."
-                  : "A mechanism that automatically releases information if you stop checking in. Used for inheritance, whistleblowing, emergency access, or any scenario where information should be released only if something happens to you."}
+                  ? "It's a way to automatically share important information with someone you trust - but ONLY if something happens to you. As long as you keep \"checking in\" (clicking a button every few days), nothing happens. If you stop checking in, your information gets delivered."
+                  : "A mechanism that automatically releases information if you stop checking in. The system monitors for your heartbeats - if none are detected for a configured period, it triggers the release of encrypted information to designated recipients."}
               </p>
             </div>
 
@@ -240,297 +249,336 @@ export default function PublicDemoPage() {
               <div className="bg-white border-4 border-black p-6">
                 <Bitcoin className="h-8 w-8 text-orange mb-4" strokeWidth={2} />
                 <h3 className="font-bold text-black mb-2">
-                  {isEli5 ? "Pass On Your Bitcoin" : "Crypto Inheritance"}
+                  {isEli5 ? "Pass On Passwords" : "Digital Inheritance"}
                 </h3>
                 <p className="text-sm text-black/70">
                   {isEli5
-                    ? "Give your Bitcoin password to family, but only if you're gone. They can't peek while you're here!"
-                    : "Pass wallet seeds to family if you're gone. They can't access it while you're alive."}
+                    ? "Your family gets access to your accounts (email, bank, crypto) but ONLY if you're gone."
+                    : "Pass credentials and wallet seeds to family, accessible only if you don't check in."}
                 </p>
               </div>
               <div className="bg-white border-4 border-black p-6">
                 <Shield className="h-8 w-8 text-orange mb-4" strokeWidth={2} />
                 <h3 className="font-bold text-black mb-2">
-                  {isEli5 ? "Protection Insurance" : "Whistleblower Insurance"}
+                  {isEli5 ? "Protection" : "Insurance Policy"}
                 </h3>
                 <p className="text-sm text-black/70">
                   {isEli5
-                    ? "If you know something important and you disappear, your evidence gets shared automatically. Bad guys can't stop it!"
-                    : "Evidence releases automatically if you disappear. Protection through transparency."}
+                    ? "If you have important documents, they get shared automatically if something happens to you."
+                    : "Evidence or documents release automatically if you're unable to check in."}
                 </p>
               </div>
               <div className="bg-white border-4 border-black p-6">
                 <Key className="h-8 w-8 text-orange mb-4" strokeWidth={2} />
                 <h3 className="font-bold text-black mb-2">
-                  {isEli5 ? "Emergency Passwords" : "Emergency Access"}
+                  {isEli5 ? "Emergency Access" : "Business Continuity"}
                 </h3>
                 <p className="text-sm text-black/70">
                   {isEli5
-                    ? "Your business partner gets important passwords only if you can't work anymore - like a backup plan!"
-                    : "Business partners get critical passwords only if you're incapacitated."}
+                    ? "Your business partner gets critical passwords if you can't work anymore."
+                    : "Partners get critical system access only if you're incapacitated."}
                 </p>
               </div>
             </div>
 
-            {/* Why decentralization matters */}
+            {/* What you'll need - explaining the trusted contacts requirement */}
             <div className="bg-white border-4 border-black p-6">
               <h2 className="font-bold text-black mb-4 flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-orange" />
-                {isEli5 ? "Why We're Different (And Better!)" : "Why Decentralization Matters"}
+                <Info className="h-5 w-5 text-orange" />
+                {isEli5 ? "What You'll Need" : "Requirements"}
               </h2>
-              <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-4">
                 <div>
-                  <h4 className="font-bold text-red-500 mb-2 flex items-center gap-2">
-                    <Server className="h-4 w-4" /> {isEli5 ? "Other Services (Risky!)" : "Centralized Services"}
-                  </h4>
-                  <ul className="text-sm text-black/70 space-y-1">
-                    {isEli5 ? (
-                      <>
-                        <li>They hold your secret = they can read it anytime</li>
-                        <li>Company closes = your secret is lost forever</li>
-                        <li>Hackers attack them = your secret gets stolen</li>
-                        <li>Government asks = they have to give it up</li>
-                      </>
-                    ) : (
-                      <>
-                        <li>Company holds your keys = they can read your secrets</li>
-                        <li>Company shuts down = your data is lost forever</li>
-                        <li>Company is hacked = your secrets are exposed</li>
-                        <li>Company is subpoenaed = government gets access</li>
-                      </>
-                    )}
-                  </ul>
+                  <h3 className="font-bold text-black">
+                    {isEli5 ? "5 Trusted Contacts" : "5 Guardians"}
+                  </h3>
+                  <p className="text-sm text-black/70 mt-1">
+                    {isEli5
+                      ? "These are people (or services) who will watch for your check-ins. They could be family members, friends, your lawyer, your accountant - anyone you trust. Each one holds a \"piece of the puzzle\" and can't read your secret alone."
+                      : "Guardians are entities who monitor your heartbeats and hold key shares. They can be individuals (family, friends, attorneys) or services. Each guardian holds one Shamir share - worthless alone, but any 3 can reconstruct."}
+                  </p>
                 </div>
                 <div>
-                  <h4 className="font-bold text-green-600 mb-2 flex items-center gap-2">
-                    <Zap className="h-4 w-4" /> {isEli5 ? "EchoLock (Safe!)" : "EchoLock (Decentralized)"}
-                  </h4>
-                  <ul className="text-sm text-black/70 space-y-1">
-                    {isEli5 ? (
-                      <>
-                        <li>Only YOU have the key = nobody else can read it</li>
-                        <li>EchoLock disappears = everything still works!</li>
-                        <li>No single place to hack</li>
-                        <li>No single company to force</li>
-                      </>
-                    ) : (
-                      <>
-                        <li>You control your keys = only you can read secrets</li>
-                        <li>EchoLock shuts down = system still works</li>
-                        <li>No central database to hack</li>
-                        <li>No single entity to subpoena</li>
-                      </>
-                    )}
-                  </ul>
+                  <h3 className="font-bold text-black">
+                    {isEli5 ? "Why 5 contacts? Why need 3?" : "Why 5 guardians with 3-of-5 threshold?"}
+                  </h3>
+                  <p className="text-sm text-black/70 mt-1">
+                    {isEli5
+                      ? "This is about safety: If one contact loses their piece or goes missing, you're still okay - you only need ANY 3 of the 5. And if two contacts teamed up to be sneaky, they still can't do anything because you need 3. It's the sweet spot between \"reliable\" and \"secure.\""
+                      : "3-of-5 provides optimal balance: resilient against 2 guardian failures while secure against 2 colluding guardians. You can use friends, family, professionals (lawyers/accountants), or services like EchoLock as one guardian."}
+                  </p>
                 </div>
+              </div>
+            </div>
+
+            {/* Choose your demo secret */}
+            <div className="bg-white border-4 border-black p-6">
+              <h2 className="font-bold text-black mb-4">
+                {isEli5 ? "Choose a Practice Secret" : "Select Demo Secret"}
+              </h2>
+              <p className="text-sm text-black/70 mb-4">
+                {isEli5
+                  ? "Pick something realistic to see how it works (this is just pretend - nothing is saved!):"
+                  : "Select a realistic example for the demo (simulated only, nothing is stored):"}
+              </p>
+              <div className="grid md:grid-cols-3 gap-3">
+                {SECRET_EXAMPLES.map((example, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedSecret(i)}
+                    className={`p-4 border-2 text-left transition-all ${
+                      selectedSecret === i
+                        ? 'border-orange bg-orange/10'
+                        : 'border-black/20 hover:border-black'
+                    }`}
+                  >
+                    <div className="font-bold text-black text-sm">{example.label}</div>
+                    <div className="text-xs text-black/50 mt-1 font-mono truncate">
+                      {example.value.split('\n')[0]}
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* Start button */}
             <div className="bg-orange border-4 border-black p-8 text-center">
               <h2 className="text-2xl font-bold text-black mb-4">
-                {isEli5 ? "Let's Try It Out!" : "See It In Action"}
+                {isEli5 ? "Ready to Try It?" : "See It In Action"}
               </h2>
               <p className="text-black/70 mb-6 max-w-md mx-auto">
                 {isEli5
-                  ? "This is a practice version with a fast timer (1 minute instead of days). Nothing is saved - it's just for learning!"
-                  : "This interactive demo shows the complete lifecycle with accelerated timers (1 minute instead of days). Your data stays in your browser only."}
+                  ? "This demo uses a 1-minute timer (real ones use days). Nothing is saved - click around and learn how it works!"
+                  : "Interactive demo with accelerated timers (1 minute vs days). Data stays in browser memory only."}
               </p>
               <button
                 onClick={startDemo}
                 className="bg-black text-orange px-8 py-4 font-bold text-lg hover:bg-white hover:text-black transition-colors border-4 border-black"
               >
                 <Play className="h-5 w-5 inline mr-2" strokeWidth={2} />
-                {isEli5 ? "Start the Demo!" : "Start Interactive Demo"}
+                {isEli5 ? "Start Demo" : "Start Interactive Demo"}
               </button>
             </div>
           </div>
         )}
 
-        {/* CREATING PHASE */}
+        {/* CREATING PHASE - Now interactive! */}
         {phase === 'creating' && demoSwitch && (
           <div className="space-y-6">
+            {/* Toggle always visible */}
+            <div className="flex justify-end">
+              <ModeToggle mode={mode} setMode={setMode} />
+            </div>
+
             <div className="mb-8">
               <h1 className="text-3xl font-extrabold text-black mb-2">
-                {isEli5 ? "Setting Up Your Secret Safe..." : "Creating Your Switch"}
+                {isEli5 ? "Setting Up Your Switch" : "Creating Your Switch"}
               </h1>
               <p className="text-black/70">
                 {isEli5
-                  ? "Watch the magic happen! Everything stays on YOUR computer..."
-                  : "Watch as everything is generated locally in your browser..."}
+                  ? "Click through each step to see how your secret gets protected. Everything happens on YOUR device."
+                  : "Step through the setup process. All cryptographic operations happen locally in your browser."}
               </p>
             </div>
 
             <div className="bg-white border-4 border-black">
-              <div className="bg-black text-white px-6 py-3">
+              <div className="bg-black text-white px-6 py-3 flex justify-between items-center">
                 <span className="font-bold uppercase tracking-wider text-sm">
-                  {isEli5 ? "Building Your Safe" : "Setup Progress"}
+                  {isEli5 ? `Step ${Math.min(creationStep + 1, 5)} of 5` : `Setup Step ${Math.min(creationStep + 1, 5)}/5`}
+                </span>
+                <span className="text-xs opacity-50">
+                  {isEli5 ? "Click 'Next' to continue" : "Click to advance"}
                 </span>
               </div>
               <div className="p-6 space-y-6">
-                {/* Step 1: Key Generation */}
+                {/* Step 1: Your Secret */}
                 <div className={`p-4 border-2 transition-all ${creationStep >= 0 ? 'border-black bg-green-50' : 'border-black/20 opacity-50'}`}>
                   <div className="flex items-start gap-4">
                     <div className={`w-8 h-8 flex items-center justify-center border-2 ${creationStep >= 1 ? 'bg-green-500 border-green-500 text-white' : 'border-black'}`}>
-                      {creationStep >= 1 ? <CheckCircle className="h-5 w-5" /> : <Key className="h-5 w-5" />}
+                      {creationStep >= 1 ? <CheckCircle className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-black">
-                        {isEli5 ? "Step 1: Create a Secret Key" : "Step 1: Generate Encryption Key"}
+                        {isEli5 ? "Step 1: Your Secret" : "Step 1: Your Secret Message"}
                       </h3>
                       <p className="text-sm text-black/70 mb-2">
                         {isEli5
-                          ? "We make a super-secret password right here on your computer. It's like a unique key that only YOU have - we never see it!"
-                          : "A 256-bit AES-GCM key is generated using your browser's cryptographic API. This key never leaves your device."}
+                          ? "This is the information you want to pass on. It could be a password, account details, or any important message."
+                          : "The information to be released. Can be any text: credentials, instructions, or sensitive data."}
                       </p>
-                      {creationStep >= 1 && (
-                        <code className="text-xs bg-black text-green-400 px-2 py-1 font-mono block overflow-hidden">
-                          {isEli5 ? "🔑 [Your Secret Key - Only You Have This!]" : demoSwitch.encryptionKey}
-                        </code>
+                      {creationStep >= 0 && (
+                        <div className="bg-black/5 border border-black/20 p-3 font-mono text-sm whitespace-pre-wrap">
+                          {demoSwitch.secret}
+                        </div>
                       )}
-                      <p className="text-xs text-black/50 mt-2">
-                        {isEli5
-                          ? "💡 Why this matters: EchoLock NEVER sees this key. We literally cannot read your secret!"
-                          : "Why it matters: Unlike centralized services, EchoLock never sees this key. We literally cannot read your message."}
-                      </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Step 2: Nostr Identity */}
-                <div className={`p-4 border-2 transition-all ${creationStep >= 1 ? 'border-black bg-green-50' : 'border-black/20 opacity-50'}`}>
-                  <div className="flex items-start gap-4">
-                    <div className={`w-8 h-8 flex items-center justify-center border-2 ${creationStep >= 2 ? 'bg-green-500 border-green-500 text-white' : 'border-black'}`}>
-                      {creationStep >= 2 ? <CheckCircle className="h-5 w-5" /> : <Radio className="h-5 w-5" />}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-black">
-                        {isEli5 ? "Step 2: Create Your ID Card" : "Step 2: Create Nostr Identity"}
-                      </h3>
-                      <p className="text-sm text-black/70 mb-2">
-                        {isEli5
-                          ? "We create a special ID for you. When you \"check in,\" you sign with this ID so everyone knows it's really you - like a fingerprint!"
-                          : "A Nostr keypair is generated for signing heartbeats. Anyone can verify you're alive by checking public relays."}
-                      </p>
-                      {creationStep >= 2 && (
-                        <code className="text-xs bg-black text-green-400 px-2 py-1 font-mono block overflow-hidden">
-                          {isEli5 ? "🪪 [Your Unique ID - Like a Fingerprint]" : demoSwitch.nostrPubkey}
-                        </code>
-                      )}
-                      <p className="text-xs text-black/50 mt-2">
-                        {isEli5
-                          ? "💡 Why this matters: Nobody can pretend to be you. Your check-ins have your unique fingerprint!"
-                          : "Why it matters: Heartbeats are signed with your private key using BIP-340 Schnorr signatures. No one can fake your check-ins."}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Step 3: Encrypt Secret */}
-                <div className={`p-4 border-2 transition-all ${creationStep >= 2 ? 'border-black bg-green-50' : 'border-black/20 opacity-50'}`}>
-                  <div className="flex items-start gap-4">
-                    <div className={`w-8 h-8 flex items-center justify-center border-2 ${creationStep >= 3 ? 'bg-green-500 border-green-500 text-white' : 'border-black'}`}>
-                      {creationStep >= 3 ? <CheckCircle className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-black">
-                        {isEli5 ? "Step 3: Lock Your Secret" : "Step 3: Encrypt Your Secret"}
-                      </h3>
-                      <p className="text-sm text-black/70 mb-2">
-                        {isEli5
-                          ? "Your message gets scrambled into gibberish. Without the key from Step 1, it's impossible to read - like a puzzle with a billion pieces!"
-                          : "Your message is encrypted with AES-256-GCM. The encrypted blob can be stored anywhere - even publicly - and no one can read it without the key."}
-                      </p>
-                      {creationStep >= 3 && (
-                        <div className="text-xs bg-black text-orange px-2 py-1 font-mono">
+                {/* Step 2: Generate Encryption Key */}
+                {creationStep >= 1 && (
+                  <div className={`p-4 border-2 transition-all ${creationStep >= 1 ? 'border-black bg-green-50' : 'border-black/20 opacity-50'}`}>
+                    <div className="flex items-start gap-4">
+                      <div className={`w-8 h-8 flex items-center justify-center border-2 ${creationStep >= 2 ? 'bg-green-500 border-green-500 text-white' : 'border-black'}`}>
+                        {creationStep >= 2 ? <CheckCircle className="h-5 w-5" /> : <Key className="h-5 w-5" />}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-black">
+                          {isEli5 ? "Step 2: Create a Lock" : "Step 2: Generate Encryption Key"}
+                        </h3>
+                        <p className="text-sm text-black/70 mb-2">
                           {isEli5
-                            ? "🔒 [Scrambled Secret - Looks Like Random Nonsense!]"
-                            : <><span className="text-white/50">Encrypted:</span> 7f3a9b2c...{demoSwitch.encryptionKey.substring(0, 16)}...encrypted</>}
-                        </div>
-                      )}
-                      <p className="text-xs text-black/50 mt-2">
-                        {isEli5
-                          ? "💡 Why this matters: Even if someone finds this scrambled message, they can't read it. Math protects you!"
-                          : "Why it matters: Even if someone intercepts the encrypted message, it's mathematically impossible to decrypt without the key."}
-                      </p>
+                            ? "A super-strong password is created RIGHT HERE on your device. EchoLock never sees it - that's what makes this secure!"
+                            : "A 256-bit AES-GCM key is generated using WebCrypto API. This key never leaves your device - EchoLock never has access to it."}
+                        </p>
+                        {creationStep >= 2 && (
+                          <code className="text-xs bg-black text-green-400 px-2 py-1 font-mono block overflow-hidden">
+                            {isEli5 ? "🔑 [Your encryption key - only exists on YOUR device]" : demoSwitch.encryptionKey}
+                          </code>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* Step 4: Split Key with Shamir */}
-                <div className={`p-4 border-2 transition-all ${creationStep >= 3 ? 'border-black bg-green-50' : 'border-black/20 opacity-50'}`}>
-                  <div className="flex items-start gap-4">
-                    <div className={`w-8 h-8 flex items-center justify-center border-2 ${creationStep >= 4 ? 'bg-green-500 border-green-500 text-white' : 'border-black'}`}>
-                      {creationStep >= 4 ? <CheckCircle className="h-5 w-5" /> : <Users className="h-5 w-5" />}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-black">
-                        {isEli5 ? "Step 4: Split the Key into Pieces" : "Step 4: Split Key (Shamir's Secret Sharing)"}
-                      </h3>
-                      <p className="text-sm text-black/70 mb-2">
-                        {isEli5
-                          ? "We break your key into 5 puzzle pieces. The cool part? You need ANY 3 pieces to rebuild it, but 2 pieces alone are useless!"
-                          : "The encryption key is split into 5 shares using Shamir's Secret Sharing. Any 3 shares can reconstruct the key, but 2 shares reveal nothing."}
-                      </p>
-                      {creationStep >= 4 && (
-                        <div className="grid grid-cols-5 gap-1 text-xs">
-                          {demoSwitch.shares.map((share, i) => (
-                            <div key={i} className="bg-black text-green-400 px-1 py-1 font-mono truncate text-center">
-                              {isEli5 ? `🧩${i+1}` : share.substring(0, 6) + '...'}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      <p className="text-xs text-black/50 mt-2">
-                        {isEli5
-                          ? "💡 Why this matters: No single helper can unlock your secret alone. Even if 2 helpers team up to be sneaky, they can't do anything!"
-                          : "Why it matters: No single guardian can access your secret. Even 2 colluding guardians learn nothing. You need 3 of 5 to reconstruct."}
-                      </p>
+                {/* Step 3: Encrypt */}
+                {creationStep >= 2 && (
+                  <div className={`p-4 border-2 transition-all ${creationStep >= 2 ? 'border-black bg-green-50' : 'border-black/20 opacity-50'}`}>
+                    <div className="flex items-start gap-4">
+                      <div className={`w-8 h-8 flex items-center justify-center border-2 ${creationStep >= 3 ? 'bg-green-500 border-green-500 text-white' : 'border-black'}`}>
+                        {creationStep >= 3 ? <CheckCircle className="h-5 w-5" /> : <Lock className="h-5 w-5" />}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-black">
+                          {isEli5 ? "Step 3: Scramble It" : "Step 3: Encrypt Your Secret"}
+                        </h3>
+                        <p className="text-sm text-black/70 mb-2">
+                          {isEli5
+                            ? "Your secret is scrambled into random-looking gibberish. Without the key, it's completely unreadable - even by us!"
+                            : "Your message is encrypted using AES-256-GCM. The ciphertext can be stored anywhere (even publicly) and remains secure."}
+                        </p>
+                        {creationStep >= 3 && (
+                          <div className="text-xs bg-black text-orange px-2 py-1 font-mono">
+                            {isEli5
+                              ? "🔒 [Scrambled: looks like random letters and numbers now]"
+                              : <><span className="text-white/50">Ciphertext:</span> 7f3a9b2c4d8e...{generateFakeKey().substring(0, 20)}...</>}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {/* Step 4: Split the Key */}
+                {creationStep >= 3 && (
+                  <div className={`p-4 border-2 transition-all ${creationStep >= 3 ? 'border-black bg-green-50' : 'border-black/20 opacity-50'}`}>
+                    <div className="flex items-start gap-4">
+                      <div className={`w-8 h-8 flex items-center justify-center border-2 ${creationStep >= 4 ? 'bg-green-500 border-green-500 text-white' : 'border-black'}`}>
+                        {creationStep >= 4 ? <CheckCircle className="h-5 w-5" /> : <Users className="h-5 w-5" />}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-black">
+                          {isEli5 ? "Step 4: Split the Key into 5 Pieces" : "Step 4: Shamir Secret Sharing (3-of-5)"}
+                        </h3>
+                        <p className="text-sm text-black/70 mb-2">
+                          {isEli5
+                            ? "The encryption key is broken into 5 puzzle pieces. The magic: you need ANY 3 pieces to rebuild it, but 2 pieces tell you nothing!"
+                            : "The encryption key is split into 5 shares using Shamir's Secret Sharing. Mathematical property: any 3 shares reconstruct the key, but 2 shares reveal zero information."}
+                        </p>
+                        {creationStep >= 4 && (
+                          <div className="grid grid-cols-5 gap-1 text-xs">
+                            {demoSwitch.shares.map((share, i) => (
+                              <div key={i} className="bg-black text-green-400 px-1 py-1 font-mono truncate text-center">
+                                {isEli5 ? `Piece ${i+1}` : share.substring(0, 6) + '...'}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* Step 5: Distribute to Guardians */}
-                <div className={`p-4 border-2 transition-all ${creationStep >= 4 ? 'border-black bg-green-50' : 'border-black/20 opacity-50'}`}>
-                  <div className="flex items-start gap-4">
-                    <div className={`w-8 h-8 flex items-center justify-center border-2 ${creationStep >= 5 ? 'bg-green-500 border-green-500 text-white' : 'border-black'}`}>
-                      {creationStep >= 5 ? <CheckCircle className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-bold text-black">
-                        {isEli5 ? "Step 5: Give Pieces to Your Helpers" : "Step 5: Distribute to Guardians"}
-                      </h3>
-                      <p className="text-sm text-black/70 mb-2">
-                        {isEli5
-                          ? "Each puzzle piece goes to a different helper - friends, family, or services you trust. They watch for your check-ins!"
-                          : "Each share is encrypted to a guardian's public key and distributed. Guardians watch for your heartbeats on Nostr."}
-                      </p>
-                      {creationStep >= 5 && (
-                        <div className="space-y-1">
-                          {demoSwitch.guardians.map((guardian, i) => (
-                            <div key={i} className="flex items-center gap-2 text-xs">
-                              <span className="bg-green-500 text-white px-2 py-0.5">
-                                {isEli5 ? `🧩${i+1}` : `Share ${i+1}`}
-                              </span>
-                              <span className="text-black/70">{guardian}</span>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      <p className="text-xs text-black/50 mt-2">
-                        {isEli5
-                          ? "💡 Why this matters: YOU choose your helpers - friends, family, lawyers. EchoLock is just ONE helper, not the boss!"
-                          : "Why it matters: You choose your guardians - friends, family, lawyers, or services. EchoLock is just one optional guardian, not a privileged one."}
-                      </p>
+                {creationStep >= 4 && (
+                  <div className={`p-4 border-2 transition-all ${creationStep >= 4 ? 'border-black bg-green-50' : 'border-black/20 opacity-50'}`}>
+                    <div className="flex items-start gap-4">
+                      <div className={`w-8 h-8 flex items-center justify-center border-2 ${creationStep >= 5 ? 'bg-green-500 border-green-500 text-white' : 'border-black'}`}>
+                        {creationStep >= 5 ? <CheckCircle className="h-5 w-5" /> : <Shield className="h-5 w-5" />}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-bold text-black">
+                          {isEli5 ? "Step 5: Give Pieces to Your Trusted Contacts" : "Step 5: Distribute Shares to Guardians"}
+                        </h3>
+                        <p className="text-sm text-black/70 mb-2">
+                          {isEli5
+                            ? "Each piece goes to someone you trust. These could be family, friends, your lawyer - anyone. They'll watch for your check-ins."
+                            : "Each share is encrypted to a guardian's public key and distributed. Guardians monitor Nostr relays for your heartbeats."}
+                        </p>
+                        {creationStep >= 5 && (
+                          <div className="space-y-1">
+                            {demoSwitch.guardians.map((guardian, i) => (
+                              <div key={i} className="flex items-center gap-2 text-xs">
+                                <span className="bg-green-500 text-white px-2 py-0.5">
+                                  Piece {i+1}
+                                </span>
+                                <span className="text-black/70">{guardian.name}</span>
+                                <span className="text-black/40">({guardian.type})</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
+              </div>
+
+              {/* Next button */}
+              <div className="border-t-2 border-black px-6 py-4 bg-black/5">
+                <button
+                  onClick={advanceCreationStep}
+                  className="w-full bg-orange text-black px-6 py-3 font-bold hover:bg-black hover:text-orange transition-colors border-2 border-black flex items-center justify-center gap-2"
+                >
+                  {creationStep >= 5 ? (
+                    <>
+                      <CheckCircle className="h-5 w-5" />
+                      {isEli5 ? "Done! Start the Timer" : "Complete Setup"}
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRight className="h-5 w-5" />
+                      {isEli5 ? "Next Step" : "Continue"}
+                    </>
+                  )}
+                </button>
               </div>
             </div>
 
-            {creationStep >= 5 && (
-              <div className="text-center text-black/70 animate-pulse">
-                {isEli5 ? "Your safe is ready! Starting the timer..." : "Switch armed! Starting timer..."}
+            {/* Explanation for current step */}
+            {creationStep < 5 && (
+              <div className="bg-blue-light border-2 border-black p-4">
+                <h4 className="font-bold text-black mb-2 flex items-center gap-2">
+                  <Info className="h-4 w-4 text-orange" />
+                  {isEli5 ? "Why this matters" : "Security note"}
+                </h4>
+                <p className="text-sm text-black/70">
+                  {creationStep === 0 && (isEli5
+                    ? "Your secret never leaves your device unencrypted. What gets stored online is scrambled gibberish."
+                    : "The plaintext is only processed in-browser. Only encrypted ciphertext is transmitted or stored.")}
+                  {creationStep === 1 && (isEli5
+                    ? "This key is generated randomly on YOUR device. EchoLock never sees it, so we literally cannot read your secret."
+                    : "Key generation uses browser's secure random number generator. EchoLock has zero knowledge of this key.")}
+                  {creationStep === 2 && (isEli5
+                    ? "AES-256 is what banks use. Without the key, even the fastest computers would take billions of years to crack it."
+                    : "AES-256-GCM provides authenticated encryption with 128-bit security level. Computationally infeasible to break.")}
+                  {creationStep === 3 && (isEli5
+                    ? "If 2 contacts team up to peek at your secret, they still can't - they need 3 pieces. But if 2 contacts are unavailable, you're still okay!"
+                    : "Information-theoretic security: 2 shares reveal zero bits about the secret. System remains functional with up to 2 guardian failures.")}
+                  {creationStep === 4 && (isEli5
+                    ? "You pick who holds the pieces. Could be all family, all friends, or a mix. EchoLock can be ONE of the 5, but doesn't have to be."
+                    : "Guardian selection is user-controlled. EchoLock is an optional guardian with no special privileges.")}
+                </p>
               </div>
             )}
           </div>
@@ -539,14 +587,19 @@ export default function PublicDemoPage() {
         {/* ARMED PHASE */}
         {phase === 'armed' && demoSwitch && (
           <div className="space-y-6">
+            {/* Toggle */}
+            <div className="flex justify-end">
+              <ModeToggle mode={mode} setMode={setMode} />
+            </div>
+
             <div className="mb-4">
               <h1 className="text-3xl font-extrabold text-black mb-2">
-                {isEli5 ? "Your Safe is Active!" : "Switch Armed"}
+                {isEli5 ? "Your Switch is Active!" : "Switch Armed"}
               </h1>
               <p className="text-black/70">
                 {isEli5
-                  ? "Now you need to keep checking in to show you're okay. Miss a check-in and your secret gets shared!"
-                  : "Your switch is active. Check in to reset the timer, or let it expire to see the release process."}
+                  ? "Check in before time runs out to keep your secret safe. Or let the timer expire to see what happens!"
+                  : "Check in to reset the timer, or let it expire to observe the release process."}
               </p>
             </div>
 
@@ -554,7 +607,7 @@ export default function PublicDemoPage() {
             <div className="bg-white border-4 border-black">
               <div className="bg-green-500 text-white px-6 py-3 flex items-center justify-between">
                 <span className="font-bold uppercase tracking-wider text-sm">
-                  {isEli5 ? "Timer Running - Check In to Reset!" : "Active - Monitoring Heartbeats"}
+                  {isEli5 ? "Timer Running" : "Active - Monitoring"}
                 </span>
                 <span className="bg-white text-green-500 px-3 py-1 text-xs font-bold uppercase">
                   {isEli5 ? "Safe" : "Armed"}
@@ -566,7 +619,7 @@ export default function PublicDemoPage() {
                     {formatTime(timeRemaining)}
                   </div>
                   <p className="text-black/50 text-sm">
-                    {isEli5 ? "Time left to check in" : "Time until guardians are alerted"}
+                    {isEli5 ? "Time left to check in" : "Until release triggered"}
                   </p>
                 </div>
 
@@ -577,26 +630,26 @@ export default function PublicDemoPage() {
                   />
                 </div>
 
-                {/* What's happening now */}
+                {/* What's happening */}
                 <div className="bg-blue-light border-2 border-black p-4 mb-6">
                   <h4 className="font-bold text-black mb-2 flex items-center gap-2">
                     <Radio className="h-4 w-4 text-orange" />
-                    {isEli5 ? "What's Happening Right Now" : "Right Now (In Real System)"}
+                    {isEli5 ? "What's happening right now" : "Current activity"}
                   </h4>
                   <ul className="text-sm text-black/70 space-y-1">
                     {isEli5 ? (
                       <>
-                        <li>Your "I'm okay!" signals are being sent to many places around the world</li>
-                        <li>All 5 of your helpers are watching for your signals</li>
-                        <li>Anyone can check if you're checking in (it's public!)</li>
-                        <li>No company controls this - your helpers watch directly</li>
+                        <li>• Your 5 trusted contacts are watching for your check-ins</li>
+                        <li>• Each contact has their puzzle piece ready</li>
+                        <li>• If you don't check in, they'll share their pieces</li>
+                        <li>• Your recipient will then be able to read your secret</li>
                       </>
                     ) : (
                       <>
-                        <li>Your heartbeat events are being published to 10 Nostr relays globally</li>
-                        <li>All 5 guardians are independently monitoring those relays</li>
-                        <li>Anyone can verify your last heartbeat on any Nostr client</li>
-                        <li>No central server is involved - guardians watch the public network</li>
+                        <li>• All 5 guardians monitoring Nostr relays for your heartbeat</li>
+                        <li>• Each guardian holds one encrypted share</li>
+                        <li>• Missing heartbeat triggers independent share release</li>
+                        <li>• Recipients reconstruct key from 3+ shares</li>
                       </>
                     )}
                   </ul>
@@ -606,7 +659,7 @@ export default function PublicDemoPage() {
                 <div className="bg-black/5 border-2 border-black p-4">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs uppercase tracking-wider text-black/50">
-                      {isEli5 ? "Your Secret (Locked!)" : "Your Encrypted Secret"}
+                      {isEli5 ? "Your Secret (Locked)" : "Encrypted Secret"}
                     </p>
                     <button
                       onClick={() => setShowSecret(!showSecret)}
@@ -616,16 +669,9 @@ export default function PublicDemoPage() {
                       {showSecret ? 'Hide' : 'Peek'}
                     </button>
                   </div>
-                  <p className={`text-black font-mono text-sm ${showSecret ? '' : 'blur-sm select-none'}`}>
+                  <p className={`text-black font-mono text-sm whitespace-pre-wrap ${showSecret ? '' : 'blur-sm select-none'}`}>
                     {demoSwitch.secret}
                   </p>
-                  {!showSecret && (
-                    <p className="text-xs text-black/50 mt-2">
-                      {isEli5
-                        ? "This is scrambled right now. Even EchoLock can't read it!"
-                        : "This is encrypted with AES-256-GCM. Even EchoLock cannot read it."}
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
@@ -637,44 +683,15 @@ export default function PublicDemoPage() {
                 className="flex-1 bg-green-500 text-white px-6 py-4 font-bold hover:bg-green-600 transition-colors border-4 border-black"
               >
                 <CheckCircle className="h-5 w-5 inline mr-2" strokeWidth={2} />
-                {isEli5 ? "I'm Okay! (Check In)" : "Check In (Reset Timer)"}
+                {isEli5 ? "I'm OK! (Check In)" : "Check In"}
               </button>
               <button
                 onClick={resetDemo}
                 className="bg-white text-black px-6 py-4 font-bold hover:bg-black hover:text-white transition-colors border-4 border-black"
               >
                 <RotateCcw className="h-5 w-5 inline mr-2" strokeWidth={2} />
-                Reset Demo
+                Reset
               </button>
-            </div>
-
-            {/* Check-in explanation */}
-            <div className="bg-white border-4 border-black p-6">
-              <h3 className="font-bold text-black mb-3">
-                {isEli5 ? "What happens when you check in?" : "What happens when you check in?"}
-              </h3>
-              <ol className="text-sm text-black/70 space-y-2 list-decimal list-inside">
-                {isEli5 ? (
-                  <>
-                    <li>You sign an "I'm okay!" message with your special fingerprint</li>
-                    <li>This message gets sent to many computers around the world</li>
-                    <li>Your helpers see it and know you're fine - they reset their timers</li>
-                    <li>Nobody can fake your message because of your unique fingerprint!</li>
-                  </>
-                ) : (
-                  <>
-                    <li>You sign a heartbeat event with your Nostr private key (BIP-340 Schnorr signature)</li>
-                    <li>The signed event is published to 10+ Nostr relays worldwide</li>
-                    <li>Guardians see the new heartbeat and reset their internal timers</li>
-                    <li>The signature proves it's really you - no one can fake your heartbeat</li>
-                  </>
-                )}
-              </ol>
-              <p className="text-xs text-black/50 mt-4 pt-4 border-t border-black/10">
-                {isEli5
-                  ? "In real life: You'd check in once every few days using the app or clicking an email link."
-                  : "In production: You'd check in every 24-168 hours via the app, email link, or even SMS."}
-              </p>
             </div>
 
             {/* Stats */}
@@ -686,7 +703,7 @@ export default function PublicDemoPage() {
               <div className="bg-white border-2 border-black p-4">
                 <div className="text-2xl font-bold text-black">5</div>
                 <div className="text-xs text-black/50 uppercase tracking-wider">
-                  {isEli5 ? "Helpers" : "Guardians"}
+                  {isEli5 ? "Contacts" : "Guardians"}
                 </div>
               </div>
               <div className="bg-white border-2 border-black p-4">
@@ -700,24 +717,29 @@ export default function PublicDemoPage() {
         {/* TRIGGERED PHASE */}
         {phase === 'triggered' && demoSwitch && (
           <div className="space-y-6">
+            {/* Toggle */}
+            <div className="flex justify-end">
+              <ModeToggle mode={mode} setMode={setMode} />
+            </div>
+
             <div className="mb-4">
               <h1 className="text-3xl font-extrabold text-red-500 mb-2">
-                {isEli5 ? "Time's Up! Release Starting..." : "Switch Triggered!"}
+                {isEli5 ? "Time's Up! Release Starting..." : "Switch Triggered"}
               </h1>
               <p className="text-black/70">
                 {isEli5
-                  ? "You didn't check in, so your helpers are now working together to share your secret..."
-                  : "You didn't check in. Watch as the guardians coordinate to release your secret..."}
+                  ? "You didn't check in, so your contacts are now sharing their puzzle pieces..."
+                  : "No heartbeat detected. Guardians are releasing their shares..."}
               </p>
             </div>
 
             <div className="bg-white border-4 border-red-500">
               <div className="bg-red-500 text-white px-6 py-3 flex items-center justify-between">
                 <span className="font-bold uppercase tracking-wider text-sm">
-                  {isEli5 ? "Sharing Your Secret..." : "Release In Progress"}
+                  {isEli5 ? "Releasing..." : "Release In Progress"}
                 </span>
                 <span className="bg-white text-red-500 px-3 py-1 text-xs font-bold uppercase animate-pulse">
-                  {isEli5 ? "Working" : "Releasing"}
+                  Active
                 </span>
               </div>
               <div className="p-6 space-y-4">
@@ -729,12 +751,12 @@ export default function PublicDemoPage() {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-black">
-                        {isEli5 ? "Helpers Notice You're Missing" : "Guardians Detect Missing Heartbeat"}
+                        {isEli5 ? "Contacts Notice You Didn't Check In" : "Guardians Detect Missing Heartbeat"}
                       </h3>
                       <p className="text-sm text-black/70">
                         {isEli5
-                          ? "All 5 helpers see that you haven't checked in. They don't need to talk to each other or EchoLock - they each notice on their own!"
-                          : "All 5 guardians independently notice no heartbeat on Nostr for the configured period. They don't need to communicate with each other or with EchoLock."}
+                          ? "All 5 of your contacts independently notice you haven't checked in. They don't need to talk to each other - each one decides on their own."
+                          : "Each guardian independently observes no heartbeat on Nostr for the configured period. No coordination required - they act autonomously."}
                       </p>
                     </div>
                   </div>
@@ -748,27 +770,27 @@ export default function PublicDemoPage() {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-black">
-                        {isEli5 ? "Helpers Share Their Puzzle Pieces" : "Guardians Publish Shares to Nostr"}
+                        {isEli5 ? "Contacts Share Their Pieces" : "Guardians Publish Shares"}
                       </h3>
                       <p className="text-sm text-black/70 mb-2">
                         {isEli5
-                          ? "Each helper shares their puzzle piece publicly. The pieces are wrapped in a special envelope so only your family can open them!"
-                          : "Each guardian publishes their encrypted share to Nostr relays. Shares are encrypted to your recipients' public keys."}
+                          ? "Each contact shares their puzzle piece. The pieces are wrapped so only your recipient can open them."
+                          : "Guardians publish their encrypted shares to Nostr relays. Shares are encrypted to recipients' public keys."}
                       </p>
                       {triggerStep >= 2 && (
                         <div className="space-y-1">
                           {demoSwitch.guardians.slice(0, 3).map((guardian, i) => (
                             <div key={i} className="flex items-center gap-2 text-xs">
                               <span className="bg-red-500 text-white px-2 py-0.5">
-                                {isEli5 ? "Shared!" : "Published"}
+                                Released
                               </span>
-                              <span className="text-black/70">{guardian}</span>
+                              <span className="text-black/70">{guardian.name}</span>
                             </div>
                           ))}
-                          <div className="text-xs text-black/50 italic">
+                          <div className="text-xs text-black/50 italic mt-2">
                             {isEli5
-                              ? "(Only need 3 of 5 helpers - we have enough!)"
-                              : "(Only need 3 of 5 guardians to respond)"}
+                              ? "3 of 5 pieces released - that's enough!"
+                              : "3 of 5 shares released - threshold met"}
                           </div>
                         </div>
                       )}
@@ -784,17 +806,17 @@ export default function PublicDemoPage() {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-black">
-                        {isEli5 ? "Family Puts the Puzzle Together" : "Recipients Reconstruct Key"}
+                        {isEli5 ? "Recipient Collects the Pieces" : "Recipient Reconstructs Key"}
                       </h3>
                       <p className="text-sm text-black/70">
                         {isEli5
-                          ? "Your family collects 3 puzzle pieces, opens their special envelopes, and puts them together to rebuild the key!"
-                          : "Recipients collect 3+ shares from Nostr, decrypt them with their private key, and use Shamir's algorithm to reconstruct the original encryption key."}
+                          ? "Your recipient gathers 3 pieces and puts them together to rebuild the encryption key."
+                          : "Recipient collects 3+ shares from Nostr, decrypts them, and uses Shamir's algorithm to reconstruct the key."}
                       </p>
                       {triggerStep >= 3 && (
                         <code className="text-xs bg-black text-green-400 px-2 py-1 font-mono block mt-2">
                           {isEli5
-                            ? "🔑 Key rebuilt from 3 puzzle pieces!"
+                            ? "🔑 Key rebuilt from 3 pieces!"
                             : `Reconstructed: ${demoSwitch.encryptionKey}`}
                         </code>
                       )}
@@ -810,29 +832,17 @@ export default function PublicDemoPage() {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-bold text-black">
-                        {isEli5 ? "Secret Unlocked!" : "Decrypt Secret Message"}
+                        {isEli5 ? "Secret Unlocked!" : "Decrypt Message"}
                       </h3>
                       <p className="text-sm text-black/70">
                         {isEli5
-                          ? "With the rebuilt key, your family can now unscramble your message and read your secret!"
-                          : "With the reconstructed key, recipients decrypt the AES-256-GCM encrypted message. The secret is revealed."}
+                          ? "With the rebuilt key, your recipient can now unscramble and read your message!"
+                          : "Recipient uses reconstructed key to decrypt the AES-256-GCM ciphertext."}
                       </p>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-
-            {/* Key insight */}
-            <div className="bg-orange border-4 border-black p-6">
-              <h3 className="font-bold text-black mb-2">
-                {isEli5 ? "The Cool Part!" : "The Critical Insight"}
-              </h3>
-              <p className="text-sm text-black/80">
-                {isEli5
-                  ? "Notice that EchoLock didn't do anything! Your helpers did it all by themselves by watching public messages. If EchoLock disappeared yesterday, this would work exactly the same way!"
-                  : "Notice what didn't happen: EchoLock's servers were not involved in the release. The guardians acted independently by watching public Nostr relays. Recipients reconstructed the key themselves. If EchoLock had shut down yesterday, this release would work identically."}
-              </p>
             </div>
 
             <button
@@ -848,21 +858,26 @@ export default function PublicDemoPage() {
         {/* RELEASED PHASE */}
         {phase === 'released' && demoSwitch && (
           <div className="space-y-6">
+            {/* Toggle */}
+            <div className="flex justify-end">
+              <ModeToggle mode={mode} setMode={setMode} />
+            </div>
+
             <div className="mb-4">
               <h1 className="text-3xl font-extrabold text-green-600 mb-2">
-                {isEli5 ? "Secret Delivered!" : "Secret Released"}
+                {isEli5 ? "Secret Delivered!" : "Release Complete"}
               </h1>
               <p className="text-black/70">
                 {isEli5
-                  ? "Your family now has your secret. The whole process worked without needing EchoLock!"
-                  : "The complete lifecycle is finished. Your recipients now have access to your secret."}
+                  ? "Your recipient now has your secret. The whole process worked without needing a central server!"
+                  : "The complete lifecycle is finished. Recipients can now access the decrypted message."}
               </p>
             </div>
 
             <div className="bg-white border-4 border-green-500">
               <div className="bg-green-500 text-white px-6 py-3 flex items-center justify-between">
                 <span className="font-bold uppercase tracking-wider text-sm">
-                  {isEli5 ? "Done!" : "Release Complete"}
+                  {isEli5 ? "Done!" : "Complete"}
                 </span>
                 <span className="bg-white text-green-500 px-3 py-1 text-xs font-bold uppercase">
                   Success
@@ -875,94 +890,32 @@ export default function PublicDemoPage() {
 
                 <div className="bg-green-50 border-2 border-green-200 p-4 mb-6">
                   <p className="text-xs uppercase tracking-wider text-green-600 mb-2">
-                    {isEli5 ? "Your Secret (Now Readable!)" : "Decrypted Secret"}
+                    {isEli5 ? "Your Secret (Now Readable)" : "Decrypted Message"}
                   </p>
-                  <p className="text-black font-mono text-sm break-all">
+                  <p className="text-black font-mono text-sm whitespace-pre-wrap">
                     {demoSwitch.secret}
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm text-black/70 mb-6">
+                <div className="grid grid-cols-2 gap-4 text-sm text-black/70">
                   <div>Check-ins: <strong>{demoSwitch.checkInCount}</strong></div>
                   <div>Total time: <strong>{formatTime(timeElapsed)}</strong></div>
-                  <div>{isEli5 ? "Helpers who helped" : "Guardians responded"}: <strong>3 of 5</strong></div>
-                  <div>{isEli5 ? "Pieces used" : "Shares used"}: <strong>3 (minimum)</strong></div>
+                  <div>{isEli5 ? "Contacts responded" : "Guardians responded"}: <strong>3 of 5</strong></div>
+                  <div>{isEli5 ? "Pieces used" : "Shares used"}: <strong>3</strong></div>
                 </div>
               </div>
             </div>
 
-            {/* Summary */}
-            <div className="bg-white border-4 border-black p-6">
-              <h3 className="font-bold text-black mb-4">
-                {isEli5 ? "What Just Happened" : "What Just Happened (Summary)"}
-              </h3>
-              <ol className="text-sm text-black/70 space-y-3 list-decimal list-inside">
-                {isEli5 ? (
-                  <>
-                    <li><strong>Secret Key:</strong> Made on your computer (never sent anywhere!)</li>
-                    <li><strong>ID Card:</strong> Created so your check-ins have your unique fingerprint</li>
-                    <li><strong>Lock:</strong> Your secret got scrambled into unreadable gibberish</li>
-                    <li><strong>Split:</strong> Key broken into 5 pieces (need 3 to rebuild)</li>
-                    <li><strong>Helpers:</strong> Each got one piece and started watching</li>
-                    <li><strong>Waiting:</strong> Helpers watched for your "I'm okay" signals</li>
-                    <li><strong>Trigger:</strong> No signal! Helpers shared their pieces</li>
-                    <li><strong>Rebuild:</strong> Family collected 3 pieces, rebuilt the key</li>
-                    <li><strong>Unlock:</strong> Secret unscrambled and delivered!</li>
-                  </>
-                ) : (
-                  <>
-                    <li><strong>Key Generation:</strong> 256-bit AES key created in your browser (never sent anywhere)</li>
-                    <li><strong>Nostr Identity:</strong> Keypair created for signing heartbeats (publicly verifiable)</li>
-                    <li><strong>Encryption:</strong> Your secret encrypted with AES-256-GCM</li>
-                    <li><strong>Shamir Split:</strong> Key split into 5 shares (3 needed to reconstruct)</li>
-                    <li><strong>Guardian Distribution:</strong> Each share sent to a different guardian</li>
-                    <li><strong>Heartbeat Monitoring:</strong> Guardians watched Nostr for your check-ins</li>
-                    <li><strong>Trigger:</strong> No heartbeat detected, guardians published shares</li>
-                    <li><strong>Reconstruction:</strong> Recipients collected 3 shares, rebuilt the key</li>
-                    <li><strong>Decryption:</strong> Secret message revealed to recipients</li>
-                  </>
-                )}
-              </ol>
-            </div>
-
-            {/* The promise */}
+            {/* Key takeaway */}
             <div className="bg-black text-white p-6 border-4 border-orange">
               <h3 className="font-bold text-orange mb-2">
-                {isEli5 ? "The EchoLock Promise" : "The EchoLock Promise"}
+                {isEli5 ? "The Important Part" : "Key Takeaway"}
               </h3>
               <p className="text-sm text-white/80">
                 {isEli5
-                  ? "If EchoLock disappeared tomorrow, everything would still work! You have your keys. Your helpers are watching. Your family can get your secret. We made it so we're not needed - because that's the only safe way to do it!"
-                  : "If EchoLock disappeared tomorrow, this entire process would still work. You have your keys. Your guardians are watching public Nostr relays. Your recipients can reconstruct independently."}
-                <strong className="text-orange"> {isEli5 ? "We built this so you don't need us!" : "We built this to be eliminable."}</strong>
+                  ? "Notice what DIDN'T happen: EchoLock's servers weren't needed for the release. Your contacts watched public signals and acted on their own. If EchoLock disappeared, everything would still work exactly the same."
+                  : "Observe: EchoLock servers were not involved in the release. Guardians acted autonomously by monitoring public Nostr relays. Recipients reconstructed independently. If EchoLock ceased operations, the release would function identically."}
               </p>
-            </div>
-
-            {/* Production differences */}
-            <div className="bg-blue-light border-2 border-black p-6">
-              <h3 className="font-bold text-black mb-3">
-                {isEli5 ? "Demo vs Real Life" : "In Production (vs This Demo)"}
-              </h3>
-              <div className="grid md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <h4 className="font-bold text-black/70 mb-2">{isEli5 ? "This Demo" : "Demo"}</h4>
-                  <ul className="text-black/60 space-y-1">
-                    <li>{isEli5 ? "1 minute timer" : "1 minute check-in interval"}</li>
-                    <li>{isEli5 ? "10 second release" : "10 second release delay"}</li>
-                    <li>{isEli5 ? "Just pretend data" : "Data in browser memory"}</li>
-                    <li>{isEli5 ? "Pretend helpers" : "Simulated guardians"}</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-bold text-black/70 mb-2">{isEli5 ? "Real Life" : "Production"}</h4>
-                  <ul className="text-black/60 space-y-1">
-                    <li>{isEli5 ? "1-7 days to check in" : "24 hours to 7 days check-in"}</li>
-                    <li>{isEli5 ? "You choose the wait time" : "Configurable grace period"}</li>
-                    <li>{isEli5 ? "Real computers worldwide" : "Real Nostr relays (10+ global)"}</li>
-                    <li>{isEli5 ? "Real people you choose" : "Real guardians you choose"}</li>
-                  </ul>
-                </div>
-              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">
@@ -971,13 +924,13 @@ export default function PublicDemoPage() {
                 className="flex-1 bg-orange text-black px-6 py-4 font-bold hover:bg-black hover:text-orange transition-colors border-4 border-black"
               >
                 <RotateCcw className="h-5 w-5 inline mr-2" strokeWidth={2} />
-                {isEli5 ? "Try Again!" : "Try Again"}
+                Try Again
               </button>
               <Link
                 href="/auth/login"
                 className="flex-1 bg-black text-white px-6 py-4 font-bold hover:bg-orange hover:text-black transition-colors border-4 border-black text-center"
               >
-                {isEli5 ? "Make a Real One!" : "Create Real Switch"}
+                Create Real Switch
               </Link>
             </div>
           </div>
@@ -988,7 +941,7 @@ export default function PublicDemoPage() {
       <footer className="bg-black text-white py-8 mt-12">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-xs opacity-50">
-            ECHOLOCK v1.0 | Fully Decentralized | Open Source (AGPL-3.0) | No Server Required
+            ECHOLOCK v1.0 | Fully Decentralized | Open Source (AGPL-3.0)
           </p>
         </div>
       </footer>
