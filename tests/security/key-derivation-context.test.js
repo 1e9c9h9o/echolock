@@ -23,7 +23,7 @@
 
 import { describe, test, expect } from '@jest/globals';
 import crypto from 'crypto';
-import { deriveKey, verifyPassword } from '../../src/crypto/keyDerivation.js';
+import { deriveKey, verifyPassword, hkdf } from '../../src/crypto/keyDerivation.js';
 
 describe('Password-Salt Uniqueness', () => {
   
@@ -352,21 +352,21 @@ describe('Cross-Switch Isolation', () => {
   test('REQUIRED: Contextual binding for additional protection', () => {
     const password = 'SharedPassword';
     const { key: masterKey } = deriveKey(password);
-    
+
     // Even with compromised master key, context binding helps
-    const switch1Key = hkdfExpand(
+    const switch1Key = hkdf(
       masterKey,
       Buffer.from('ECHOLOCK-SWITCH-v1-switch-001')
     );
-    
-    const switch2Key = hkdfExpand(
+
+    const switch2Key = hkdf(
       masterKey,
       Buffer.from('ECHOLOCK-SWITCH-v1-switch-002')
     );
-    
+
     // Attacker would need BOTH master key AND switchId
     expect(switch1Key.equals(switch2Key)).toBe(false);
-    
+
     console.log('✅ Context binding provides defense-in-depth');
   });
 });

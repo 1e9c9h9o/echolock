@@ -5,24 +5,26 @@
  * Tests transaction monitoring, dropped tx detection, and event emission
  */
 
-import { describe, test, expect, jest, beforeEach, afterEach } from '@jest/globals';
-import {
-  TransactionMonitor,
-  MultiTransactionMonitor,
-  monitorTransaction,
-  MonitorEvent,
-  TxStatus
-} from '../../src/bitcoin/transactionMonitor.js';
+import { describe, test, expect, jest, beforeEach, afterEach, beforeAll } from '@jest/globals';
 
-// Mock Bitcoin testnet client
+// Mock Bitcoin testnet client - MUST be before dynamic imports
 jest.unstable_mockModule('../../src/bitcoin/testnetClient.js', () => ({
   getTransactionStatus: jest.fn(),
   getTransaction: jest.fn(),
   getCurrentBlockHeight: jest.fn()
 }));
 
+// Import after mock setup
 const { getTransactionStatus, getCurrentBlockHeight } =
   await import('../../src/bitcoin/testnetClient.js');
+
+const {
+  TransactionMonitor,
+  MultiTransactionMonitor,
+  monitorTransaction,
+  MonitorEvent,
+  TxStatus
+} = await import('../../src/bitcoin/transactionMonitor.js');
 
 describe('TransactionMonitor - Initialization', () => {
   test('should initialize with default options', () => {
@@ -80,6 +82,11 @@ describe('TransactionMonitor - Status Checking', () => {
   });
 
   test('should update confirmations on confirming status', async () => {
+    // Create monitor with higher target to test CONFIRMING state
+    const confirmingMonitor = new TransactionMonitor('abc123', {
+      targetConfirmations: 6 // Need 6, but only have 1
+    });
+
     getTransactionStatus.mockResolvedValue({
       status: 'confirming',
       txid: 'abc123',
@@ -89,11 +96,11 @@ describe('TransactionMonitor - Status Checking', () => {
       blockHash: 'block123'
     });
 
-    await monitor.checkStatus();
+    await confirmingMonitor.checkStatus();
 
-    expect(monitor.confirmations).toBe(1);
-    expect(monitor.blockHeight).toBe(2500000);
-    expect(monitor.status).toBe(TxStatus.CONFIRMING);
+    expect(confirmingMonitor.confirmations).toBe(1);
+    expect(confirmingMonitor.blockHeight).toBe(2500000);
+    expect(confirmingMonitor.status).toBe(TxStatus.CONFIRMING);
   });
 
   test('should mark as confirmed when target reached', async () => {
@@ -189,13 +196,20 @@ describe('TransactionMonitor - Monitoring Lifecycle', () => {
     expect(monitor.isMonitoring).toBe(true);
     expect(monitor.monitorInterval).toBeTruthy();
 
-    // Wait for initial check
-    await new Promise(resolve => setTimeout(resolve, 50));
+    // Wait for initial check to complete
+    await new Promise(resolve => setTimeout(resolve, 150));
 
     expect(getTransactionStatus).toHaveBeenCalled();
   });
 
   test('should stop monitoring', () => {
+    getTransactionStatus.mockResolvedValue({
+      status: 'pending',
+      txid: 'abc123',
+      confirmed: false,
+      confirmations: 0
+    });
+
     monitor.startMonitoring();
     expect(monitor.isMonitoring).toBe(true);
 
@@ -240,7 +254,7 @@ describe('TransactionMonitor - Monitoring Lifecycle', () => {
     shortMonitor.startMonitoring();
 
     // Wait for timeout
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise(resolve => setTimeout(resolve, 300));
 
     expect(timeoutFired).toBe(true);
     expect(shortMonitor.isMonitoring).toBe(false);
@@ -253,7 +267,8 @@ describe('TransactionMonitor - waitForConfirmation', () => {
   beforeEach(() => {
     monitor = new TransactionMonitor('abc123', {
       pollInterval: 50,
-      targetConfirmations: 1
+      targetConfirmations: 1,
+      maxMonitorTime: 10000
     });
     jest.clearAllMocks();
   });
@@ -266,38 +281,33 @@ describe('TransactionMonitor - waitForConfirmation', () => {
 
   test('should resolve when confirmed', async () => {
     // Start with pending, then confirm
-    let checkCount = 0;
-    getTransactionStatus.mockImplementation(() => {
-      checkCount++;
-      if (checkCount === 1) {
-        return Promise.resolve({
-          status: 'pending',
-          txid: 'abc123',
-          confirmed: false,
-          confirmations: 0
-        });
-      } else {
-        return Promise.resolve({
-          status: 'confirmed',
-          txid: 'abc123',
-          confirmed: true,
-          confirmations: 1,
-          blockHeight: 2500000,
-          blockHash: 'block123'
-        });
-      }
-    });
+    getTransactionStatus
+      .mockResolvedValueOnce({
+        status: 'pending',
+        txid: 'abc123',
+        confirmed: false,
+        confirmations: 0
+      })
+      .mockResolvedValue({
+        status: 'confirmed',
+        txid: 'abc123',
+        confirmed: true,
+        confirmations: 1,
+        blockHeight: 2500000,
+        blockHash: 'block123'
+      });
 
     const result = await monitor.waitForConfirmation();
 
     expect(result.txid).toBe('abc123');
     expect(result.confirmations).toBe(1);
-  });
+  }, 15000);
 
   test('should reject when dropped', async () => {
     const shortMonitor = new TransactionMonitor('abc123', {
       pollInterval: 50,
-      droppedThreshold: 100
+      droppedThreshold: 100,
+      maxMonitorTime: 5000
     });
 
     await new Promise(resolve => setTimeout(resolve, 150));
@@ -309,12 +319,12 @@ describe('TransactionMonitor - waitForConfirmation', () => {
 
     await expect(shortMonitor.waitForConfirmation())
       .rejects.toThrow(/Transaction dropped/);
-  });
+  }, 10000);
 
   test('should reject on timeout', async () => {
     const shortMonitor = new TransactionMonitor('abc123', {
       pollInterval: 50,
-      maxMonitorTime: 100
+      maxMonitorTime: 150
     });
 
     getTransactionStatus.mockResolvedValue({
@@ -326,7 +336,7 @@ describe('TransactionMonitor - waitForConfirmation', () => {
 
     await expect(shortMonitor.waitForConfirmation())
       .rejects.toThrow(/Monitoring timeout/);
-  });
+  }, 5000);
 });
 
 describe('TransactionMonitor - Status Reporting', () => {
@@ -406,20 +416,25 @@ describe('MultiTransactionMonitor', () => {
       blockHash: 'block123'
     });
 
-    let confirmedEventFired = false;
-    multiMonitor.on(MonitorEvent.CONFIRMED, (data) => {
-      confirmedEventFired = true;
-      expect(data.txid).toBe('tx1');
-      expect(data.label).toBe('Test TX');
+    // Set up listener BEFORE adding transaction (which starts monitoring)
+    const confirmedPromise = new Promise((resolve) => {
+      multiMonitor.on(MonitorEvent.CONFIRMED, (data) => {
+        expect(data.txid).toBe('tx1');
+        expect(data.label).toBe('Test TX');
+        resolve(true);
+      });
     });
 
     multiMonitor.addTransaction('tx1', 'Test TX');
 
-    // Wait for check
-    await new Promise(resolve => setTimeout(resolve, 150));
+    // Wait for event with timeout
+    const confirmedEventFired = await Promise.race([
+      confirmedPromise,
+      new Promise(resolve => setTimeout(() => resolve(false), 1000))
+    ]);
 
     expect(confirmedEventFired).toBe(true);
-  });
+  }, 5000);
 
   test('should remove transaction', () => {
     getTransactionStatus.mockResolvedValue({
@@ -489,17 +504,18 @@ describe('monitorTransaction - Helper Function', () => {
 
     const result = await monitorTransaction('tx1', {
       pollInterval: 50,
-      targetConfirmations: 1
+      targetConfirmations: 1,
+      maxMonitorTime: 5000
     });
 
     expect(result.txid).toBe('tx1');
     expect(result.confirmations).toBe(1);
-  });
+  }, 10000);
 
   test('should handle monitoring failure', async () => {
     const shortOptions = {
       pollInterval: 50,
-      maxMonitorTime: 100
+      maxMonitorTime: 200
     };
 
     getTransactionStatus.mockResolvedValue({
@@ -511,5 +527,5 @@ describe('monitorTransaction - Helper Function', () => {
 
     await expect(monitorTransaction('tx1', shortOptions))
       .rejects.toThrow(/Monitoring timeout/);
-  });
+  }, 5000);
 });

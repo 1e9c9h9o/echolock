@@ -6,13 +6,8 @@
  */
 
 import { describe, test, expect, jest, beforeEach } from '@jest/globals';
-import {
-  TwoPhaseCoordinator,
-  CommitState,
-  executeTwoPhaseCommit
-} from '../../src/bitcoin/twoPhaseCoordinator.js';
 
-// Mock Bitcoin testnet client
+// Mock Bitcoin testnet client - MUST be before dynamic imports
 jest.unstable_mockModule('../../src/bitcoin/testnetClient.js', () => ({
   broadcastTransaction: jest.fn(),
   waitForConfirmation: jest.fn(),
@@ -25,9 +20,16 @@ jest.unstable_mockModule('../../src/nostr/multiRelayClient.js', () => ({
   publishFragment: jest.fn()
 }));
 
+// Import after mock setup - use dynamic imports
 const { broadcastTransaction, waitForConfirmation, getTransactionStatus } =
   await import('../../src/bitcoin/testnetClient.js');
 const { publishFragment } = await import('../../src/nostr/multiRelayClient.js');
+
+const {
+  TwoPhaseCoordinator,
+  CommitState,
+  executeTwoPhaseCommit
+} = await import('../../src/bitcoin/twoPhaseCoordinator.js');
 
 // Valid Bitcoin transaction hex for testing (minimal valid transaction)
 const VALID_TX_HEX = '0100000001abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890000000006b483045022100abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890220abcdef1234567890abcdef1234567890abcdef1234567890abcdef123456789001210312345678901234567890123456789012345678901234567890123456789012ffffffff0100e1f505000000001976a914123456789012345678901234567890123456789088ac00000000';
