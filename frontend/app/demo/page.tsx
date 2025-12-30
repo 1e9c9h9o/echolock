@@ -233,7 +233,7 @@ export default function PublicDemoPage() {
               </h1>
 
               {/* Toggle moved here, right below heading */}
-              <div className="mb-6">
+              <div className="mb-6 inline-block">
                 <ModeToggle mode={mode} setMode={setMode} />
               </div>
 
