@@ -26,6 +26,17 @@ See [CLAUDE.md](CLAUDE.md) for the complete architectural specification.
 
 ---
 
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| **[User Guide](docs/USER_GUIDE.md)** | How to use EchoLock (start here) |
+| [Self-Hosting Guide](docs/SELF_HOSTING.md) | Run your own infrastructure |
+| [Architecture](CLAUDE.md) | Complete technical specification |
+| [API Reference](API_DOCS.md) | REST API documentation |
+
+---
+
 ## Architecture (v1.0 - Fully Decentralized)
 
 | Component | How It Works |
