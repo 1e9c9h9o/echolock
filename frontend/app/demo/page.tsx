@@ -482,7 +482,7 @@ export default function PublicDemoPage() {
                         </h3>
                         <p className="text-sm text-black/70 mb-2">
                           {isEli5
-                            ? "The encryption key is broken into 5 puzzle pieces. The magic: you need ANY 3 pieces to rebuild it, but 2 pieces tell you nothing!"
+                            ? "The encryption key is broken into 5 puzzle pieces. You need ANY 3 pieces to rebuild it, but 2 pieces tell you nothing."
                             : "The encryption key is split into 5 shares using Shamir's Secret Sharing. Mathematical property: any 3 shares reconstruct the key, but 2 shares reveal zero information."}
                         </p>
                         {creationStep >= 4 && (
