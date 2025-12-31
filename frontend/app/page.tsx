@@ -55,8 +55,7 @@ export default function HomePage() {
               </h1>
               <p className="text-sm text-black/80 mb-8 max-w-md">
                 Delivers a message to someone you choose, but only if you stop checking in.
-                Keys generated locally. Encryption key split across 5 guardians.
-                Works without our servers.
+                Keys generated locally. Encryption key split across 5 guardians. Self-hostable.
               </p>
               <div className="flex gap-3 flex-wrap">
                 <Link href="/demo" className="btn">Try Live Demo</Link>
@@ -198,7 +197,7 @@ export default function HomePage() {
                 When guardians detect silence, they publish shares to Nostr. Recipients
                 collect 3+ shares, reconstruct the key, decrypt. No server involved.
               </div>
-              <div className="tech-spec">Fully autonomous</div>
+              <div className="tech-spec">No server needed</div>
             </div>
             <div className="tech-item">
               <div className="tech-num">006</div>
@@ -213,30 +212,29 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* The Promise */}
+      {/* Architecture note */}
       <section className="bg-white border-t-4 border-b-4 border-black">
         <div className="flex items-stretch">
           <div className="w-16 flex-shrink-0 bg-orange" />
           <div className="p-8 flex items-center gap-6">
-            <div className="w-12 h-12 bg-black text-white flex items-center justify-center text-2xl font-bold">✓</div>
+            <div className="w-12 h-12 bg-black text-white flex items-center justify-center text-2xl font-bold">→</div>
             <div>
-              <h3 className="text-base font-bold mb-1">The EchoLock Promise</h3>
+              <h3 className="text-base font-bold mb-1">How It Works</h3>
               <p className="text-xs opacity-70 max-w-xl">
-                If EchoLock disappears tomorrow, your switch still works. You have your keys.
-                Your guardians are watching. Your heartbeats are on Nostr. Your message will
-                release. We built this to be eliminable — because that's the only version worth building.
+                Keys stay on your device. Encrypted message stored on Nostr. Key fragments held by guardians.
+                Guardians watch Nostr for your heartbeats. No heartbeat → guardians release fragments → recipient reconstructs key.
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Proof Section - Show Don't Tell */}
+      {/* Stats */}
       <section className="py-16 bg-black text-white">
         <div className="container">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-[11px] uppercase tracking-[0.2em]">Proof of Work</h2>
-            <div className="text-[10px] opacity-50 tracking-wider">VERIFIED STATS</div>
+            <h2 className="text-[11px] uppercase tracking-[0.2em]">Stats</h2>
+            <div className="text-[10px] opacity-50 tracking-wider">CURRENT BUILD</div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
             <div className="text-center p-6 border border-white/20">
@@ -354,8 +352,7 @@ export default function HomePage() {
           </div>
           <div className="mt-12 pt-6 border-t border-white/10 text-[10px] opacity-40 flex justify-between flex-wrap gap-4 tracking-wider">
             <span>ECHOLOCK v1.0</span>
-            <span>Network: Bitcoin Mainnet Ready</span>
-            <span>Status: Fully Autonomous</span>
+            <span>AGPL-3.0</span>
           </div>
         </div>
       </footer>
