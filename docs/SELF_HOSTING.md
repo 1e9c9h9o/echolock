@@ -35,7 +35,7 @@ The guardian daemon monitors heartbeats and releases shares when a user goes sil
 
 ```bash
 # Clone the repository
-git clone https://github.com/Sandford28/echolock.git
+git clone https://github.com/1e9c9h9o/echolock.git
 cd echolock/guardian-daemon
 
 # Install dependencies
@@ -311,7 +311,7 @@ wscat -c wss://relay.damus.io
 
 ## Need Help?
 
-- **GitHub Issues**: https://github.com/Sandford28/echolock/issues
+- **GitHub Issues**: https://github.com/1e9c9h9o/echolock/issues
 - **Nostr**: Post with #echolock hashtag
 
 Remember: The goal is that this guide becomes the ONLY thing you need. EchoLock the company should be completely optional.

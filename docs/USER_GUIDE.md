@@ -422,8 +422,8 @@ You don't need to trust:
 
 ## Getting Help
 
-- **Documentation**: [github.com/Sandford28/echolock/docs](https://github.com/Sandford28/echolock/docs)
-- **Issues**: [github.com/Sandford28/echolock/issues](https://github.com/Sandford28/echolock/issues)
+- **Documentation**: [github.com/1e9c9h9o/echolock/docs](https://github.com/1e9c9h9o/echolock/docs)
+- **Issues**: [github.com/1e9c9h9o/echolock/issues](https://github.com/1e9c9h9o/echolock/issues)
 - **Demo**: [echolock.xyz/demo](https://echolock.xyz/demo)
 
 ---

@@ -544,7 +544,7 @@ export default function GuidePage() {
                     your keys, and run it. It monitors heartbeats and releases shares automatically.
                   </p>
                   <div className="bg-black text-white p-3 mt-2 font-mono text-xs">
-                    <div>git clone https://github.com/Sandford28/echolock.git</div>
+                    <div>git clone https://github.com/1e9c9h9o/echolock.git</div>
                     <div>cd echolock/guardian-daemon</div>
                     <div>npm install</div>
                     <div>node index.ts</div>
@@ -696,12 +696,12 @@ export default function GuidePage() {
             <Link href="/demo" className="text-sm bg-orange text-black px-4 py-2 font-bold hover:bg-white transition-colors">
               {isEli5 ? "See It In Action" : "Try the Demo"}
             </Link>
-            <a href="https://github.com/Sandford28/echolock/blob/main/docs/USER_GUIDE.md"
+            <a href="https://github.com/1e9c9h9o/echolock/blob/main/docs/USER_GUIDE.md"
                target="_blank" rel="noopener noreferrer"
                className="text-sm border border-white px-4 py-2 hover:bg-white hover:text-black transition-colors">
               {isEli5 ? "Full Details" : "Full Documentation"}
             </a>
-            <a href="https://github.com/Sandford28/echolock/issues"
+            <a href="https://github.com/1e9c9h9o/echolock/issues"
                target="_blank" rel="noopener noreferrer"
                className="text-sm border border-white px-4 py-2 hover:bg-white hover:text-black transition-colors">
               {isEli5 ? "Ask a Question" : "Report Issue"}

@@ -16,7 +16,7 @@ Complete guide to get both frontend and backend running together.
 
 ```bash
 # Clone repository
-git clone https://github.com/Sandford28/echolock.git
+git clone https://github.com/1e9c9h9o/echolock.git
 cd echolock
 
 # Install backend dependencies
