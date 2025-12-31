@@ -163,17 +163,23 @@ export function withSecureKey(key, fn) {
 // HIERARCHICAL KEY DERIVATION (HKDF - RFC 5869)
 // ============================================================================
 //
-// Key Hierarchy:
+// SIMPLIFIED Key Hierarchy (v2):
 //   Level 0: Master Key (from PBKDF2 - expensive, done once per password)
 //   Level 1: Switch Key = HKDF(MasterKey, switchId) - unique per switch
-//   Level 2: Purpose Keys = HKDF(SwitchKey, purpose) - encryption, auth, bitcoin
-//   Level 3: Fragment Keys = HKDF(EncryptionKey, index) - unique per fragment
+//   Level 2: Purpose Keys = HKDF(SwitchKey, purpose) - encryption, auth, bitcoin, nostr
+//
+// Note: Fragment keys (Level 3) were removed in the security refactor.
+// The encryption key is split via Shamir Secret Sharing - there's no need
+// for per-fragment encryption keys since:
+//   1. The message is encrypted as a whole with the encryption key
+//   2. The encryption key itself is split into Shamir shares
+//   3. Shares are encrypted for guardians using NIP-44 (per-guardian encryption)
 //
 // Benefits:
-// - Context binding: Each switch/fragment has cryptographically unique keys
+// - Context binding: Each switch has cryptographically unique keys
 // - Key separation: Different purposes use different keys
 // - Defense in depth: Compromising one switch doesn't reveal others
-// - Forward secrecy: Can rotate switch keys without changing master
+// - Simplicity: Fewer keys = smaller attack surface
 //
 // ============================================================================
 
@@ -312,7 +318,7 @@ export function deriveFragmentKey(encryptionKey, fragmentIndex) {
  * @param {string} password - User password
  * @param {string} switchId - Switch identifier
  * @param {Buffer} [salt] - Salt for PBKDF2 (generated if not provided)
- * @param {number} [fragmentCount] - Number of fragment keys to derive (default: 5)
+ * @param {number} [fragmentCount] - DEPRECATED: Fragment keys removed in v2
  * @returns {Object} Complete key hierarchy
  */
 export function deriveKeyHierarchy(password, switchId, salt = null, fragmentCount = 5) {
@@ -328,12 +334,6 @@ export function deriveKeyHierarchy(password, switchId, salt = null, fragmentCoun
   const bitcoinKey = derivePurposeKey(switchKey, 'bitcoin');
   const nostrKey = derivePurposeKey(switchKey, 'nostr');
 
-  // Level 3: Fragment-specific keys
-  const fragmentKeys = [];
-  for (let i = 0; i < fragmentCount; i++) {
-    fragmentKeys.push(deriveFragmentKey(encryptionKey, i));
-  }
-
   // Zeroize intermediate keys that shouldn't be exposed
   zeroize(masterKey);
   zeroize(switchKey);
@@ -344,16 +344,45 @@ export function deriveKeyHierarchy(password, switchId, salt = null, fragmentCoun
     authKey,
     bitcoinKey,
     nostrKey,
-    fragmentKeys,
+    // fragmentKeys removed in v2 - encryption key is split via Shamir
+    // Keeping empty array for backward compatibility
+    fragmentKeys: [],
     // Metadata for reconstruction
     metadata: {
       switchId,
-      fragmentCount,
-      version: 1,
+      version: 2,
       algorithm: 'PBKDF2-HKDF-SHA256',
       iterations: PBKDF2_ITERATIONS
     }
   };
+}
+
+/**
+ * Simplified key derivation for new switches (v2)
+ * Returns only the essential keys without deprecated fragment keys
+ *
+ * @param {string} password - User password
+ * @param {string} switchId - Switch identifier
+ * @param {Buffer} [salt] - Salt for PBKDF2 (generated if not provided)
+ * @returns {Object} Essential keys for switch operation
+ */
+export function deriveEssentialKeys(password, switchId, salt = null) {
+  const { key: masterKey, salt: derivedSalt } = deriveKey(password, salt);
+  const switchKey = deriveSwitchKey(masterKey, switchId);
+
+  const keys = {
+    salt: derivedSalt,
+    encryptionKey: derivePurposeKey(switchKey, 'encryption'),
+    authKey: derivePurposeKey(switchKey, 'auth'),
+    bitcoinKey: derivePurposeKey(switchKey, 'bitcoin'),
+    nostrKey: derivePurposeKey(switchKey, 'nostr'),
+  };
+
+  // Zeroize intermediate keys
+  zeroize(masterKey);
+  zeroize(switchKey);
+
+  return keys;
 }
 
 /**

@@ -183,15 +183,13 @@ describe('Complete Key Hierarchy', () => {
     expect(hierarchy.authKey).toHaveLength(32);
     expect(hierarchy.bitcoinKey).toHaveLength(32);
     expect(hierarchy.nostrKey).toHaveLength(32);
-    expect(hierarchy.fragmentKeys).toHaveLength(5);
 
-    hierarchy.fragmentKeys.forEach(key => {
-      expect(key).toHaveLength(32);
-    });
+    // Fragment keys removed in v2 - encryption key is split via Shamir
+    expect(hierarchy.fragmentKeys).toHaveLength(0);
 
     // Check metadata
     expect(hierarchy.metadata.switchId).toBe(switchId);
-    expect(hierarchy.metadata.version).toBe(1);
+    expect(hierarchy.metadata.version).toBe(2);
     expect(hierarchy.metadata.iterations).toBe(600000);
   });
 
@@ -230,9 +228,9 @@ describe('Complete Key Hierarchy', () => {
     expect(original.bitcoinKey.equals(reconstructed.bitcoinKey)).toBe(true);
     expect(original.nostrKey.equals(reconstructed.nostrKey)).toBe(true);
 
-    for (let i = 0; i < 5; i++) {
-      expect(original.fragmentKeys[i].equals(reconstructed.fragmentKeys[i])).toBe(true);
-    }
+    // Fragment keys removed in v2 - both should be empty arrays
+    expect(original.fragmentKeys).toHaveLength(0);
+    expect(reconstructed.fragmentKeys).toHaveLength(0);
   });
 
   test('should fail reconstruction with wrong password', () => {
@@ -293,9 +291,9 @@ describe('Version and Domain Separation', () => {
 
     const hierarchy = deriveKeyHierarchy(password, switchId);
 
-    // The version is embedded in domain strings (v1)
+    // The version is embedded in domain strings (v2 - simplified hierarchy)
     // This test verifies the hierarchy includes version info
-    expect(hierarchy.metadata.version).toBe(1);
+    expect(hierarchy.metadata.version).toBe(2);
     expect(hierarchy.metadata.algorithm).toBe('PBKDF2-HKDF-SHA256');
   });
 });
@@ -370,9 +368,9 @@ describe('End-to-End Security Properties', () => {
     expect(h1.bitcoinKey.equals(h2.bitcoinKey)).toBe(true);
     expect(h1.nostrKey.equals(h2.nostrKey)).toBe(true);
 
-    for (let i = 0; i < h1.fragmentKeys.length; i++) {
-      expect(h1.fragmentKeys[i].equals(h2.fragmentKeys[i])).toBe(true);
-    }
+    // Fragment keys removed in v2 - both should be empty
+    expect(h1.fragmentKeys).toHaveLength(0);
+    expect(h2.fragmentKeys).toHaveLength(0);
   });
 
   test('all purpose keys should be cryptographically independent', () => {

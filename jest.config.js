@@ -2,6 +2,10 @@ export default {
   testEnvironment: 'node',
   transform: {},
   testMatch: ['**/tests/**/*.test.js'],
+  // Handle ESM modules from @noble packages
+  transformIgnorePatterns: [
+    'node_modules/(?!(@noble)/)',
+  ],
   collectCoverageFrom: [
     'src/**/*.js',
     '!src/cli/index.js',

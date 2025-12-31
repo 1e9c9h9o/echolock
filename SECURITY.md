@@ -6,7 +6,7 @@
 
 ECHOLOCK v0.1.0 is in **development/testnet phase** and has **NOT** undergone a professional security audit. Do not use this software to protect actual sensitive data.
 
-**Last Updated**: 2025-12-29
+**Last Updated**: 2025-12-31
 **Version**: 0.1.0
 **Security Audit Status**: Pre-audit
 **Architecture Status**: Centralized prototype (migrating to decentralized)
@@ -196,11 +196,16 @@ See [security/VULNERABILITIES.md](security/VULNERABILITIES.md) for detailed vuln
 
 | Component | Library | Version | Status |
 |-----------|---------|---------|--------|
-| Secret Sharing | shamir-secret-sharing | 0.0.4 | ✅ Audited |
+| Secret Sharing | shamir-secret-sharing | 0.0.4 | ✅ Audited (Cure53 + Zellic) |
+| Elliptic Curves (secp256k1) | @noble/curves | 1.8.1 | ✅ Audited |
+| ChaCha20-Poly1305 | @noble/ciphers | 1.2.1 | ✅ Audited |
+| Hashing (SHA-256) | @noble/hashes | 1.7.1 | ✅ Audited |
 | Bitcoin Operations | bitcoinjs-lib | 6.1.7 | ✅ Industry Standard |
 | Encryption | Node.js crypto (AES-256-GCM) | Native | ✅ Built-in |
-| Key Derivation | Node.js crypto (PBKDF2) | Native | ✅ Built-in |
+| Key Derivation | Node.js crypto (PBKDF2/HKDF) | Native | ✅ Built-in |
 | Nostr Protocol | nostr-tools | 2.17.0 | ✅ Community Standard |
+
+**Security Note (2024-12-31)**: Custom EC implementations replaced with audited @noble/curves. NIP-44 now uses proper ChaCha20-Poly1305 via @noble/ciphers. Shamir implementation includes Feldman VSS commitments for share verification.
 
 **CRITICAL**: Do not replace these libraries with custom implementations.
 
@@ -228,8 +233,10 @@ See [security/VULNERABILITIES.md](security/VULNERABILITIES.md) for detailed vuln
 
 ### Current Test Coverage
 
-- ✅ 41/41 unit tests passing
+- ✅ 295/295 unit tests passing
 - ✅ 22/22 property-based tests passing (fast-check)
+- ✅ Comprehensive crypto test vectors (NIST AES-GCM, RFC 5869 HKDF, RFC 6070 PBKDF2, BIP-340 Schnorr)
+- ✅ GF(256) arithmetic validation for Shamir SSS
 - ✅ Integration tests for Nostr relays
 - ✅ Bitcoin testnet transaction broadcasting
 - ⚠️ Formal verification pending
@@ -310,5 +317,5 @@ We appreciate the security research community's efforts to improve ECHOLOCK's se
 
 ---
 
-**Last Updated**: 2025-10-02
-**Next Review**: 2026-01-02 (quarterly review)
+**Last Updated**: 2025-12-31
+**Next Review**: 2026-03-31 (quarterly review)

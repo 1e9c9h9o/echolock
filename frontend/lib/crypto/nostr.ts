@@ -1,18 +1,30 @@
 /**
  * Nostr Keypair Generation for Browser
  *
- * Generates secp256k1 keypairs for Nostr protocol.
+ * Generates secp256k1 keypairs for Nostr protocol using audited @noble/curves.
  * Keys are generated client-side and never sent to the server.
+ *
+ * Security: Uses @noble/curves which is:
+ * - Audited by Trail of Bits and Cure53
+ * - Constant-time operations (side-channel resistant)
+ * - Widely used in the Nostr ecosystem
  *
  * @see CLAUDE.md - Phase 1: User-Controlled Keys
  */
 
-import { randomBytes, toHex, fromHex } from './aes';
+import { secp256k1 } from '@noble/curves/secp256k1';
+import { schnorr } from '@noble/curves/secp256k1';
+import { randomBytes as nobleRandomBytes, bytesToHex, hexToBytes } from '@noble/hashes/utils';
 
-// secp256k1 curve parameters
-const CURVE_ORDER = BigInt(
-  '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141'
-);
+// Re-export for compatibility
+export { bytesToHex as toHex, hexToBytes as fromHex };
+
+/**
+ * Generate cryptographically secure random bytes
+ */
+export function randomBytes(length: number): Uint8Array {
+  return nobleRandomBytes(length);
+}
 
 /**
  * Generate a Nostr keypair (secp256k1)
@@ -26,206 +38,154 @@ export async function generateNostrKeypair(): Promise<{
   publicKey: string; // 32 bytes hex (npub, x-only)
 }> {
   // Generate private key with proper entropy
-  let privateKeyBytes: Uint8Array;
-  let privateKeyBigInt: bigint;
+  const privateKeyBytes = secp256k1.utils.randomPrivateKey();
+  const privateKey = bytesToHex(privateKeyBytes);
 
-  // Ensure private key is valid (non-zero and less than curve order)
-  do {
-    privateKeyBytes = randomBytes(32);
-    privateKeyBigInt = bytesToBigInt(privateKeyBytes);
-  } while (privateKeyBigInt === BigInt(0) || privateKeyBigInt >= CURVE_ORDER);
-
-  const privateKey = toHex(privateKeyBytes);
-
-  // Derive public key using secp256k1
-  // For browser, we use the Web Crypto API with ECDSA
-  // Then extract the x-coordinate for Nostr's x-only pubkey format
-
-  const publicKey = await derivePublicKey(privateKeyBytes);
+  // Derive x-only public key (Schnorr/BIP-340 format for Nostr)
+  const publicKeyBytes = schnorr.getPublicKey(privateKeyBytes);
+  const publicKey = bytesToHex(publicKeyBytes);
 
   return { privateKey, publicKey };
 }
 
 /**
- * Derive public key from private key using Web Crypto
+ * Derive x-only public key from private key
+ * Uses BIP-340 Schnorr format as required by Nostr
  */
-async function derivePublicKey(privateKeyBytes: Uint8Array): Promise<string> {
-  // Import private key as JWK (Web Crypto requires this format for ECDSA)
-  const privateKeyJwk = {
-    kty: 'EC',
-    crv: 'P-256', // Web Crypto doesn't support secp256k1 directly
-    // We'll use a pure JS implementation for secp256k1
-  };
-
-  // Since Web Crypto doesn't support secp256k1, we use a simplified
-  // scalar multiplication implementation for the public key derivation
-  return await secp256k1GetPublicKey(privateKeyBytes);
+export function getPublicKey(privateKeyHex: string): string {
+  const publicKeyBytes = schnorr.getPublicKey(hexToBytes(privateKeyHex));
+  return bytesToHex(publicKeyBytes);
 }
 
 /**
- * Simplified secp256k1 public key derivation
- * Uses the generator point G and scalar multiplication
+ * Sign a message hash with a Nostr private key (BIP-340 Schnorr signature)
+ * Used for signing Nostr events
+ *
+ * @param messageHash - 32-byte hash to sign (event ID)
+ * @param privateKeyHex - Private key in hex format
+ * @returns 64-byte Schnorr signature in hex format
  */
-async function secp256k1GetPublicKey(privateKey: Uint8Array): Promise<string> {
-  // secp256k1 generator point G
-  const Gx = BigInt(
-    '0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798'
-  );
-  const Gy = BigInt(
-    '0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8'
-  );
-  const p = BigInt(
-    '0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F'
-  );
-  const n = CURVE_ORDER;
+export async function signSchnorr(
+  messageHash: Uint8Array,
+  privateKeyHex: string
+): Promise<string> {
+  const signature = schnorr.sign(messageHash, hexToBytes(privateKeyHex));
+  return bytesToHex(signature);
+}
 
-  const k = bytesToBigInt(privateKey);
+/**
+ * Verify a BIP-340 Schnorr signature
+ *
+ * @param signature - 64-byte signature in hex format
+ * @param messageHash - 32-byte message hash
+ * @param publicKeyHex - x-only public key in hex format
+ * @returns true if signature is valid
+ */
+export async function verifySchnorr(
+  signatureHex: string,
+  messageHash: Uint8Array,
+  publicKeyHex: string
+): Promise<boolean> {
+  try {
+    return schnorr.verify(
+      hexToBytes(signatureHex),
+      messageHash,
+      hexToBytes(publicKeyHex)
+    );
+  } catch {
+    return false;
+  }
+}
 
-  // Scalar multiplication k * G using double-and-add
-  let result = { x: BigInt(0), y: BigInt(0), isInfinity: true };
-  let addend = { x: Gx, y: Gy, isInfinity: false };
+/**
+ * Compute ECDH shared secret for NIP-44 encryption
+ *
+ * @param privateKeyHex - Our private key
+ * @param publicKeyHex - Their x-only public key
+ * @returns 32-byte shared secret (x-coordinate of shared point)
+ */
+export function computeSharedSecret(
+  privateKeyHex: string,
+  publicKeyHex: string
+): Uint8Array {
+  const privateKey = hexToBytes(privateKeyHex);
+  const publicKey = hexToBytes(publicKeyHex);
 
-  let scalar = k;
-  while (scalar > BigInt(0)) {
-    if (scalar & BigInt(1)) {
-      result = pointAdd(result, addend, p);
+  // For x-only pubkeys, we need to lift to a full point first
+  // secp256k1.ProjectivePoint.fromHex handles both compressed and x-only formats
+  const publicPoint = liftX(publicKey);
+
+  // Compute shared point: privateKey * publicPoint
+  const sharedPoint = publicPoint.multiply(bytesToBigInt(privateKey));
+
+  // Return x-coordinate as shared secret
+  return bigIntToBytes(sharedPoint.x, 32);
+}
+
+/**
+ * Lift an x-only public key to a full point
+ * Per BIP-340, the y-coordinate with even parity is chosen
+ */
+function liftX(xOnlyPubkey: Uint8Array): typeof secp256k1.ProjectivePoint.BASE {
+  // secp256k1 parameters
+  const p = BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F');
+  const x = bytesToBigInt(xOnlyPubkey);
+
+  // y² = x³ + 7 (mod p)
+  const ySquared = (x ** 3n + 7n) % p;
+
+  // Compute y using Tonelli-Shanks (for p ≡ 3 mod 4: y = ySquared^((p+1)/4))
+  const y = modPow(ySquared, (p + 1n) / 4n, p);
+
+  // Verify we got a valid square root
+  if ((y * y) % p !== ySquared) {
+    throw new Error('Invalid x-only public key: no valid y coordinate');
+  }
+
+  // Choose even y (BIP-340)
+  const yFinal = y % 2n === 0n ? y : p - y;
+
+  // Create the point
+  return new secp256k1.ProjectivePoint(x, yFinal, 1n);
+}
+
+/**
+ * Modular exponentiation
+ */
+function modPow(base: bigint, exp: bigint, mod: bigint): bigint {
+  let result = 1n;
+  base = base % mod;
+  while (exp > 0n) {
+    if (exp % 2n === 1n) {
+      result = (result * base) % mod;
     }
-    addend = pointDouble(addend, p);
-    scalar = scalar >> BigInt(1);
-  }
-
-  // Convert x-coordinate to 32-byte hex (x-only pubkey for Nostr)
-  return bigIntToHex(result.x, 32);
-}
-
-interface Point {
-  x: bigint;
-  y: bigint;
-  isInfinity: boolean;
-}
-
-/**
- * Point addition on secp256k1
- */
-function pointAdd(p1: Point, p2: Point, prime: bigint): Point {
-  if (p1.isInfinity) return p2;
-  if (p2.isInfinity) return p1;
-
-  if (p1.x === p2.x) {
-    if (p1.y === p2.y) {
-      return pointDouble(p1, prime);
-    }
-    return { x: BigInt(0), y: BigInt(0), isInfinity: true };
-  }
-
-  const slope = modDiv(p2.y - p1.y, p2.x - p1.x, prime);
-  const x3 = mod(slope * slope - p1.x - p2.x, prime);
-  const y3 = mod(slope * (p1.x - x3) - p1.y, prime);
-
-  return { x: x3, y: y3, isInfinity: false };
-}
-
-/**
- * Point doubling on secp256k1
- */
-function pointDouble(p: Point, prime: bigint): Point {
-  if (p.isInfinity || p.y === BigInt(0)) {
-    return { x: BigInt(0), y: BigInt(0), isInfinity: true };
-  }
-
-  // For secp256k1, a = 0
-  const slope = modDiv(BigInt(3) * p.x * p.x, BigInt(2) * p.y, prime);
-  const x3 = mod(slope * slope - BigInt(2) * p.x, prime);
-  const y3 = mod(slope * (p.x - x3) - p.y, prime);
-
-  return { x: x3, y: y3, isInfinity: false };
-}
-
-/**
- * Modular arithmetic helpers
- */
-function mod(a: bigint, m: bigint): bigint {
-  const result = a % m;
-  return result >= BigInt(0) ? result : result + m;
-}
-
-function modDiv(a: bigint, b: bigint, m: bigint): bigint {
-  return mod(a * modInverse(b, m), m);
-}
-
-function modInverse(a: bigint, m: bigint): bigint {
-  a = mod(a, m);
-  let [oldR, r] = [a, m];
-  let [oldS, s] = [BigInt(1), BigInt(0)];
-
-  while (r !== BigInt(0)) {
-    const quotient = oldR / r;
-    [oldR, r] = [r, oldR - quotient * r];
-    [oldS, s] = [s, oldS - quotient * s];
-  }
-
-  return mod(oldS, m);
-}
-
-/**
- * Convert Uint8Array to BigInt
- */
-function bytesToBigInt(bytes: Uint8Array): bigint {
-  let result = BigInt(0);
-  const arr = Array.from(bytes);
-  for (const byte of arr) {
-    result = (result << BigInt(8)) + BigInt(byte);
+    exp = exp / 2n;
+    base = (base * base) % mod;
   }
   return result;
 }
 
 /**
- * Convert BigInt to hex string with specified byte length
+ * Convert bytes to BigInt
  */
-function bigIntToHex(n: bigint, byteLength: number): string {
-  const hex = n.toString(16).padStart(byteLength * 2, '0');
-  return hex.slice(-byteLength * 2); // Ensure correct length
+function bytesToBigInt(bytes: Uint8Array): bigint {
+  let result = 0n;
+  for (let i = 0; i < bytes.length; i++) {
+    result = (result << 8n) + BigInt(bytes[i]);
+  }
+  return result;
 }
 
 /**
- * Sign a message with a Nostr private key (Schnorr signature)
- * Used for signing heartbeat events
+ * Convert BigInt to bytes
  */
-export async function signNostrEvent(
-  eventHash: Uint8Array,
-  privateKey: string
-): Promise<string> {
-  // Schnorr signature implementation for Nostr
-  // This is a simplified version - in production, use a well-tested library
-  const privateKeyBytes = fromHex(privateKey);
-  const k = bytesToBigInt(privateKeyBytes);
-
-  // Generate deterministic nonce using RFC 6979
-  const nonce = await generateDeterministicNonce(privateKeyBytes, eventHash);
-
-  // ... rest of Schnorr signing
-  // For now, return placeholder - will integrate nostr-tools for signing
-  throw new Error('Schnorr signing not yet implemented - use nostr-tools');
-}
-
-/**
- * Generate deterministic nonce for Schnorr signature (RFC 6979)
- */
-async function generateDeterministicNonce(
-  privateKey: Uint8Array,
-  message: Uint8Array
-): Promise<bigint> {
-  // HMAC-based deterministic nonce generation
-  const key = await crypto.subtle.importKey(
-    'raw',
-    privateKey as BufferSource,
-    { name: 'HMAC', hash: 'SHA-256' },
-    false,
-    ['sign']
-  );
-
-  const signature = await crypto.subtle.sign('HMAC', key, message as BufferSource);
-  return bytesToBigInt(new Uint8Array(signature)) % CURVE_ORDER;
+function bigIntToBytes(n: bigint, length: number): Uint8Array {
+  const hex = n.toString(16).padStart(length * 2, '0');
+  const bytes = new Uint8Array(length);
+  for (let i = 0; i < length; i++) {
+    bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+  }
+  return bytes;
 }
 
 /**
@@ -233,13 +193,24 @@ async function generateDeterministicNonce(
  */
 export function isValidPrivateKey(privateKey: string): boolean {
   if (!/^[0-9a-f]{64}$/i.test(privateKey)) return false;
-  const k = BigInt('0x' + privateKey);
-  return k > BigInt(0) && k < CURVE_ORDER;
+  try {
+    secp256k1.utils.normPrivateKeyToScalar(hexToBytes(privateKey));
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
  * Validate a Nostr public key (x-only, 32 bytes)
  */
 export function isValidPublicKey(publicKey: string): boolean {
-  return /^[0-9a-f]{64}$/i.test(publicKey);
+  if (!/^[0-9a-f]{64}$/i.test(publicKey)) return false;
+  try {
+    // Try to lift the x coordinate to verify it's on the curve
+    liftX(hexToBytes(publicKey));
+    return true;
+  } catch {
+    return false;
+  }
 }
