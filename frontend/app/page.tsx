@@ -48,16 +48,15 @@ export default function HomePage() {
             {/* Hero content */}
             <div>
               <div className="inline-block text-[10px] uppercase tracking-[0.2em] bg-black text-white px-4 py-2 mb-6">
-                Trustless Infrastructure
+                Open Source
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-[56px] font-extrabold leading-[1.05] mb-6 tracking-tight text-black">
-                Cryptographic dead man's switch.<br/>
-                <span className="text-orange">Fully decentralized. No company required.</span>
+                Cryptographic dead man's switch.
               </h1>
               <p className="text-sm text-black/80 mb-8 max-w-md">
-                You control your keys. Guardians watch for your heartbeat. Bitcoin proves time.
-                If you disappear, your message releases automatically — no server, no company,
-                no trusted third party. EchoLock can vanish tomorrow and your switch still works.
+                Delivers a message to someone you choose, but only if you stop checking in.
+                Keys generated locally. Encryption key split across 5 guardians.
+                Works without our servers.
               </p>
               <div className="flex gap-3 flex-wrap">
                 <Link href="/demo" className="btn">Try Live Demo</Link>
@@ -330,8 +329,8 @@ export default function HomePage() {
                 <span className="text-sm font-bold tracking-[0.2em] uppercase">Echolock</span>
               </div>
               <p className="text-[11px] opacity-50 max-w-[280px] leading-relaxed">
-                Fully decentralized cryptographic dead man's switch.
-                AGPL-3.0 license. Self-hostable. Company eliminable.
+                Cryptographic dead man's switch.
+                AGPL-3.0 license. Self-hostable.
               </p>
             </div>
             <div className="flex gap-12">

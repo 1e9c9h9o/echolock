@@ -941,7 +941,7 @@ export default function PublicDemoPage() {
       <footer className="bg-black text-white py-8 mt-12">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <p className="text-xs opacity-50">
-            ECHOLOCK v1.0 | Fully Decentralized | Open Source (AGPL-3.0)
+            ECHOLOCK v1.0 | Open Source (AGPL-3.0)
           </p>
         </div>
       </footer>
