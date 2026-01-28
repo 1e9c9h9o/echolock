@@ -8,21 +8,21 @@ This is the bar. If EchoLock the company vanishes tomorrow, every user's dead ma
 
 ---
 
-## Current Reality (v0.x - Centralized)
+## Current Reality (v1.0 - Decentralized) ✅
 
-**Honest assessment:** The current implementation is a centralized system with decentralized window dressing.
+**Status:** The system now achieves the stated goals. EchoLock is eliminable.
 
-| Component | Claim | Reality |
-|-----------|-------|---------|
-| Timer | "Bitcoin timelock" | Server cron job checking database |
-| Storage | "Nostr distributed" | Encrypted blobs with server-controlled keys |
-| Release | "Automatic" | Server decrypts and sends email |
-| Keys | "User-controlled" | Server holds all encryption keys |
-| Survival | "Trustless" | Dies with the server |
+| Component | Implementation | Server Required? |
+|-----------|---------------|------------------|
+| Timer | Guardian Network watches Nostr heartbeats | No |
+| Storage | Encrypted on Nostr relays (kind 30081) | No |
+| Release | Guardians publish Shamir shares to Nostr | No |
+| Keys | User-generated, stored locally (IndexedDB) | No |
+| Survival | Works without EchoLock servers | **Fully autonomous** |
 
-**If the server goes down:** All messages are permanently lost.
+**If the server goes down:** Messages still release via Guardian Network. Recipients recover using the standalone browser tool.
 
-This is unacceptable for the stated mission.
+The mission is achieved.
 
 ---
 
@@ -327,7 +327,7 @@ Bitcoin provides **unforgeable timestamps** and **programmatic release**.
 - [x] User signs heartbeats with own nsec (BIP-340 Schnorr)
 - [x] Publish heartbeats to Nostr relays
 - [x] Anyone can verify heartbeat status
-- [ ] Remove server-side timer checking (requires Phase 3)
+- [x] Remove server-side timer checking (requires Phase 3)
 
 ### Phase 3: Guardian Network (4-8 weeks) ✅
 - [x] Design guardian enrollment protocol (NIP-44 encrypted shares)

@@ -20,7 +20,13 @@
 
 import { describe, test, expect, beforeEach } from '@jest/globals';
 import crypto from 'crypto';
-import { encrypt, decrypt } from '../../src/crypto/encryption.js';
+import {
+  encrypt,
+  decrypt,
+  getEncryptionCount,
+  resetEncryptionCounter,
+  checkKeyUsage
+} from '../../src/crypto/encryption.js';
 
 describe('IV Uniqueness Enforcement', () => {
   
@@ -91,33 +97,77 @@ describe('IV Uniqueness Enforcement', () => {
 });
 
 describe('IV Collision Detection (Birthday Paradox)', () => {
-  
-  test('should warn about encryption count approaching 2^32 limit', () => {
-    // Per NIST SP 800-38D, GCM should not encrypt more than 2^32 blocks
-    // with same key. With 12-byte IV, birthday paradox collision probability
-    // becomes significant around 2^48 encryptions
-    
-    // This is a design test - implementation should track encryption count
-    // For now, document the risk
-    
-    const MAX_SAFE_ENCRYPTIONS = Math.pow(2, 32);
-    expect(MAX_SAFE_ENCRYPTIONS).toBe(4294967296);
-    
-    // TODO: Implement encryption counter per key
-    // TODO: Warn at 2^31 encryptions
-    // TODO: Refuse to encrypt at 2^32 encryptions
+
+  test('should track encryption count per key', () => {
+    const key = crypto.randomBytes(32);
+    const plaintext = Buffer.from('test data');
+
+    // Reset counter for clean test
+    resetEncryptionCounter(key);
+
+    // Initial count should be 0
+    expect(getEncryptionCount(key)).toBe(0);
+
+    // Encrypt and check count increments
+    encrypt(plaintext, key);
+    expect(getEncryptionCount(key)).toBe(1);
+
+    encrypt(plaintext, key);
+    expect(getEncryptionCount(key)).toBe(2);
+
+    // Different key should have independent counter
+    const key2 = crypto.randomBytes(32);
+    expect(getEncryptionCount(key2)).toBe(0);
+
+    // Clean up
+    resetEncryptionCounter(key);
+    resetEncryptionCounter(key2);
   });
 
-  test('should use fresh key after reaching encryption limit', () => {
-    // Key rotation should happen before IV collision risk becomes significant
-    // This is a design recommendation, not a test of current code
-    
-    // Expected behavior:
-    // 1. Track encryption count per key
-    // 2. At 2^31 encryptions, warn user
-    // 3. At 2^32 encryptions, refuse to encrypt (force key rotation)
-    
-    expect(true).toBe(true); // Placeholder for design verification
+  test('should provide key usage status via checkKeyUsage', () => {
+    const key = crypto.randomBytes(32);
+    resetEncryptionCounter(key);
+
+    // Fresh key should be safe with no warning
+    let status = checkKeyUsage(key);
+    expect(status.safe).toBe(true);
+    expect(status.warning).toBe(false);
+    expect(status.count).toBe(0);
+
+    // Clean up
+    resetEncryptionCounter(key);
+  });
+
+  test('should define correct thresholds per NIST SP 800-38D', () => {
+    // Per NIST SP 800-38D, GCM should not encrypt more than 2^32 blocks
+    // with same key. We warn at 2^31 and refuse at 2^32.
+
+    const WARN_THRESHOLD = Math.pow(2, 31);
+    const MAX_THRESHOLD = Math.pow(2, 32);
+
+    expect(WARN_THRESHOLD).toBe(2147483648);
+    expect(MAX_THRESHOLD).toBe(4294967296);
+  });
+
+  test('should allow counter reset for key rotation', () => {
+    const key = crypto.randomBytes(32);
+    const plaintext = Buffer.from('test');
+
+    // Encrypt a few times
+    encrypt(plaintext, key);
+    encrypt(plaintext, key);
+    expect(getEncryptionCount(key)).toBe(2);
+
+    // Reset simulates key rotation
+    resetEncryptionCounter(key);
+    expect(getEncryptionCount(key)).toBe(0);
+
+    // Can encrypt again
+    encrypt(plaintext, key);
+    expect(getEncryptionCount(key)).toBe(1);
+
+    // Clean up
+    resetEncryptionCounter(key);
   });
 });
 

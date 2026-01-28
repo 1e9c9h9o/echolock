@@ -47,8 +47,9 @@ import adminRoutes from './routes/admin.js';
 // Import auth middleware for cleanup
 import { stopRateLimitCleanup } from './middleware/auth.js';
 
-// Import timer monitor (background job)
-import { startTimerMonitor } from './jobs/timerMonitor.js';
+// Import reminder monitor (background job for check-in reminders)
+// NOTE: timerMonitor has been removed - the Guardian Network now handles
+// switch expiration detection and release. See CLAUDE.md for architecture.
 import { startReminderMonitor } from './jobs/reminderMonitor.js';
 
 // Import WebSocket service
@@ -349,20 +350,17 @@ async function startServer() {
       logger.warn('Server will start anyway - configure DATABASE_URL and restart');
     }
 
-    // Start timer monitor (cron job for checking expired switches)
+    // Start reminder monitor (cron job for check-in reminders)
+    // NOTE: Timer monitor has been removed - the Guardian Network now handles
+    // switch expiration detection and message release autonomously via Nostr.
     // Only start if database is healthy
     if (dbHealthy) {
-      logger.info('Starting timer monitor...');
-      const timerJob = startTimerMonitor();
-      logger.info('Timer monitor started - checking for expired switches every 5 minutes');
-      app.locals.timerJob = timerJob;
-
       logger.info('Starting reminder monitor...');
       const reminderJob = startReminderMonitor();
       logger.info('Reminder monitor started - checking for upcoming expirations every hour');
       app.locals.reminderJob = reminderJob;
     } else {
-      logger.warn('Timer monitor and reminder monitor not started - database not available');
+      logger.warn('Reminder monitor not started - database not available');
     }
 
     // Create HTTP server (needed for WebSocket integration)
@@ -401,12 +399,6 @@ async function startServer() {
 // Graceful shutdown helper
 function gracefulShutdown(signal) {
   logger.info(`${signal} received, shutting down gracefully...`);
-
-  // Stop timer monitor if running
-  if (app.locals.timerJob) {
-    app.locals.timerJob.stop();
-    logger.info('Timer monitor stopped');
-  }
 
   // Stop reminder monitor if running
   if (app.locals.reminderJob) {

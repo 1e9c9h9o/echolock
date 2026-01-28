@@ -1,22 +1,39 @@
 'use strict';
 
 /**
- * Timer Monitor - Cron Job
+ * Timer Monitor - DEPRECATED
  *
- * CRITICAL: This job checks for expired switches and releases messages
+ * =============================================================================
+ * THIS MODULE IS DEPRECATED AND NO LONGER USED
+ * =============================================================================
  *
+ * The server-side timer monitor has been replaced by the Guardian Network,
+ * which provides fully decentralized switch expiration detection and message
+ * release via the Nostr protocol.
+ *
+ * WHY DEPRECATED:
+ * - Centralized dependency: Required EchoLock server to release messages
+ * - Single point of failure: Server downtime = messages not released
+ * - Against project goals: See CLAUDE.md "The North Star" principles
+ *
+ * REPLACEMENT:
+ * - Guardian daemons watch for heartbeats on Nostr independently
+ * - When heartbeats stop, guardians publish their Shamir shares to Nostr
+ * - Recipients reconstruct messages using the browser-based recovery tool
+ * - No server involvement required
+ *
+ * This file is kept for reference only. It is not imported or executed.
+ * See: guardian-daemon/index.js for the decentralized replacement.
+ *
+ * =============================================================================
+ *
+ * ORIGINAL DESCRIPTION (historical reference):
  * Runs every 5 minutes to check for:
  * - Switches that have passed their expiry time
  * - Retrieves fragments from Nostr
  * - Reconstructs the secret message
  * - Sends emails to all recipients
  * - Updates switch status to RELEASED
- *
- * Security:
- * - Uses your existing crypto code for reconstruction
- * - Logs all actions for audit trail
- * - Handles errors gracefully (continues on failure)
- * - Rate limits to prevent email spam
  */
 
 import cron from 'node-cron';

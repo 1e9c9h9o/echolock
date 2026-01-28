@@ -33,11 +33,14 @@
     "fast-check": "4.3.0",
     "jest": "30.2.0"
   },
+  "overrides": {
+    "valibot": "1.2.0"
+  },
   "dependencies": {
     "@noble/ciphers": "2.1.1",
     "@noble/curves": "2.0.1",
     "@noble/hashes": "2.0.1",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "bitcoinjs-lib": "6.1.7",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
