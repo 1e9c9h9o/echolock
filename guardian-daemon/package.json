@@ -1,0 +1,38 @@
+{
+  "name": "@echolock/guardian-daemon",
+  "version": "1.0.0",
+  "description": "Standalone guardian daemon for EchoLock dead man's switch",
+  "type": "module",
+  "main": "index.js",
+  "bin": {
+    "echolock-guardian": "./index.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "start:config": "node index.js --config guardian.json",
+    "test": "node test.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@noble/ciphers": "2.1.1",
+    "@noble/curves": "2.0.1",
+    "@noble/hashes": "2.0.1",
+    "nostr-tools": "2.17.0",
+    "ws": "8.18.3"
+  },
+  "keywords": [
+    "echolock",
+    "guardian",
+    "nostr",
+    "dead-mans-switch",
+    "shamir"
+  ],
+  "author": "EchoLock",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/echolock-xyz/echolock"
+  }
+}

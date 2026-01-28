@@ -449,6 +449,7 @@ You don't need to trust:
 4. Click "Recover"
 
 ### Running a Guardian
-1. Clone repo
-2. Configure guardian.json
-3. Run `node guardian-daemon/index.ts`
+1. Clone repo and `cd guardian-daemon && npm install`
+2. Generate keys: `node index.js --generate-keys`
+3. Configure guardian.json with your keys
+4. Run `node index.js`

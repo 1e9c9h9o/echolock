@@ -1,6 +1,6 @@
 {
-  "privateKey": "YOUR_NOSTR_PRIVATE_KEY_HEX",
-  "publicKey": "YOUR_NOSTR_PUBLIC_KEY_HEX",
+  "privateKey": "YOUR_NOSTR_PRIVATE_KEY_HEX_64_CHARS",
+  "publicKey": "YOUR_NOSTR_PUBLIC_KEY_HEX_64_CHARS",
   "relayUrls": [
     "wss://relay.damus.io",
     "wss://relay.nostr.band",
@@ -10,5 +10,6 @@
   ],
   "checkIntervalMinutes": 5,
   "gracePeriodHours": 1,
+  "dataDir": "./data",
   "webhookUrl": null
 }

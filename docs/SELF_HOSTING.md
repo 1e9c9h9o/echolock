@@ -45,44 +45,51 @@ npm install
 cp guardian.example.json guardian.json
 ```
 
+### Generate Keys
+
+```bash
+# Generate a new Nostr keypair
+node index.js --generate-keys
+```
+
+This outputs your private and public keys. Keep the private key secret!
+
 ### Configuration
 
 Edit `guardian.json`:
 
 ```json
 {
-  "guardianNsec": "YOUR_PRIVATE_KEY_HEX",
-  "guardianNpub": "YOUR_PUBLIC_KEY_HEX",
-  "relays": [
+  "privateKey": "YOUR_PRIVATE_KEY_HEX_64_CHARS",
+  "relayUrls": [
     "wss://relay.damus.io",
     "wss://relay.nostr.band",
     "wss://nos.lol"
   ],
   "checkIntervalMinutes": 5,
-  "switches": []
+  "gracePeriodHours": 1,
+  "dataDir": "./data",
+  "webhookUrl": null
 }
 ```
 
-### Generate Keys (if needed)
-
-```javascript
-// Quick key generation
-const privateKey = crypto.getRandomValues(new Uint8Array(32));
-const privateKeyHex = Array.from(privateKey).map(b => b.toString(16).padStart(2, '0')).join('');
-console.log('Private key (keep secret):', privateKeyHex);
-
-// Derive public key (requires secp256k1 library)
-// Or use: https://nostrtool.com/ to generate
-```
+| Option | Description |
+|--------|-------------|
+| `privateKey` | Your Nostr private key (required) |
+| `relayUrls` | Nostr relays to connect to |
+| `checkIntervalMinutes` | How often to check for expired switches |
+| `gracePeriodHours` | Extra time after threshold before release |
+| `dataDir` | Where to persist monitored switch data |
+| `webhookUrl` | Optional webhook for notifications |
 
 ### Running
 
 ```bash
 # Start the daemon
-node index.ts
+node index.js
 
 # Or with pm2 for production
-pm2 start index.ts --name echolock-guardian
+pm2 start index.js --name echolock-guardian
 ```
 
 ### What the Guardian Does
