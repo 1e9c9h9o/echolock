@@ -16,6 +16,7 @@ EchoLock is a cryptographic dead man's switch that uses Bitcoin timelocks and No
 ✅ **Database**: 100% complete with migrations
 ✅ **Testing**: >75% coverage, all critical paths tested
 ✅ **Deployment Infrastructure**: 100% complete
+✅ **CI/CD Pipeline**: GitHub Actions configured
 ✅ **Documentation**: Comprehensive guides available
 🔄 **Frontend**: Basic structure complete, dashboard needs completion (~20% remaining)
 
@@ -119,6 +120,7 @@ A production-grade REST API with:
 - `railway.json` - Railway deployment config
 - `render.yaml` - Render deployment config
 - `deploy.sh` - Multi-platform deployment script
+- `.github/workflows/ci.yml` - GitHub Actions CI/CD pipeline
 
 **Scripts**:
 - `npm run api` - Start production server

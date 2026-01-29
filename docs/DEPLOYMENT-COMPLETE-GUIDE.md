@@ -207,7 +207,63 @@ vercel --prod
    ```
 8. Repeat for frontend with Next.js Sentry package
 
-## Part 5: Beta Testing Setup
+## Part 5: CI/CD with GitHub Actions
+
+### Overview
+
+EchoLock uses GitHub Actions for continuous integration. Tests run automatically on every pull request and push to main.
+
+### Workflow: `.github/workflows/ci.yml`
+
+The CI pipeline includes three jobs:
+
+| Job | Trigger | What it does |
+|-----|---------|--------------|
+| `test` | PR + push to main | Runs unit tests |
+| `frontend` | PR + push to main | Lints and builds frontend |
+| `integration` | Push to main only | Runs integration tests with PostgreSQL |
+
+### How It Works
+
+1. **On Pull Request**:
+   - Unit tests run (`npm run test:unit`)
+   - Frontend lints and builds
+   - Must pass before merge
+
+2. **On Push to Main**:
+   - All of the above, plus...
+   - Integration tests with real PostgreSQL
+   - Vercel auto-deploys frontend
+   - Railway auto-deploys API
+
+### Viewing Results
+
+1. Go to your GitHub repository
+2. Click "Actions" tab
+3. View workflow runs and logs
+
+### Adding Secrets (if needed)
+
+For integration tests that need secrets:
+
+1. Go to Settings → Secrets and variables → Actions
+2. Add repository secrets:
+   - `DATABASE_URL` (for integration tests)
+   - Any other secrets needed
+
+### Local Testing Before Push
+
+```bash
+# Run unit tests
+npm run test:unit
+
+# Run frontend lint and build
+cd frontend && npm run lint && npm run build
+```
+
+---
+
+## Part 6: Beta Testing Setup
 
 ### Create Beta Testing Documentation
 
@@ -306,7 +362,7 @@ If you discover a security vulnerability:
    - Overall rating
    - Would you recommend?
 
-## Part 6: OpenSats Pitch Preparation
+## Part 7: OpenSats Pitch Preparation
 
 ### Create Pitch Deck
 
@@ -617,7 +673,7 @@ Links in the description. Thanks for watching!"
 **Music**: Subtle background music (royalty-free)
 ```
 
-## Part 7: Next Steps Checklist
+## Part 8: Next Steps Checklist
 
 ### Immediate (Week 1)
 
