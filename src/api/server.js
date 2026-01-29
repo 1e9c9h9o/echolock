@@ -12,6 +12,7 @@
  * - CORS configuration
  * - Health checks
  * - Graceful shutdown
+ * - Sentry error monitoring
  *
  * Best Practices:
  * - Environment-based configuration
@@ -26,6 +27,20 @@
 import dotenv from 'dotenv';
 if (process.env.NODE_ENV !== 'production') {
   dotenv.config();
+}
+
+// Initialize Sentry BEFORE other imports for best stack traces
+import * as Sentry from '@sentry/node';
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'development',
+    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+    // Don't send PII
+    sendDefaultPii: false,
+  });
+  console.log('Sentry initialized for error monitoring');
 }
 
 import express from 'express';
@@ -306,6 +321,11 @@ app.use((req, res) => {
     path: req.path
   });
 });
+
+// Sentry error handler - must be before other error handlers
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
 
 // Global error handler
 app.use((err, req, res, next) => {

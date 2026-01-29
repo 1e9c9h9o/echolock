@@ -183,29 +183,27 @@ vercel --prod
 
 ### Sentry (Error Tracking)
 
+Sentry is already integrated in the API. You just need to add your DSN:
+
 1. Go to [sentry.io](https://sentry.io)
 2. Sign up for free account
 3. Create new project:
-   - Platform: Node.js (for API)
+   - Platform: Node.js
    - Project name: echolock-api
 4. Copy DSN (looks like: `https://xxx@xxx.ingest.sentry.io/xxx`)
 5. Add to Railway:
    ```bash
    railway variables set SENTRY_DSN=your-sentry-dsn
    ```
-6. Install Sentry in API (optional, for better error tracking):
-   ```bash
-   npm install @sentry/node
-   ```
-7. Add to `src/api/server.js`:
-   ```javascript
-   import * as Sentry from '@sentry/node';
+6. Redeploy - errors will now be tracked automatically
 
-   if (process.env.SENTRY_DSN) {
-     Sentry.init({ dsn: process.env.SENTRY_DSN });
-   }
-   ```
-8. Repeat for frontend with Next.js Sentry package
+**What's tracked:**
+- Unhandled exceptions
+- Express route errors
+- Performance traces (10% sampling in production)
+
+**Frontend Sentry (optional):**
+For frontend error tracking, add the Next.js Sentry package separately.
 
 ## Part 5: CI/CD with GitHub Actions
 
