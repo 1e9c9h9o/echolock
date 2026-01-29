@@ -38,7 +38,9 @@ const getCookieConfig = (maxAge) => {
   return {
     httpOnly: true,
     secure: isProduction,
-    sameSite: isProduction ? 'strict' : 'lax',
+    // Use 'none' for cross-origin requests (frontend and API on different domains)
+    // 'none' requires secure: true (HTTPS)
+    sameSite: isProduction ? 'none' : 'lax',
     maxAge,
     path: '/'
   };
