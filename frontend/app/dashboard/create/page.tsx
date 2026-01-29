@@ -2,13 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Plus, X } from 'lucide-react'
+import { ArrowLeft, Plus, X, Shield, ChevronDown, ChevronUp } from 'lucide-react'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
-import CryptoInfoPanel from '@/components/CryptoInfoPanel'
-import SecurityStrengthIndicator from '@/components/SecurityStrengthIndicator'
 import { switchesAPI } from '@/lib/api'
 
 interface Recipient {
@@ -27,6 +25,7 @@ export default function CreateSwitchPage() {
   ])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showTechDetails, setShowTechDetails] = useState(false)
 
   const addRecipient = () => {
     setRecipients([...recipients, { email: '', name: '' }])
@@ -106,10 +105,18 @@ export default function CreateSwitchPage() {
         </p>
       </div>
 
-      {/* Cryptographic Information */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-        <CryptoInfoPanel />
-        <SecurityStrengthIndicator />
+      {/* Simple explanation */}
+      <div className="bg-blue/10 border-2 border-blue p-6 mb-10">
+        <div className="flex items-start">
+          <Shield className="h-6 w-6 mr-3 mt-0.5 text-blue flex-shrink-0" strokeWidth={2} />
+          <div>
+            <p className="font-bold text-black mb-1">How it works</p>
+            <p className="text-black/80 font-mono text-sm">
+              Your message is encrypted and split across multiple servers. If you miss a check-in,
+              your recipients automatically receive the message. Only they can decrypt it.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Form */}
@@ -227,6 +234,33 @@ export default function CreateSwitchPage() {
               <p className="font-mono font-bold">{error}</p>
             </div>
           )}
+
+          {/* Technical Details (collapsible) */}
+          <div className="border-2 border-gray-300">
+            <button
+              type="button"
+              onClick={() => setShowTechDetails(!showTechDetails)}
+              className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+            >
+              <span className="font-mono text-sm text-gray-600">Technical Details</span>
+              {showTechDetails ? (
+                <ChevronUp className="h-5 w-5 text-gray-400" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-gray-400" />
+              )}
+            </button>
+            {showTechDetails && (
+              <div className="px-6 pb-6 border-t border-gray-200">
+                <div className="pt-4 space-y-2 text-xs font-mono text-gray-600">
+                  <p><strong>Encryption:</strong> AES-256-GCM (authenticated)</p>
+                  <p><strong>Key Splitting:</strong> Shamir Secret Sharing (3-of-5 threshold)</p>
+                  <p><strong>Key Derivation:</strong> PBKDF2-SHA256 (600,000 iterations)</p>
+                  <p><strong>Distribution:</strong> Nostr protocol across 10+ relays</p>
+                  <p><strong>Optional:</strong> Bitcoin timelock (OP_CHECKLOCKTIMEVERIFY)</p>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Actions */}
           <div className="flex gap-6">
