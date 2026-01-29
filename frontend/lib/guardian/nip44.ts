@@ -15,7 +15,7 @@
 import { chacha20poly1305 } from '@noble/ciphers/chacha';
 import { secp256k1 } from '@noble/curves/secp256k1';
 import { hkdf } from '@noble/hashes/hkdf';
-import { sha256 } from '@noble/hashes/sha256';
+import { sha256 } from '@noble/hashes/sha2';
 import { hmac } from '@noble/hashes/hmac';
 import { randomBytes, bytesToHex, hexToBytes } from '@noble/hashes/utils';
 

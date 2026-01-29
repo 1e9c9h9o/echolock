@@ -7,19 +7,20 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      max-width: 800px;
+      font-family: 'IBM Plex Mono', monospace, -apple-system, BlinkMacSystemFont, sans-serif;
+      max-width: 900px;
       margin: 0 auto;
       padding: 40px 20px;
-      background: #f5f5f5;
+      background: #7BA3C9;
     }
-    h1 { margin-bottom: 10px; }
-    .subtitle { color: #666; margin-bottom: 30px; }
+    h1 { margin-bottom: 10px; font-size: 32px; }
+    .subtitle { color: #333; margin-bottom: 30px; }
     .card {
       background: white;
       padding: 30px;
-      border: 2px solid #000;
+      border: 3px solid #000;
       margin-bottom: 20px;
+      box-shadow: 6px 6px 0 #000;
     }
     .card h2 {
       font-size: 18px;
@@ -27,34 +28,43 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
     label {
       display: block;
       font-weight: bold;
       margin-bottom: 5px;
-      font-size: 14px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
     }
     input, textarea {
       width: 100%;
       padding: 12px;
       border: 2px solid #000;
-      font-family: monospace;
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 14px;
       margin-bottom: 15px;
     }
     textarea { min-height: 100px; resize: vertical; }
     button {
-      background: #000;
-      color: white;
-      padding: 15px 30px;
-      border: none;
+      background: #FF6B00;
+      color: #000;
+      padding: 18px 30px;
+      border: 3px solid #000;
       font-size: 16px;
       font-weight: bold;
       cursor: pointer;
       width: 100%;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      box-shadow: 4px 4px 0 #000;
+      transition: all 0.1s;
     }
-    button:hover { background: #333; }
-    button:disabled { background: #999; cursor: not-allowed; }
+    button:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #000; }
+    button:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #000; }
+    button:disabled { background: #999; cursor: not-allowed; transform: none; box-shadow: 4px 4px 0 #000; }
     .status {
       padding: 15px;
       margin-bottom: 20px;
@@ -65,115 +75,182 @@
     .status.error { background: #ffebee; border-color: #f44336; }
     .status.warning { background: #fff3e0; border-color: #ff9800; }
     .log {
-      background: #1e1e1e;
+      background: #0A0A0A;
       color: #d4d4d4;
       padding: 15px;
-      font-family: monospace;
+      font-family: 'IBM Plex Mono', monospace;
       font-size: 12px;
-      max-height: 200px;
+      max-height: 300px;
       overflow-y: auto;
       margin-bottom: 20px;
+      border: 2px solid #000;
     }
     .log-entry { margin-bottom: 5px; }
     .log-entry.success { color: #4caf50; }
     .log-entry.error { color: #f44336; }
-    .log-entry.info { color: #2196f3; }
+    .log-entry.info { color: #64b5f6; }
     .message-output {
       background: #f9f9f9;
-      border: 2px solid #4caf50;
+      border: 3px solid #4caf50;
       padding: 20px;
       white-space: pre-wrap;
       font-family: inherit;
+      word-break: break-word;
     }
     .hidden { display: none; }
     .warning-box {
-      background: #fff3e0;
-      border: 2px solid #ff9800;
+      background: #FFD000;
+      border: 3px solid #000;
       padding: 15px;
       margin-bottom: 20px;
+      font-weight: bold;
     }
     .info-box {
-      background: #e3f2fd;
-      border: 2px solid #2196f3;
-      padding: 15px;
+      background: white;
+      border: 3px solid #000;
+      padding: 20px;
       margin-top: 20px;
       font-size: 14px;
     }
-    a { color: #2196f3; }
+    a { color: #FF6B00; }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+      border-bottom: 3px solid #000;
+    }
+    .logo {
+      width: 60px;
+      height: 60px;
+    }
+    .progress-bar {
+      height: 8px;
+      background: #ddd;
+      border: 2px solid #000;
+      margin: 10px 0;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: #FF6B00;
+      transition: width 0.3s;
+    }
   </style>
 </head>
 <body>
-  <h1>EchoLock Message Recovery</h1>
-  <p class="subtitle">Recover messages without any server - directly from Nostr</p>
+  <div class="header">
+    <svg class="logo" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="44" fill="none" stroke="#000" stroke-width="5" opacity="0.3"/>
+      <circle cx="50" cy="50" r="30" fill="none" stroke="#000" stroke-width="5" opacity="0.6"/>
+      <circle cx="50" cy="50" r="16" fill="#FF6B00"/>
+    </svg>
+    <div>
+      <h1>ECHOLOCK RECOVERY</h1>
+      <p class="subtitle">Standalone message recovery - no server required</p>
+    </div>
+  </div>
 
   <div class="warning-box">
-    <strong>⚠️ This tool runs entirely in your browser.</strong><br>
-    Your private key never leaves your device. All cryptographic operations happen locally.
+    This tool runs entirely in your browser. Your private key never leaves your device.
+    All cryptographic operations happen locally using WebCrypto API.
   </div>
 
   <div class="card">
-    <h2>🔑 Your Credentials</h2>
-    <label for="recipientNsec">Your Nostr Private Key (nsec/hex)</label>
-    <input type="password" id="recipientNsec" placeholder="nsec1... or 64-character hex">
+    <h2>Your Credentials</h2>
+    <label for="recipientNsec">Your Nostr Private Key (hex format, 64 characters)</label>
+    <input type="password" id="recipientNsec" placeholder="64-character hex private key">
 
-    <label for="recipientNpub">Your Nostr Public Key (npub/hex)</label>
-    <input type="text" id="recipientNpub" placeholder="npub1... or 64-character hex">
+    <label for="recipientNpub">Your Nostr Public Key (hex format, 64 characters)</label>
+    <input type="text" id="recipientNpub" placeholder="64-character hex public key">
   </div>
 
   <div class="card">
-    <h2>📬 Switch Details</h2>
+    <h2>Switch Details</h2>
     <label for="switchId">Switch ID</label>
-    <input type="text" id="switchId" placeholder="e.g., abc123-def456-...">
+    <input type="text" id="switchId" placeholder="e.g., abc123def456...">
 
-    <label for="userNpub">Sender's Public Key (optional)</label>
-    <input type="text" id="userNpub" placeholder="The original switch creator's npub">
+    <label for="userNpub">Sender's Public Key (optional, helps filter results)</label>
+    <input type="text" id="userNpub" placeholder="The original switch creator's public key">
   </div>
 
   <div class="card">
-    <h2>⚙️ Relays (optional)</h2>
+    <h2>Relays (optional)</h2>
     <label for="relays">Nostr Relays (one per line)</label>
     <textarea id="relays" placeholder="wss://relay.damus.io
 wss://relay.nostr.band
-wss://nos.lol"></textarea>
+wss://nos.lol
+wss://relay.snort.social
+wss://nostr.wine
+wss://purplepag.es
+wss://relay.primal.net"></textarea>
   </div>
 
   <button id="recoverBtn" onclick="startRecovery()">
-    🔓 Recover Message
+    RECOVER MESSAGE
   </button>
 
-  <div id="logContainer" class="hidden">
-    <h3 style="margin: 20px 0 10px;">Recovery Log</h3>
+  <div id="progressContainer" class="hidden" style="margin-top: 20px;">
+    <div class="progress-bar">
+      <div id="progressBar" class="progress-bar-fill" style="width: 0%"></div>
+    </div>
+    <div id="progressText" style="font-size: 12px; margin-top: 5px;"></div>
+  </div>
+
+  <div id="logContainer" class="hidden" style="margin-top: 20px;">
+    <h3 style="margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.1em;">Recovery Log</h3>
     <div id="log" class="log"></div>
   </div>
 
   <div id="statusContainer" class="hidden"></div>
 
-  <div id="messageContainer" class="hidden">
-    <h3 style="margin: 20px 0 10px;">✅ Recovered Message</h3>
+  <div id="messageContainer" class="hidden" style="margin-top: 20px;">
+    <h3 style="margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.1em;">Recovered Message</h3>
     <div id="message" class="message-output"></div>
   </div>
 
   <div class="info-box">
     <strong>How this works:</strong>
-    <ol style="margin-top: 10px; padding-left: 20px;">
+    <ol style="margin-top: 10px; padding-left: 20px; line-height: 1.8;">
       <li>Queries Nostr relays for released shares (kind 30080)</li>
-      <li>Decrypts shares using your private key (NIP-44)</li>
-      <li>Reconstructs the encryption key (Shamir 3-of-5)</li>
-      <li>Fetches the encrypted message (kind 30081)</li>
-      <li>Decrypts the message (AES-256-GCM)</li>
+      <li>Decrypts each share using your private key (NIP-44 / secp256k1 ECDH)</li>
+      <li>Reconstructs the encryption key using Shamir's Secret Sharing (3-of-5)</li>
+      <li>Fetches the encrypted message from Nostr (kind 30081)</li>
+      <li>Decrypts the final message using AES-256-GCM</li>
     </ol>
-    <p style="margin-top: 10px;">
-      <strong>No server needed.</strong> This page works even if EchoLock doesn't exist.
+    <p style="margin-top: 15px; padding: 10px; background: #f0f0f0; border: 2px solid #000;">
+      <strong>No server needed.</strong> This page works even if EchoLock no longer exists.
+      Save this HTML file locally for guaranteed access.
     </p>
   </div>
 
-  <script>
+  <!-- Load noble-secp256k1 and noble-hashes from CDN for cryptographic operations -->
+  <script type="module">
+    // ============================================
+    // ECHOLOCK STANDALONE RECOVERY TOOL
+    // Complete implementation - no server required
+    // ============================================
+
+    // Import noble libraries for cryptography
+    import { secp256k1 } from 'https://esm.sh/@noble/curves@1.8.1/secp256k1';
+    import { hkdf } from 'https://esm.sh/@noble/hashes@1.7.1/hkdf';
+    import { sha256 } from 'https://esm.sh/@noble/hashes@1.7.1/sha2';
+    import { hmac } from 'https://esm.sh/@noble/hashes@1.7.1/hmac';
+    import { chacha20poly1305 } from 'https://esm.sh/@noble/ciphers@1.2.1/chacha';
+    import { bytesToHex, hexToBytes, randomBytes } from 'https://esm.sh/@noble/hashes@1.7.1/utils';
+
+    // ============================================
+    // CONFIGURATION
+    // ============================================
+
     const DEFAULT_RELAYS = [
       'wss://relay.damus.io',
       'wss://relay.nostr.band',
       'wss://nos.lol',
       'wss://relay.snort.social',
       'wss://nostr.wine',
+      'wss://purplepag.es',
+      'wss://relay.primal.net',
     ];
 
     const NOSTR_KINDS = {
@@ -181,15 +258,302 @@ wss://nos.lol"></textarea>
       MESSAGE_STORAGE: 30081,
     };
 
-    const THRESHOLD = 3;
+    const SHAMIR_THRESHOLD = 3;
 
-    let logEl, statusEl, messageEl, logContainer, statusContainer, messageContainer;
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
 
-    function init() {
+    function hexToUint8Array(hex) {
+      if (hex.length % 2 !== 0) throw new Error('Invalid hex string');
+      const arr = new Uint8Array(hex.length / 2);
+      for (let i = 0; i < arr.length; i++) {
+        arr[i] = parseInt(hex.substr(i * 2, 2), 16);
+      }
+      return arr;
+    }
+
+    function uint8ArrayToHex(arr) {
+      return Array.from(arr).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    function base64ToUint8Array(base64) {
+      const binary = atob(base64);
+      const arr = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        arr[i] = binary.charCodeAt(i);
+      }
+      return arr;
+    }
+
+    function uint8ArrayToBase64(arr) {
+      let binary = '';
+      for (let i = 0; i < arr.length; i++) {
+        binary += String.fromCharCode(arr[i]);
+      }
+      return btoa(binary);
+    }
+
+    // ============================================
+    // SECP256K1 ECDH
+    // ============================================
+
+    function computeSharedSecret(privateKeyHex, publicKeyHex) {
+      const privateKey = hexToUint8Array(privateKeyHex);
+
+      // Public key might be x-only (32 bytes) or compressed (33 bytes)
+      // For x-only, we need to add the 02 prefix (even y)
+      let publicKeyBytes;
+      if (publicKeyHex.length === 64) {
+        // x-only pubkey - add 02 prefix for even y (BIP-340 convention)
+        publicKeyBytes = hexToUint8Array('02' + publicKeyHex);
+      } else if (publicKeyHex.length === 66) {
+        publicKeyBytes = hexToUint8Array(publicKeyHex);
+      } else {
+        throw new Error('Invalid public key length');
+      }
+
+      // Compute shared point
+      const sharedPoint = secp256k1.getSharedSecret(privateKey, publicKeyBytes);
+
+      // Return x-coordinate only (first 32 bytes after removing prefix)
+      return sharedPoint.slice(1, 33);
+    }
+
+    // ============================================
+    // NIP-44 DECRYPTION
+    // ============================================
+
+    async function nip44Decrypt(payload, senderPubkeyHex, recipientPrivkeyHex) {
+      // Decode base64 payload
+      const data = base64ToUint8Array(payload);
+
+      // Check version byte
+      const version = data[0];
+      if (version !== 2) {
+        throw new Error(`Unsupported NIP-44 version: ${version}`);
+      }
+
+      // Extract components
+      const nonce = data.slice(1, 33);  // 32 bytes
+      const ciphertext = data.slice(33, -16);  // Variable length
+      const mac = data.slice(-16);  // 16 bytes
+
+      // Compute shared secret via ECDH
+      const sharedSecret = computeSharedSecret(recipientPrivkeyHex, senderPubkeyHex);
+
+      // Derive conversation key using HKDF
+      const conversationKey = hkdf(sha256, sharedSecret, 'nip44-v2', undefined, 32);
+
+      // Derive message keys from conversation key and nonce
+      const keys = hkdf(sha256, conversationKey, nonce, undefined, 76);
+      const chachaKey = keys.slice(0, 32);
+      const chachaNonce = keys.slice(32, 44);
+      const hmacKey = keys.slice(44, 76);
+
+      // Verify MAC
+      const expectedMac = hmac(sha256, hmacKey, data.slice(0, -16));
+      const macValid = expectedMac.slice(0, 16).every((b, i) => b === mac[i]);
+      if (!macValid) {
+        throw new Error('NIP-44 MAC verification failed');
+      }
+
+      // Decrypt with ChaCha20-Poly1305
+      const chacha = chacha20poly1305(chachaKey, chachaNonce);
+      const decrypted = chacha.decrypt(ciphertext);
+
+      // Remove padding
+      const paddingLen = (decrypted[0] << 8) | decrypted[1];
+      const plaintext = decrypted.slice(2, 2 + paddingLen);
+
+      return new TextDecoder().decode(plaintext);
+    }
+
+    // ============================================
+    // SHAMIR SECRET SHARING - GF(256)
+    // ============================================
+
+    // GF(256) field with irreducible polynomial x^8 + x^4 + x^3 + x + 1 (0x11B)
+    const LOG_TABLE = new Uint8Array(256);
+    const EXP_TABLE = new Uint8Array(256);
+
+    // Initialize lookup tables using generator 3
+    (function initGF256Tables() {
+      let x = 1;
+      for (let i = 0; i < 255; i++) {
+        EXP_TABLE[i] = x;
+        LOG_TABLE[x] = i;
+        // Multiply by 3
+        const xtime = (x << 1) ^ ((x >> 7) * 0x1b);
+        x = (xtime ^ x) & 0xff;
+      }
+      EXP_TABLE[255] = EXP_TABLE[0];
+    })();
+
+    function gfMul(a, b) {
+      if (a === 0 || b === 0) return 0;
+      return EXP_TABLE[(LOG_TABLE[a] + LOG_TABLE[b]) % 255];
+    }
+
+    function gfDiv(a, b) {
+      if (b === 0) throw new Error('Division by zero in GF(256)');
+      if (a === 0) return 0;
+      return EXP_TABLE[(LOG_TABLE[a] - LOG_TABLE[b] + 255) % 255];
+    }
+
+    function gfAdd(a, b) {
+      return a ^ b;
+    }
+
+    function lagrangeInterpolate(points) {
+      // Interpolate at x=0 to recover the secret
+      let result = 0;
+
+      for (let i = 0; i < points.length; i++) {
+        let numerator = 1;
+        let denominator = 1;
+
+        for (let j = 0; j < points.length; j++) {
+          if (i !== j) {
+            // For x=0: (0 - x_j) / (x_i - x_j) = x_j / (x_i ^ x_j) in GF(256)
+            numerator = gfMul(numerator, points[j].x);
+            denominator = gfMul(denominator, gfAdd(points[i].x, points[j].x));
+          }
+        }
+
+        const lagrangeCoeff = gfDiv(numerator, denominator);
+        result = gfAdd(result, gfMul(points[i].y, lagrangeCoeff));
+      }
+
+      return result;
+    }
+
+    function shamirCombine(shares) {
+      // shares: array of { x: number, data: Uint8Array }
+      if (shares.length < 2) {
+        throw new Error('Need at least 2 shares to reconstruct');
+      }
+
+      const secretLength = shares[0].data.length;
+      if (!shares.every(s => s.data.length === secretLength)) {
+        throw new Error('All shares must have the same length');
+      }
+
+      // Check for duplicate x values
+      const xValues = new Set(shares.map(s => s.x));
+      if (xValues.size !== shares.length) {
+        throw new Error('Duplicate share indices detected');
+      }
+
+      const secret = new Uint8Array(secretLength);
+
+      // Reconstruct each byte using Lagrange interpolation
+      for (let byteIndex = 0; byteIndex < secretLength; byteIndex++) {
+        const points = shares.map(share => ({
+          x: share.x,
+          y: share.data[byteIndex],
+        }));
+        secret[byteIndex] = lagrangeInterpolate(points);
+      }
+
+      return secret;
+    }
+
+    function deserializeShare(hex) {
+      if (hex.length < 4) throw new Error('Invalid share format');
+      const x = parseInt(hex.slice(0, 2), 16);
+      const data = hexToUint8Array(hex.slice(2));
+      return { x, data };
+    }
+
+    // ============================================
+    // AES-256-GCM DECRYPTION
+    // ============================================
+
+    async function aesGcmDecrypt(ciphertext, iv, authTag, keyBytes) {
+      const key = await crypto.subtle.importKey(
+        'raw',
+        keyBytes,
+        { name: 'AES-GCM' },
+        false,
+        ['decrypt']
+      );
+
+      // Concatenate ciphertext and auth tag for WebCrypto
+      const combined = new Uint8Array(ciphertext.length + authTag.length);
+      combined.set(ciphertext);
+      combined.set(authTag, ciphertext.length);
+
+      const decrypted = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: iv },
+        key,
+        combined
+      );
+
+      return new Uint8Array(decrypted);
+    }
+
+    // ============================================
+    // NOSTR RELAY QUERIES
+    // ============================================
+
+    function queryRelay(url, filter, timeout = 15000) {
+      return new Promise((resolve) => {
+        const timer = setTimeout(() => resolve([]), timeout);
+
+        try {
+          const ws = new WebSocket(url);
+          const subId = Math.random().toString(36).slice(2, 10);
+          const events = [];
+
+          ws.onopen = () => {
+            ws.send(JSON.stringify(['REQ', subId, filter]));
+          };
+
+          ws.onmessage = (msg) => {
+            try {
+              const [type, id, data] = JSON.parse(msg.data);
+              if (type === 'EVENT' && id === subId) {
+                events.push(data);
+              }
+              if (type === 'EOSE' && id === subId) {
+                clearTimeout(timer);
+                ws.close();
+                resolve(events);
+              }
+            } catch {}
+          };
+
+          ws.onerror = () => {
+            clearTimeout(timer);
+            resolve([]);
+          };
+
+          ws.onclose = () => {
+            clearTimeout(timer);
+            resolve(events);
+          };
+        } catch {
+          clearTimeout(timer);
+          resolve([]);
+        }
+      });
+    }
+
+    // ============================================
+    // UI HELPERS
+    // ============================================
+
+    let logEl, logContainer, statusContainer, messageContainer, progressContainer, progressBar, progressText;
+
+    function initUI() {
       logEl = document.getElementById('log');
       logContainer = document.getElementById('logContainer');
       statusContainer = document.getElementById('statusContainer');
       messageContainer = document.getElementById('messageContainer');
+      progressContainer = document.getElementById('progressContainer');
+      progressBar = document.getElementById('progressBar');
+      progressText = document.getElementById('progressText');
     }
 
     function log(message, type = 'info') {
@@ -211,81 +575,74 @@ wss://nos.lol"></textarea>
       document.getElementById('message').textContent = text;
     }
 
+    function updateProgress(percent, text) {
+      progressContainer.classList.remove('hidden');
+      progressBar.style.width = `${percent}%`;
+      progressText.textContent = text;
+    }
+
     function getRelays() {
       const text = document.getElementById('relays').value.trim();
       if (!text) return DEFAULT_RELAYS;
       return text.split('\n').map(r => r.trim()).filter(r => r.startsWith('wss://'));
     }
 
-    async function queryRelay(url, filter) {
-      return new Promise((resolve) => {
-        const timeout = setTimeout(() => resolve([]), 10000);
-
-        try {
-          const ws = new WebSocket(url);
-          const subId = Math.random().toString(36).slice(2, 10);
-          const events = [];
-
-          ws.onopen = () => ws.send(JSON.stringify(['REQ', subId, filter]));
-
-          ws.onmessage = (msg) => {
-            const [type, id, data] = JSON.parse(msg.data);
-            if (type === 'EVENT' && id === subId) events.push(data);
-            if (type === 'EOSE' && id === subId) {
-              clearTimeout(timeout);
-              ws.close();
-              resolve(events);
-            }
-          };
-
-          ws.onerror = () => { clearTimeout(timeout); resolve([]); };
-        } catch { clearTimeout(timeout); resolve([]); }
-      });
-    }
-
-    // Simplified NIP-44 decryption (placeholder - would need full implementation)
-    async function nip44Decrypt(ciphertext, senderPubkey, recipientPrivkey) {
-      // In production, this would be full NIP-44 implementation
-      // For demo, we'll show that the structure is correct
-      throw new Error('Full NIP-44 decryption requires the complete library');
-    }
-
-    // Shamir combine (simplified)
-    function shamirCombine(shares) {
-      // Placeholder - real implementation in recovery/recover.ts
-      throw new Error('Shamir reconstruction requires the complete library');
-    }
+    // ============================================
+    // MAIN RECOVERY FUNCTION
+    // ============================================
 
     async function startRecovery() {
-      init();
+      initUI();
 
       const recipientNsec = document.getElementById('recipientNsec').value.trim();
       const recipientNpub = document.getElementById('recipientNpub').value.trim();
       const switchId = document.getElementById('switchId').value.trim();
       const userNpub = document.getElementById('userNpub').value.trim();
 
+      // Validation
       if (!recipientNsec || !recipientNpub || !switchId) {
         showStatus('Please fill in all required fields', 'error');
         return;
       }
 
+      if (recipientNsec.length !== 64 || !/^[0-9a-fA-F]+$/.test(recipientNsec)) {
+        showStatus('Private key must be 64 hex characters', 'error');
+        return;
+      }
+
+      if (recipientNpub.length !== 64 || !/^[0-9a-fA-F]+$/.test(recipientNpub)) {
+        showStatus('Public key must be 64 hex characters', 'error');
+        return;
+      }
+
       const btn = document.getElementById('recoverBtn');
       btn.disabled = true;
-      btn.textContent = 'Recovering...';
+      btn.textContent = 'RECOVERING...';
 
       logEl.innerHTML = '';
       messageContainer.classList.add('hidden');
+      statusContainer.classList.add('hidden');
 
       try {
         const relays = getRelays();
         log(`Using ${relays.length} relays`);
+        updateProgress(5, 'Starting recovery...');
 
-        // Step 1: Collect shares
-        log('Searching for released shares...', 'info');
+        // ========================================
+        // STEP 1: Collect released shares
+        // ========================================
+        log('Step 1: Searching for released shares...', 'info');
+        updateProgress(10, 'Searching for shares on Nostr...');
 
-        let allShares = [];
+        let allShareEvents = [];
+        let relayIndex = 0;
+
         for (const relay of relays) {
-          log(`Querying ${new URL(relay).hostname}...`);
+          relayIndex++;
+          const hostname = new URL(relay).hostname;
+          log(`Querying ${hostname}...`);
+          updateProgress(10 + (relayIndex / relays.length) * 20, `Querying ${hostname}...`);
+
           const events = await queryRelay(relay, {
             kinds: [NOSTR_KINDS.SHARE_RELEASE],
             '#p': [recipientNpub],
@@ -293,46 +650,151 @@ wss://nos.lol"></textarea>
 
           for (const event of events) {
             const dTag = event.tags?.find(t => t[0] === 'd');
-            if (dTag && dTag[1].startsWith(switchId)) {
-              allShares.push(event);
+            if (dTag && dTag[1].includes(switchId)) {
+              allShareEvents.push(event);
               log(`Found share from guardian ${event.pubkey.slice(0, 8)}...`, 'success');
             }
           }
         }
 
-        // Deduplicate
-        const uniqueShares = [...new Map(allShares.map(e => [e.id, e])).values()];
-        log(`Total unique shares found: ${uniqueShares.length}`);
+        // Deduplicate by event ID
+        const uniqueShareEvents = [...new Map(allShareEvents.map(e => [e.id, e])).values()];
+        log(`Total unique shares found: ${uniqueShareEvents.length}`);
 
-        if (uniqueShares.length < THRESHOLD) {
+        if (uniqueShareEvents.length < SHAMIR_THRESHOLD) {
           showStatus(
-            `Not enough shares released yet. Found ${uniqueShares.length}, need ${THRESHOLD}.`,
+            `Not enough shares released yet. Found ${uniqueShareEvents.length}, need ${SHAMIR_THRESHOLD}. ` +
+            `The switch may not have triggered yet, or some guardians haven't released their shares.`,
             'warning'
           );
           return;
         }
 
-        log(`✓ Sufficient shares available (${uniqueShares.length}/${THRESHOLD})`, 'success');
+        log(`Sufficient shares available (${uniqueShareEvents.length}/${SHAMIR_THRESHOLD})`, 'success');
+        updateProgress(35, 'Decrypting shares...');
 
-        // Note: Full decryption would happen here
-        showStatus(
-          `Found ${uniqueShares.length} released shares. ` +
-          `Full decryption requires the complete EchoLock recovery library. ` +
-          `<br><br>To complete recovery, use the full recovery tool at: ` +
-          `<a href="https://echolock.xyz/recover">echolock.xyz/recover</a>`,
-          'info'
-        );
+        // ========================================
+        // STEP 2: Decrypt shares using NIP-44
+        // ========================================
+        log('Step 2: Decrypting shares with your private key...', 'info');
 
-        log('Share collection complete. Full decryption requires complete library.', 'info');
+        const decryptedShares = [];
+        let shareIndex = 0;
+
+        for (const event of uniqueShareEvents.slice(0, 5)) { // Use up to 5 shares
+          shareIndex++;
+          updateProgress(35 + (shareIndex / 5) * 20, `Decrypting share ${shareIndex}...`);
+
+          try {
+            // Event content is NIP-44 encrypted share data
+            const decryptedContent = await nip44Decrypt(
+              event.content,
+              event.pubkey,  // Guardian's pubkey
+              recipientNsec
+            );
+
+            // Parse the decrypted share (format: JSON with index and data)
+            let shareData;
+            try {
+              shareData = JSON.parse(decryptedContent);
+            } catch {
+              // Might be raw hex share
+              shareData = { share: decryptedContent };
+            }
+
+            const share = deserializeShare(shareData.share || shareData.data || decryptedContent);
+            decryptedShares.push(share);
+            log(`Decrypted share #${share.x} from guardian ${event.pubkey.slice(0, 8)}...`, 'success');
+          } catch (err) {
+            log(`Failed to decrypt share from ${event.pubkey.slice(0, 8)}...: ${err.message}`, 'error');
+          }
+        }
+
+        if (decryptedShares.length < SHAMIR_THRESHOLD) {
+          showStatus(
+            `Could not decrypt enough shares. Decrypted ${decryptedShares.length}, need ${SHAMIR_THRESHOLD}. ` +
+            `Check that your private key is correct.`,
+            'error'
+          );
+          return;
+        }
+
+        log(`Successfully decrypted ${decryptedShares.length} shares`, 'success');
+        updateProgress(60, 'Reconstructing encryption key...');
+
+        // ========================================
+        // STEP 3: Reconstruct encryption key
+        // ========================================
+        log('Step 3: Reconstructing encryption key using Shamir...', 'info');
+
+        const encryptionKey = shamirCombine(decryptedShares.slice(0, SHAMIR_THRESHOLD));
+        log(`Encryption key reconstructed (${encryptionKey.length} bytes)`, 'success');
+        updateProgress(70, 'Fetching encrypted message...');
+
+        // ========================================
+        // STEP 4: Fetch encrypted message
+        // ========================================
+        log('Step 4: Fetching encrypted message from Nostr...', 'info');
+
+        let messageEvent = null;
+        for (const relay of relays) {
+          const events = await queryRelay(relay, {
+            kinds: [NOSTR_KINDS.MESSAGE_STORAGE],
+            '#d': [switchId],
+          });
+
+          if (events.length > 0) {
+            messageEvent = events[0];
+            log(`Found encrypted message on ${new URL(relay).hostname}`, 'success');
+            break;
+          }
+        }
+
+        if (!messageEvent) {
+          showStatus('Could not find the encrypted message on any relay.', 'error');
+          return;
+        }
+
+        updateProgress(85, 'Decrypting message...');
+
+        // ========================================
+        // STEP 5: Decrypt the message
+        // ========================================
+        log('Step 5: Decrypting message with AES-256-GCM...', 'info');
+
+        // Parse the encrypted message content
+        let encryptedData;
+        try {
+          encryptedData = JSON.parse(messageEvent.content);
+        } catch {
+          throw new Error('Invalid encrypted message format');
+        }
+
+        const ciphertext = base64ToUint8Array(encryptedData.ciphertext);
+        const iv = base64ToUint8Array(encryptedData.iv);
+        const authTag = base64ToUint8Array(encryptedData.authTag);
+
+        const decryptedMessage = await aesGcmDecrypt(ciphertext, iv, authTag, encryptionKey);
+        const messageText = new TextDecoder().decode(decryptedMessage);
+
+        updateProgress(100, 'Recovery complete!');
+        log('Message successfully decrypted!', 'success');
+
+        showMessage(messageText);
+        showStatus('Recovery successful! Your message has been decrypted.', 'success');
 
       } catch (error) {
+        console.error('Recovery error:', error);
         log(`Error: ${error.message}`, 'error');
         showStatus(`Recovery failed: ${error.message}`, 'error');
       } finally {
         btn.disabled = false;
-        btn.textContent = '🔓 Recover Message';
+        btn.textContent = 'RECOVER MESSAGE';
       }
     }
+
+    // Make startRecovery available globally
+    window.startRecovery = startRecovery;
   </script>
 </body>
 </html>

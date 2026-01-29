@@ -18,9 +18,51 @@
  * 8. Server can NEVER decrypt the message (no access to encryption key)
  */
 
-export * from './aes';
-export * from './shamir';
-export * from './nostr';
+// Re-export AES functions
+export {
+  generateEncryptionKey,
+  encrypt,
+  decrypt,
+  exportKey,
+  importKey,
+  deriveKeyFromPassword,
+  randomBytes,
+  toHex,
+  fromHex,
+  toBase64,
+  fromBase64,
+} from './aes';
+
+// Re-export Shamir functions (avoiding duplicate exports)
+export {
+  split,
+  combine,
+  splitSimple,
+  serializeShare,
+  deserializeShare,
+  serializeCommitments,
+  deserializeCommitments,
+  generateAuthKey,
+  computeShareHMAC,
+  verifyShareHMAC,
+  verifyShare as verifyShamirShare,
+  verifyShareConsistency,
+  type Share,
+  type SplitResult,
+  type VSSCommitments,
+  type VerifiableShare,
+} from './shamir';
+
+// Re-export Nostr functions (avoiding duplicate exports)
+export {
+  generateNostrKeypair,
+  getPublicKey,
+  signSchnorr,
+  verifySchnorr,
+  computeSharedSecret,
+  isValidPrivateKey,
+  isValidPublicKey,
+} from './nostr';
 
 import {
   generateEncryptionKey,
@@ -37,13 +79,13 @@ import {
 } from './aes';
 
 import {
-  split as shamirSplit,
+  splitSimple as shamirSplit,
   combine as shamirCombine,
   serializeShare,
   deserializeShare,
   generateAuthKey,
   computeShareHMAC,
-  Share,
+  type Share,
 } from './shamir';
 
 import { generateNostrKeypair, isValidPrivateKey, isValidPublicKey } from './nostr';
