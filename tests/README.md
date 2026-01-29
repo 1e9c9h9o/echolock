@@ -7,8 +7,15 @@ Comprehensive test suite covering crypto, Nostr, and Bitcoin components.
 ```
 tests/
 ├── unit/                   # Unit tests (fast, isolated)
-│   ├── crypto.test.js     # Encryption/decryption tests
-│   └── bitcoin-keys.test.js # Bitcoin key management tests
+│   ├── crypto.test.js         # Encryption/decryption tests
+│   ├── bitcoin-keys.test.js   # Bitcoin key management tests
+│   ├── shamir.test.js         # Secret sharing tests
+│   └── ...                    # More unit tests
+├── api/                    # API validation tests
+│   └── validation.test.js     # Input validation, JWT, rate limiting
+├── security/              # Security-focused tests
+│   ├── key-derivation-context.test.js  # Key derivation security
+│   └── iv-uniqueness.test.js           # IV/nonce uniqueness
 ├── integration/           # Integration tests (E2E workflows)
 │   ├── full-lifecycle.test.js  # Complete workflows
 │   ├── failure-modes.test.js   # Error handling
@@ -90,6 +97,14 @@ npm run test:network       # Use real Nostr/Bitcoin APIs
 - Race conditions in check-ins
 - Expiry edge cases
 - Block timing variations
+
+### API Validation Tests
+- Email format validation (12 tests)
+- Password strength validation (8 tests)
+- String sanitization (7 tests)
+- JWT token generation/verification (8 tests)
+- Rate limiting behavior (4 tests)
+- Password hashing (5 tests)
 
 ## Coverage Goals
 
