@@ -207,7 +207,7 @@ export default function PublicDemoPage() {
               <span className="text-sm font-bold tracking-[0.2em] uppercase">Echolock</span>
             </Link>
             <Link href="/auth/login" className="text-[11px] uppercase tracking-wider px-4 py-2 bg-orange text-black font-bold hover:bg-white transition-colors hidden sm:block">
-              Sign Up
+              Log In
             </Link>
           </div>
         </div>

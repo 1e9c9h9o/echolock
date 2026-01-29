@@ -32,7 +32,7 @@ export default function HomePage() {
               <Link href="/guide" className="text-[11px] uppercase tracking-wider px-4 py-3 hover:bg-orange hover:text-black transition-colors">Guide</Link>
               <Link href="/docs" className="text-[11px] uppercase tracking-wider px-4 py-3 hover:bg-orange hover:text-black transition-colors">Docs</Link>
               <Link href="/sources" className="text-[11px] uppercase tracking-wider px-4 py-3 hover:bg-orange hover:text-black transition-colors hidden sm:block">Sources</Link>
-              <Link href="/auth/login" className="btn">Initialize</Link>
+              <Link href="/auth/login" className="btn">Log In</Link>
             </nav>
           </div>
         </div>

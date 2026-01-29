@@ -186,7 +186,7 @@ export default function KeyBackup({ onBackupComplete }: KeyBackupProps) {
       <Card>
         <button
           onClick={() => setMode('menu')}
-          className="text-blue hover:text-red font-mono text-sm mb-6"
+          className="text-black/70 hover:text-orange font-mono text-sm mb-6"
         >
           ← Back to Key Management
         </button>
@@ -237,7 +237,7 @@ export default function KeyBackup({ onBackupComplete }: KeyBackupProps) {
       <Card>
         <button
           onClick={() => setMode('menu')}
-          className="text-blue hover:text-red font-mono text-sm mb-6"
+          className="text-black/70 hover:text-orange font-mono text-sm mb-6"
         >
           ← Back to Key Management
         </button>

@@ -96,7 +96,7 @@ export default function GuidePage() {
             </Link>
             <nav className="flex items-center gap-2">
               <Link href="/demo" className="text-[11px] uppercase tracking-wider px-4 py-2 hover:bg-orange hover:text-black transition-colors">Demo</Link>
-              <Link href="/auth/login" className="text-[11px] uppercase tracking-wider px-4 py-2 bg-orange text-black font-bold">Sign Up</Link>
+              <Link href="/auth/login" className="text-[11px] uppercase tracking-wider px-4 py-2 bg-orange text-black font-bold">Log In</Link>
             </nav>
           </div>
         </div>

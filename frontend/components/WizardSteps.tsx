@@ -232,7 +232,7 @@ export function Step3SetPassword({
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="text-blue hover:text-red transition-colors"
+              className="text-black/70 hover:text-orange transition-colors"
             >
               {showPassword ? (
                 <EyeOff className="h-5 w-5" strokeWidth={2} />
@@ -274,7 +274,7 @@ export function Step3SetPassword({
             <button
               type="button"
               onClick={() => setShowConfirm(!showConfirm)}
-              className="text-blue hover:text-red transition-colors"
+              className="text-black/70 hover:text-orange transition-colors"
             >
               {showConfirm ? (
                 <EyeOff className="h-5 w-5" strokeWidth={2} />
@@ -513,7 +513,7 @@ export function Step5Success({ switchId, nextCheckInAt, onDashboard, onCreateAno
             <p className="font-mono text-sm font-bold text-gray-600">SWITCH ID</p>
             <button
               onClick={copyToClipboard}
-              className="font-mono text-xs text-blue hover:text-red transition-colors"
+              className="font-mono text-xs text-black/70 hover:text-orange transition-colors"
             >
               {copied ? '✓ Copied!' : 'Copy'}
             </button>

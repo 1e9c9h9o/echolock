@@ -44,7 +44,7 @@ export default function SourcesPage() {
             <nav className="flex items-center gap-2">
               <Link href="/docs" className="text-[11px] uppercase tracking-wider px-4 py-3 hover:bg-orange hover:text-black transition-colors">Docs</Link>
               <Link href="/sources" className="text-[11px] uppercase tracking-wider px-4 py-3 bg-orange text-black">Sources</Link>
-              <Link href="/auth/login" className="btn">Initialize</Link>
+              <Link href="/auth/login" className="btn">Log In</Link>
             </nav>
           </div>
         </div>
@@ -817,9 +817,9 @@ export default function SourcesPage() {
             </div>
           </div>
           <div className="mt-12 pt-6 border-t border-white/10 text-[10px] opacity-40 flex justify-between flex-wrap gap-4 tracking-wider">
-            <span>ECHOLOCK v0.1.0-alpha</span>
-            <span>Network: Bitcoin Testnet</span>
-            <span>Status: Development</span>
+            <span>ECHOLOCK v1.0</span>
+            <span>Network: Bitcoin Mainnet</span>
+            <span>AGPL-3.0</span>
           </div>
         </div>
       </footer>

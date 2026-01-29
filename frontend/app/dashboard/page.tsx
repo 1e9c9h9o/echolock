@@ -128,19 +128,45 @@ export default function DashboardPage() {
 
       {/* Empty state */}
       {switches.length === 0 && !error && (
-        <Card className="text-center py-16">
-          <div className="w-24 h-24 bg-orange mx-auto mb-8 flex items-center justify-center border-2 border-black">
-            <Plus className="h-16 w-16 text-black" strokeWidth={2} />
+        <Card className="text-center py-16 px-6">
+          {/* Illustration: Shield with signal waves */}
+          <div className="w-32 h-32 mx-auto mb-8 relative">
+            <svg viewBox="0 0 100 100" className="w-full h-full">
+              {/* Signal waves */}
+              <path d="M25 50 Q35 35, 50 50 Q65 65, 75 50" fill="none" stroke="#FF6B00" strokeWidth="3" opacity="0.3" />
+              <path d="M30 50 Q40 40, 50 50 Q60 60, 70 50" fill="none" stroke="#FF6B00" strokeWidth="3" opacity="0.5" />
+              <path d="M35 50 Q42 45, 50 50 Q58 55, 65 50" fill="none" stroke="#FF6B00" strokeWidth="3" opacity="0.7" />
+              {/* Shield */}
+              <path d="M50 15 L75 25 L75 50 Q75 75, 50 85 Q25 75, 25 50 L25 25 Z" fill="#0A0A0A" stroke="#0A0A0A" strokeWidth="2" />
+              {/* Inner shield */}
+              <path d="M50 22 L68 30 L68 48 Q68 68, 50 76 Q32 68, 32 48 L32 30 Z" fill="#FF6B00" />
+              {/* Heartbeat line */}
+              <polyline points="40,50 45,50 48,40 52,60 55,50 60,50" fill="none" stroke="#0A0A0A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
           <h3 className="text-3xl font-bold mb-4">
-            NO SWITCHES ACTIVE
+            Get Started
           </h3>
-          <p className="text-lg font-mono mb-8">
-            Create your first dead man's switch
+          <p className="text-lg font-mono mb-4 max-w-md mx-auto">
+            Create your first dead man's switch to protect your important messages.
           </p>
-          <Link href="/dashboard/create">
-            <Button variant="primary">Create Switch</Button>
-          </Link>
+          <p className="text-sm text-black/70 mb-8 max-w-md mx-auto">
+            Your messages are encrypted client-side and distributed across multiple relays. If you stop checking in, they're automatically released to your recipients.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/dashboard/create">
+              <Button variant="primary">
+                <Plus className="h-5 w-5 mr-2" strokeWidth={2} />
+                Create Switch
+              </Button>
+            </Link>
+            <Link href="/dashboard/demo">
+              <Button variant="secondary">
+                <Sparkles className="h-5 w-5 mr-2" strokeWidth={2} />
+                Try Demo First
+              </Button>
+            </Link>
+          </div>
         </Card>
       )}
 
@@ -159,14 +185,23 @@ export default function DashboardPage() {
 
               {/* Security Badge */}
               <div className="mb-4 flex items-center gap-2 flex-wrap">
-                <div className="px-2 py-1 bg-orange border-2 border-black text-[10px] font-bold flex items-center gap-1 uppercase tracking-wider">
+                <div
+                  className="px-2 py-1 bg-orange border-2 border-black text-[10px] font-bold flex items-center gap-1 uppercase tracking-wider cursor-help"
+                  title="AES-256-GCM encryption: Military-grade encryption protecting your message"
+                >
                   <Shield className="h-3 w-3" strokeWidth={2} />
                   AES-256
                 </div>
-                <div className="px-2 py-1 bg-yellow text-black border-2 border-black text-[10px] font-bold uppercase tracking-wider">
+                <div
+                  className="px-2 py-1 bg-yellow text-black border-2 border-black text-[10px] font-bold uppercase tracking-wider cursor-help"
+                  title="Shamir's Secret Sharing: Key split into 5 parts, any 3 can reconstruct"
+                >
                   SHAMIR 3/5
                 </div>
-                <div className="px-2 py-1 bg-black text-white border-2 border-black text-[10px] font-bold uppercase tracking-wider">
+                <div
+                  className="px-2 py-1 bg-black text-white border-2 border-black text-[10px] font-bold uppercase tracking-wider cursor-help"
+                  title="Nostr Protocol: Distributed across 10+ global relays for censorship resistance"
+                >
                   NOSTR
                 </div>
               </div>

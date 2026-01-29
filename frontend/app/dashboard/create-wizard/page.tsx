@@ -150,7 +150,7 @@ export default function CreateWizardPage() {
       <div className="mb-12">
         <Link
           href="/dashboard"
-          className="inline-flex items-center text-blue hover:text-red text-base font-mono font-bold mb-6 transition-colors"
+          className="inline-flex items-center text-black/70 hover:text-orange text-base font-mono font-bold mb-6 transition-colors"
         >
           <ArrowLeft className="h-5 w-5 mr-2" strokeWidth={2} />
           Back to Dashboard

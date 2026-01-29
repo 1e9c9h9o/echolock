@@ -130,7 +130,7 @@ export default function DemoPage() {
       <div className="mb-8 md:mb-12">
         <Link
           href="/dashboard"
-          className="inline-flex items-center text-blue hover:text-red text-sm md:text-base font-mono font-bold mb-4 md:mb-6 transition-colors"
+          className="inline-flex items-center text-black/70 hover:text-orange text-sm md:text-base font-mono font-bold mb-4 md:mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 md:h-5 md:w-5 mr-2" strokeWidth={2} />
           Back to Dashboard
