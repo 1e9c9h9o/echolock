@@ -500,11 +500,193 @@ EchoLock - Censorship-resistant dead man's switch
   return await sendEmail(email, `✓ Quick Check-In: ${switchTitle}`, html, text);
 }
 
+/**
+ * Send emergency alert to emergency contact
+ * @param {string} email - Contact email
+ * @param {string} name - Contact name
+ * @param {string} switchTitle - Switch title
+ * @param {object} alertType - Alert type with name and label
+ * @param {number} hoursRemaining - Hours until trigger
+ * @param {string} ackToken - Acknowledgment token
+ */
+export async function sendEmergencyAlertEmail(email, name, switchTitle, alertType, hoursRemaining, ackToken) {
+  const contactName = name || 'Emergency Contact';
+  const ackUrl = `${FRONTEND_URL}/acknowledge-alert/${ackToken}`;
+  const hoursText = Math.max(0, Math.round(hoursRemaining));
+
+  // Color coding based on alert type
+  const colors = {
+    WARNING: { bg: '#fff3cd', border: '#ffc107', header: '#ff9800' },
+    URGENT: { bg: '#ffe5e5', border: '#f44336', header: '#e53935' },
+    FINAL: { bg: '#ffcccc', border: '#d32f2f', header: '#c62828' }
+  };
+  const color = colors[alertType.name] || colors.WARNING;
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: ${color.header}; color: white; padding: 20px; text-align: center; }
+          .content { padding: 30px; background: ${color.bg}; border: 2px solid ${color.border}; }
+          .time-box { background: white; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }
+          .time-number { font-size: 48px; font-weight: bold; color: ${color.header}; }
+          .button { display: inline-block; padding: 12px 24px; background: #4CAF50; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }
+          .footer { text-align: center; color: #666; font-size: 12px; padding: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>⚠️ ${alertType.label} - EchoLock Alert</h1>
+          </div>
+          <div class="content">
+            <h2>Hello ${contactName},</h2>
+            <p>You are receiving this alert because you have been designated as an emergency contact for a dead man's switch.</p>
+
+            <p><strong>Switch:</strong> ${switchTitle}</p>
+
+            <div class="time-box">
+              <div class="time-number">${hoursText}</div>
+              <div>hours until trigger</div>
+            </div>
+
+            <p>The switch owner has not checked in and the switch will trigger soon. This could indicate:</p>
+            <ul>
+              <li>They forgot to check in</li>
+              <li>They are traveling or busy</li>
+              <li>They may need assistance</li>
+            </ul>
+
+            <p><strong>What you should do:</strong></p>
+            <ol>
+              <li>Try to contact the switch owner</li>
+              <li>If you can confirm they are okay, ask them to check in</li>
+              <li>If you cannot reach them, follow any instructions they provided</li>
+            </ol>
+
+            <p style="text-align: center;">
+              <a href="${ackUrl}" class="button">Acknowledge This Alert</a>
+            </p>
+            <p style="color: #666; font-size: 12px; text-align: center;">
+              Clicking acknowledge lets us know you've seen this alert. It does not stop the switch.
+            </p>
+          </div>
+          <div class="footer">
+            <p>EchoLock - Censorship-resistant dead man's switch</p>
+            <p>&copy; ${new Date().getFullYear()} EchoLock. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const text = `
+⚠️ ${alertType.label.toUpperCase()} - ECHOLOCK ALERT
+
+Hello ${contactName},
+
+You are receiving this alert because you have been designated as an emergency contact.
+
+Switch: ${switchTitle}
+Time until trigger: ${hoursText} hours
+
+The switch owner has not checked in. Please try to contact them.
+
+Acknowledge this alert: ${ackUrl}
+
+---
+EchoLock - Censorship-resistant dead man's switch
+  `;
+
+  return await sendEmail(
+    email,
+    `⚠️ [${alertType.label}] EchoLock Alert: ${switchTitle}`,
+    html,
+    text
+  );
+}
+
+/**
+ * Send test alert to emergency contact
+ * @param {string} email - Contact email
+ * @param {string} name - Contact name
+ */
+export async function sendEmergencyTestEmail(email, name) {
+  const contactName = name || 'Emergency Contact';
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #2196F3; color: white; padding: 20px; text-align: center; }
+          .test-banner { background: #e3f2fd; border: 3px dashed #2196F3; padding: 15px; text-align: center; margin: 20px 0; font-weight: bold; }
+          .content { padding: 30px; background: #f9f9f9; }
+          .footer { text-align: center; color: #666; font-size: 12px; padding: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🔔 EchoLock Test Alert</h1>
+          </div>
+          <div class="content">
+            <div class="test-banner">
+              ⚠️ THIS IS A TEST - NO ACTION REQUIRED ⚠️
+            </div>
+            <h2>Hello ${contactName},</h2>
+            <p>You have been added as an emergency contact on EchoLock, a dead man's switch service.</p>
+            <p>The account owner has sent this test alert to verify that you can receive emergency notifications.</p>
+            <p><strong>What is an emergency contact?</strong></p>
+            <p>If the account owner fails to check in on their switch, you will receive alerts before the switch triggers. This gives you an opportunity to check on their wellbeing or follow any instructions they've given you.</p>
+            <div class="test-banner">
+              NO ACTION REQUIRED - THIS IS JUST A TEST
+            </div>
+            <p>If you have questions about why you received this, please contact the person who added you as an emergency contact.</p>
+          </div>
+          <div class="footer">
+            <p>EchoLock - Censorship-resistant dead man's switch</p>
+            <p>&copy; ${new Date().getFullYear()} EchoLock. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const text = `
+🔔 ECHOLOCK TEST ALERT
+
+⚠️ THIS IS A TEST - NO ACTION REQUIRED ⚠️
+
+Hello ${contactName},
+
+You have been added as an emergency contact on EchoLock.
+
+The account owner has sent this test alert to verify you can receive notifications.
+
+NO ACTION REQUIRED - THIS IS JUST A TEST
+
+---
+EchoLock - Censorship-resistant dead man's switch
+  `;
+
+  return await sendEmail(email, '🔔 [TEST] EchoLock Emergency Contact Alert', html, text);
+}
+
 export default {
   sendVerificationEmail,
   sendPasswordResetEmail,
   sendSwitchReleaseEmail,
   sendCheckInReminder,
   sendTestDrillEmail,
-  sendQuickCheckInLink
+  sendQuickCheckInLink,
+  sendEmergencyAlertEmail,
+  sendEmergencyTestEmail
 };

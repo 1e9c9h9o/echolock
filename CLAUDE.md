@@ -354,6 +354,83 @@ Bitcoin provides **unforgeable timestamps** and **programmatic release**.
 
 ---
 
+## v2.0 Features (January 2026) ✅
+
+### Feature 1: Cascade Messages (Multiple Messages Per Switch)
+- [x] Database: `cascade_messages` table with delay_hours, recipient_group_id
+- [x] Backend: `/api/switches/:id/cascade` endpoints
+- [x] Frontend: `CascadeEditor.tsx` with visual timeline
+- [x] Time-delayed release to different recipient groups
+- [x] Support for immediate + delayed messages (e.g., Family now, Lawyer in 24h)
+
+### Feature 2: Proof of Setup (Health Check Dashboard)
+- [x] Backend: `/api/switches/:id/health-check` endpoint
+- [x] Health checks: heartbeat, guardians, relays, encryption
+- [x] Frontend: `HealthCheckDashboard.tsx` with status indicators
+- [x] Visual proof that switch is properly configured
+
+### Feature 3: Recipient Management
+- [x] Database: `recipient_groups` table
+- [x] Backend: `/api/recipient-groups` CRUD endpoints
+- [x] Read receipt tracking via email pixel (`/api/track/:token`)
+- [x] Frontend: `RecipientGroupManager.tsx`
+- [x] Organize recipients into named groups
+
+### Feature 4: Import/Export Everything
+- [x] Backend: `/api/account/export` and `/api/account/import`
+- [x] AES-256-GCM encryption with user password
+- [x] Export: switches, groups, contacts (not encrypted messages)
+- [x] Import: conflict resolution (skip/overwrite)
+- [x] Frontend: `ExportWizard.tsx`, `ImportWizard.tsx`
+
+### Feature 5: Emergency Contacts
+- [x] Database: `emergency_contacts`, `emergency_alerts` tables
+- [x] Backend: `/api/emergency-contacts` CRUD + test alerts
+- [x] Email-based escalation: WARNING (12h) → URGENT (6h) → FINAL (2h)
+- [x] Alert acknowledgment via unique tokens
+- [x] Frontend: `EmergencyContactManager.tsx`
+
+### Feature 6: Legal Document Integration
+- [x] Backend: `/api/legal/templates` and `/api/legal/documents/generate`
+- [x] Template library: Letter of Instruction, Digital Asset Directive, Switch Summary, Guardian Contact List
+- [x] PDF-style document generation (text format)
+- [x] Frontend: `LegalDocumentWizard.tsx`
+
+### Feature 7: Redundancy Layer
+- [x] Backend: `redundancyService.js` with multi-check verification
+- [x] Checks: secondary timer, guardian cross-check, relay failover, heartbeat
+- [x] Database: `redundancy_checks` table for audit trail
+- [x] Frontend: `RedundancyDashboard.tsx`
+
+### New Database Tables (Migration 007)
+```sql
+- recipient_groups (id, user_id, name, description)
+- cascade_messages (id, switch_id, delay_hours, recipient_group_id, encrypted_message_*, status)
+- emergency_contacts (id, user_id, name, email, alert_threshold_hours, escalation_order)
+- emergency_alerts (id, switch_id, contact_id, alert_type, status, ack_token)
+- redundancy_checks (id, switch_id, check_type, status, details)
+- legal_documents (id, user_id, template_id, switch_id, content, generated_at)
+- proof_documents (id, switch_id, content, checksum, generated_at)
+```
+
+### New API Endpoints
+```
+POST/GET/DELETE /api/switches/:id/cascade
+GET /api/switches/:id/health-check
+CRUD /api/recipient-groups
+GET /api/track/:token (public)
+POST /api/account/export
+POST /api/account/import
+CRUD /api/emergency-contacts
+POST /api/emergency-contacts/:id/test
+GET /api/emergency-alerts/:token/acknowledge (public)
+GET /api/legal/templates
+POST /api/legal/documents/generate
+GET /api/legal/documents/:id
+```
+
+---
+
 ## Technical Specifications
 
 ### Cryptographic Constants

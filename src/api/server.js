@@ -59,6 +59,13 @@ import userRoutes from './routes/users.js';
 import securityRoutes from './routes/security.js';
 import adminRoutes from './routes/admin.js';
 import quickCheckinRoutes from './routes/quickCheckin.js';
+import recipientGroupsRoutes from './routes/recipientGroups.js';
+import cascadeRoutes from './routes/cascade.js';
+import healthCheckRoutes from './routes/healthCheck.js';
+import emergencyContactsRoutes, { acknowledgeAlertRoute } from './routes/emergencyContacts.js';
+import backupRoutes from './routes/backup.js';
+import legalRoutes from './routes/legal.js';
+import trackingRoutes from './routes/tracking.js';
 
 // Import auth middleware for cleanup
 import { stopRateLimitCleanup } from './middleware/auth.js';
@@ -291,14 +298,18 @@ app.get('/health', async (req, res) => {
 app.get('/api', (req, res) => {
   res.json({
     name: 'EchoLock API',
-    version: '1.0.0',
+    version: '2.0.0',
     description: 'Censorship-resistant dead man\'s switch using Nostr protocol',
     documentation: '/api/docs',
     endpoints: {
       health: '/health',
       auth: '/api/auth',
       switches: '/api/switches',
-      users: '/api/users'
+      users: '/api/users',
+      recipientGroups: '/api/recipient-groups',
+      emergencyContacts: '/api/emergency-contacts',
+      backup: '/api/account',
+      legal: '/api/legal'
     }
   });
 });
@@ -310,6 +321,16 @@ app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/security', securityRoutes);
 app.use('/api/quick-checkin', quickCheckinRoutes);
+
+// New v2 feature routes
+app.use('/api/recipient-groups', recipientGroupsRoutes);
+app.use('/api/switches', cascadeRoutes);  // Mounts as /api/switches/:switchId/cascade
+app.use('/api/switches', healthCheckRoutes);  // Mounts as /api/switches/:switchId/health-check
+app.use('/api/emergency-contacts', emergencyContactsRoutes);
+app.use('/api/acknowledge-alert', acknowledgeAlertRoute);  // Public route for alert acknowledgment
+app.use('/api/account', backupRoutes);
+app.use('/api/legal', legalRoutes);
+app.use('/api/track', trackingRoutes);  // Public route for tracking pixels
 
 // ============================================================================
 // ERROR HANDLING
