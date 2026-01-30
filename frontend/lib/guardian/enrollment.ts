@@ -268,17 +268,77 @@ export function validateGuardianNpub(npub: string): boolean {
 }
 
 /**
+ * EchoLock Institutional Guardian Configuration
+ *
+ * IMPORTANT: Before production deployment, these placeholder keys MUST be replaced
+ * with real Nostr public keys for EchoLock-operated guardian daemons.
+ *
+ * To generate guardian keys:
+ * 1. Run the guardian-daemon with: node guardian-daemon/index.js --generate-keys
+ * 2. Securely store the private key (nsec)
+ * 3. Use the public key (npub hex) below
+ *
+ * Security considerations:
+ * - Guardian private keys should be stored in secure key management (HSM/KMS)
+ * - Each guardian should run on geographically distributed infrastructure
+ * - Keys should be rotated annually or after any suspected compromise
+ */
+
+// Environment-based configuration for guardian keys
+// In production, these should come from environment variables
+const GUARDIAN_CONFIG = {
+  guardian1: {
+    // Replace with real key: process.env.ECHOLOCK_GUARDIAN_1_PUBKEY
+    npub: process.env.ECHOLOCK_GUARDIAN_1_PUBKEY ||
+      'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+    name: 'EchoLock Guardian Alpha',
+  },
+  guardian2: {
+    // Replace with real key: process.env.ECHOLOCK_GUARDIAN_2_PUBKEY
+    npub: process.env.ECHOLOCK_GUARDIAN_2_PUBKEY ||
+      'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+    name: 'EchoLock Guardian Beta',
+  },
+};
+
+/**
+ * Check if guardian keys are configured (not placeholders)
+ */
+export function areGuardianKeysConfigured(): boolean {
+  const placeholder1 = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+  const placeholder2 = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+
+  return (
+    GUARDIAN_CONFIG.guardian1.npub !== placeholder1 &&
+    GUARDIAN_CONFIG.guardian2.npub !== placeholder2
+  );
+}
+
+/**
  * Get default guardians (EchoLock service)
+ *
+ * Returns EchoLock-operated institutional guardians.
+ * Users can add their own guardians for additional redundancy.
+ *
+ * Note: If production keys are not configured, a warning is logged.
  */
 export function getDefaultGuardians(): Guardian[] {
+  // Log warning if using placeholder keys
+  if (!areGuardianKeysConfigured()) {
+    console.warn(
+      '[Guardian] Using placeholder keys. Set ECHOLOCK_GUARDIAN_1_PUBKEY and ' +
+      'ECHOLOCK_GUARDIAN_2_PUBKEY environment variables for production.'
+    );
+  }
+
   // EchoLock runs institutional guardians as a convenience
   // Users can replace these with their own
   return [
     {
-      id: 'echolock-guardian-1',
+      id: 'echolock-guardian-alpha',
       type: 'institutional',
-      name: 'EchoLock Guardian 1',
-      npub: '0000000000000000000000000000000000000000000000000000000000000001', // Placeholder
+      name: GUARDIAN_CONFIG.guardian1.name,
+      npub: GUARDIAN_CONFIG.guardian1.npub,
       status: 'pending',
       shareIndex: 1,
       metadata: {
@@ -286,10 +346,10 @@ export function getDefaultGuardians(): Guardian[] {
       },
     },
     {
-      id: 'echolock-guardian-2',
+      id: 'echolock-guardian-beta',
       type: 'institutional',
-      name: 'EchoLock Guardian 2',
-      npub: '0000000000000000000000000000000000000000000000000000000000000002', // Placeholder
+      name: GUARDIAN_CONFIG.guardian2.name,
+      npub: GUARDIAN_CONFIG.guardian2.npub,
       status: 'pending',
       shareIndex: 2,
       metadata: {
@@ -297,4 +357,17 @@ export function getDefaultGuardians(): Guardian[] {
       },
     },
   ];
+}
+
+/**
+ * Validate that default guardians have proper keys configured
+ * Throws an error if in production mode with placeholder keys
+ */
+export function validateGuardianConfiguration(): void {
+  if (process.env.NODE_ENV === 'production' && !areGuardianKeysConfigured()) {
+    throw new Error(
+      'Production mode requires real guardian keys. ' +
+      'Set ECHOLOCK_GUARDIAN_1_PUBKEY and ECHOLOCK_GUARDIAN_2_PUBKEY environment variables.'
+    );
+  }
 }

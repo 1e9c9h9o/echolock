@@ -434,4 +434,337 @@ router.get('/:id/check-ins', async (req, res) => {
   }
 });
 
+// ============================================================================
+// BATCH OPERATIONS
+// ============================================================================
+
+/**
+ * POST /api/switches/batch/check-in
+ * Batch check-in for multiple switches at once
+ *
+ * Request body:
+ * {
+ *   switchIds: ['id1', 'id2', 'id3']
+ * }
+ *
+ * Response:
+ * {
+ *   results: [
+ *     { switchId: 'id1', success: true, newExpiryTime: '...' },
+ *     { switchId: 'id2', success: false, error: '...' },
+ *   ],
+ *   summary: { succeeded: 1, failed: 1, total: 2 }
+ * }
+ */
+router.post('/batch/check-in', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { switchIds } = req.body;
+
+    if (!switchIds || !Array.isArray(switchIds)) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        message: 'switchIds must be an array'
+      });
+    }
+
+    if (switchIds.length > 20) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        message: 'Maximum 20 switches per batch operation'
+      });
+    }
+
+    // Rate limit batch operations more strictly
+    if (checkRateLimit(userId, 'batch_checkin', 3, 60000)) {
+      return res.status(429).json({
+        error: 'Rate limit exceeded',
+        message: 'You can only perform 3 batch check-ins per minute'
+      });
+    }
+
+    const results = [];
+    let succeeded = 0;
+    let failed = 0;
+
+    for (const switchId of switchIds) {
+      try {
+        const result = await checkIn(switchId, userId);
+        if (result) {
+          results.push({
+            switchId,
+            success: true,
+            newExpiryTime: result.expiryTime,
+            checkInCount: result.checkInCount
+          });
+          succeeded++;
+        } else {
+          results.push({
+            switchId,
+            success: false,
+            error: 'Switch not found or access denied'
+          });
+          failed++;
+        }
+      } catch (error) {
+        results.push({
+          switchId,
+          success: false,
+          error: error.message
+        });
+        failed++;
+      }
+    }
+
+    // Send WebSocket notification for batch update
+    websocketService.notifyBatchUpdate(userId, {
+      type: 'batch_checkin',
+      succeeded,
+      failed
+    });
+
+    res.json({
+      message: 'Batch check-in completed',
+      results,
+      summary: {
+        succeeded,
+        failed,
+        total: switchIds.length
+      }
+    });
+  } catch (error) {
+    logger.error('Batch check-in error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Batch check-in failed'
+    });
+  }
+});
+
+/**
+ * POST /api/switches/batch/status
+ * Get status of multiple switches at once
+ *
+ * Request body:
+ * {
+ *   switchIds: ['id1', 'id2', 'id3']
+ * }
+ */
+router.post('/batch/status', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { switchIds } = req.body;
+
+    if (!switchIds || !Array.isArray(switchIds)) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        message: 'switchIds must be an array'
+      });
+    }
+
+    if (switchIds.length > 50) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        message: 'Maximum 50 switches per batch status request'
+      });
+    }
+
+    const results = [];
+
+    for (const switchId of switchIds) {
+      try {
+        const sw = await getSwitch(switchId, userId);
+        if (sw) {
+          results.push({
+            switchId,
+            found: true,
+            status: sw.status,
+            expiryTime: sw.expiryTime,
+            timeRemaining: Math.max(0, new Date(sw.expiryTime) - Date.now()),
+            checkInCount: sw.checkInCount
+          });
+        } else {
+          results.push({
+            switchId,
+            found: false
+          });
+        }
+      } catch (error) {
+        results.push({
+          switchId,
+          found: false,
+          error: error.message
+        });
+      }
+    }
+
+    res.json({
+      message: 'Batch status retrieved',
+      data: results,
+      summary: {
+        found: results.filter(r => r.found).length,
+        notFound: results.filter(r => !r.found).length,
+        total: switchIds.length
+      }
+    });
+  } catch (error) {
+    logger.error('Batch status error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Batch status retrieval failed'
+    });
+  }
+});
+
+/**
+ * DELETE /api/switches/batch
+ * Delete multiple switches at once
+ *
+ * Request body:
+ * {
+ *   switchIds: ['id1', 'id2', 'id3']
+ * }
+ */
+router.delete('/batch', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { switchIds } = req.body;
+
+    if (!switchIds || !Array.isArray(switchIds)) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        message: 'switchIds must be an array'
+      });
+    }
+
+    if (switchIds.length > 10) {
+      return res.status(400).json({
+        error: 'Validation failed',
+        message: 'Maximum 10 switches per batch delete'
+      });
+    }
+
+    // Rate limit batch deletes strictly
+    if (checkRateLimit(userId, 'batch_delete', 2, 300000)) {
+      return res.status(429).json({
+        error: 'Rate limit exceeded',
+        message: 'You can only perform 2 batch deletes per 5 minutes'
+      });
+    }
+
+    const results = [];
+    let succeeded = 0;
+    let failed = 0;
+
+    for (const switchId of switchIds) {
+      try {
+        const success = await deleteSwitch(switchId, userId);
+        if (success) {
+          results.push({ switchId, success: true });
+          succeeded++;
+        } else {
+          results.push({
+            switchId,
+            success: false,
+            error: 'Switch not found or access denied'
+          });
+          failed++;
+        }
+      } catch (error) {
+        results.push({
+          switchId,
+          success: false,
+          error: error.message
+        });
+        failed++;
+      }
+    }
+
+    // Send WebSocket notification for batch delete
+    websocketService.notifyBatchUpdate(userId, {
+      type: 'batch_delete',
+      succeeded,
+      failed
+    });
+
+    res.json({
+      message: 'Batch delete completed',
+      results,
+      summary: {
+        succeeded,
+        failed,
+        total: switchIds.length
+      }
+    });
+  } catch (error) {
+    logger.error('Batch delete error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Batch delete failed'
+    });
+  }
+});
+
+/**
+ * POST /api/switches/:id/duplicate
+ * Duplicate an existing switch configuration
+ *
+ * Creates a new switch with the same settings as an existing one
+ */
+router.post('/:id/duplicate', requireEmailVerified, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const switchId = req.params.id;
+
+    // Rate limit: max 5 duplications per hour
+    if (checkRateLimit(userId, 'duplicate_switch', 5, 3600000)) {
+      return res.status(429).json({
+        error: 'Rate limit exceeded',
+        message: 'You can only duplicate 5 switches per hour'
+      });
+    }
+
+    // Get the original switch
+    const originalSwitch = await getSwitch(switchId, userId);
+
+    if (!originalSwitch) {
+      return res.status(404).json({
+        error: 'Switch not found',
+        message: 'Original switch does not exist or you do not have access'
+      });
+    }
+
+    // Create duplicate with same settings
+    const duplicateData = {
+      title: `${originalSwitch.title || 'Untitled'} (Copy)`,
+      checkInHours: originalSwitch.checkInHours || 72,
+      recipients: originalSwitch.recipients || [],
+      useBitcoinTimelock: !!originalSwitch.bitcoinEnabled,
+      // Note: encrypted message is NOT duplicated - user must provide new message
+    };
+
+    // Mark as requiring new encrypted message
+    const newSwitch = await createSwitch(userId, {
+      ...duplicateData,
+      isDuplicate: true,
+      sourceSwitch: switchId
+    });
+
+    // Send WebSocket notification
+    websocketService.notifySwitchUpdate(userId, newSwitch);
+
+    res.status(201).json({
+      message: 'Switch duplicated successfully',
+      data: newSwitch,
+      note: 'Duplicate created. You must set a new encrypted message for this switch.'
+    });
+  } catch (error) {
+    logger.error('Duplicate switch error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to duplicate switch'
+    });
+  }
+});
+
 export default router;

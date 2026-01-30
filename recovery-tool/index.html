@@ -224,6 +224,17 @@ wss://relay.primal.net"></textarea>
     </p>
   </div>
 
+  <div style="margin-top: 20px; padding: 15px; background: #333; color: #aaa; font-size: 11px; border: 3px solid #000;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <span>EchoLock Recovery Tool v2.0.0</span>
+      <span>Supported formats: v1-basic, v2-versioned</span>
+    </div>
+    <p style="margin-top: 8px; color: #666;">
+      This tool supports multiple share format versions for forward compatibility.
+      If EchoLock updates its share format, download a new version of this tool.
+    </p>
+  </div>
+
   <!-- Load noble-secp256k1 and noble-hashes from CDN for cryptographic operations -->
   <script type="module">
     // ============================================
@@ -259,6 +270,91 @@ wss://relay.primal.net"></textarea>
     };
 
     const SHAMIR_THRESHOLD = 3;
+
+    // ============================================
+    // FORMAT VERSIONING
+    // Supports multiple share and message formats for forward compatibility
+    // ============================================
+
+    const SHARE_FORMAT_VERSIONS = {
+      1: {
+        name: 'v1-basic',
+        description: 'Original format: [x_byte][data_bytes]',
+        deserialize: (hex) => {
+          if (hex.length < 4) throw new Error('Invalid v1 share format');
+          const x = parseInt(hex.slice(0, 2), 16);
+          const data = hexToUint8Array(hex.slice(2));
+          return { x, data, version: 1 };
+        },
+      },
+      2: {
+        name: 'v2-versioned',
+        description: 'Versioned format: [version_byte][x_byte][length_2bytes][data_bytes][checksum_2bytes]',
+        deserialize: (hex) => {
+          if (hex.length < 10) throw new Error('Invalid v2 share format');
+          const version = parseInt(hex.slice(0, 2), 16);
+          if (version !== 2) throw new Error('Version mismatch in v2 share');
+          const x = parseInt(hex.slice(2, 4), 16);
+          const length = parseInt(hex.slice(4, 8), 16);
+          const data = hexToUint8Array(hex.slice(8, 8 + length * 2));
+          const checksum = hex.slice(8 + length * 2, 8 + length * 2 + 4);
+          // Verify checksum (simple XOR of all data bytes)
+          let computed = 0;
+          for (const byte of data) computed ^= byte;
+          const expectedChecksum = computed.toString(16).padStart(4, '0');
+          if (checksum !== expectedChecksum) {
+            log('warn', `Share checksum mismatch, proceeding anyway`);
+          }
+          return { x, data, version: 2 };
+        },
+      },
+    };
+
+    const MESSAGE_FORMAT_VERSIONS = {
+      1: {
+        name: 'v1-aes-gcm',
+        description: 'AES-256-GCM with separate IV and auth tag',
+      },
+      2: {
+        name: 'v2-aes-gcm-versioned',
+        description: 'Versioned AES-256-GCM with metadata',
+      },
+    };
+
+    // Tool version for compatibility tracking
+    const RECOVERY_TOOL_VERSION = '2.0.0';
+
+    /**
+     * Detect share format version from hex string
+     */
+    function detectShareVersion(hex) {
+      if (hex.length < 4) return 1; // Assume v1 for very short shares
+
+      const firstByte = parseInt(hex.slice(0, 2), 16);
+
+      // Version 2 starts with version byte 0x02
+      if (firstByte === 2 && hex.length >= 10) {
+        return 2;
+      }
+
+      // Default to v1
+      return 1;
+    }
+
+    /**
+     * Deserialize share with automatic version detection
+     */
+    function deserializeShareVersioned(hex) {
+      const version = detectShareVersion(hex);
+      const formatter = SHARE_FORMAT_VERSIONS[version];
+
+      if (!formatter) {
+        throw new Error(`Unsupported share format version: ${version}`);
+      }
+
+      log('info', `Detected share format: ${formatter.name}`);
+      return formatter.deserialize(hex);
+    }
 
     // ============================================
     // UTILITY FUNCTIONS
@@ -460,10 +556,8 @@ wss://relay.primal.net"></textarea>
     }
 
     function deserializeShare(hex) {
-      if (hex.length < 4) throw new Error('Invalid share format');
-      const x = parseInt(hex.slice(0, 2), 16);
-      const data = hexToUint8Array(hex.slice(2));
-      return { x, data };
+      // Use versioned deserialization with automatic detection
+      return deserializeShareVersioned(hex);
     }
 
     // ============================================
@@ -593,6 +687,10 @@ wss://relay.primal.net"></textarea>
 
     async function startRecovery() {
       initUI();
+
+      // Log version info for debugging
+      log(`EchoLock Recovery Tool v${RECOVERY_TOOL_VERSION}`, 'info');
+      log(`Supported share formats: ${Object.values(SHARE_FORMAT_VERSIONS).map(v => v.name).join(', ')}`, 'info');
 
       const recipientNsec = document.getElementById('recipientNsec').value.trim();
       const recipientNpub = document.getElementById('recipientNpub').value.trim();

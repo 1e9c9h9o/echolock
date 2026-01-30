@@ -12,6 +12,7 @@
 export * from './types';
 export * from './nip44';
 export * from './enrollment';
+export * from './keyRotation';
 
 // Re-export commonly used functions
 export {
