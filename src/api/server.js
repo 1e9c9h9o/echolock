@@ -75,6 +75,9 @@ import { stopRateLimitCleanup } from './middleware/auth.js';
 // switch expiration detection and release. See CLAUDE.md for architecture.
 import { startReminderMonitor } from './jobs/reminderMonitor.js';
 
+// Import Bitcoin funding monitor (background job for detecting commitment funding)
+import { startBitcoinFundingMonitor } from './jobs/bitcoinFundingMonitor.js';
+
 // Import WebSocket service
 import websocketService from './services/websocketService.js';
 import http from 'http';
@@ -402,6 +405,13 @@ async function startServer() {
       const reminderJob = startReminderMonitor();
       logger.info('Reminder monitor started - checking for upcoming expirations every hour');
       app.locals.reminderJob = reminderJob;
+
+      // Start Bitcoin funding monitor (only if Bitcoin feature is enabled)
+      const bitcoinJob = startBitcoinFundingMonitor();
+      if (bitcoinJob) {
+        logger.info('Bitcoin funding monitor started - checking for commitment funding every 2 minutes');
+        app.locals.bitcoinJob = bitcoinJob;
+      }
     } else {
       logger.warn('Reminder monitor not started - database not available');
     }

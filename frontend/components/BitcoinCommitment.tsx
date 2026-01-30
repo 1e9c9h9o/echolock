@@ -9,7 +9,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Bitcoin,
   Clock,
@@ -19,10 +19,13 @@ import {
   Copy,
   RefreshCw,
   Shield,
+  QrCode,
 } from 'lucide-react';
+import QRCodeLib from 'qrcode';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import { showToast } from '@/components/ui/ToastContainer';
+import BitcoinExplainer from '@/components/BitcoinExplainer';
 
 interface CommitmentData {
   switchId: string;
@@ -59,11 +62,41 @@ export default function BitcoinCommitment({
   const [verifying, setVerifying] = useState(false);
   const [verification, setVerification] = useState<VerificationResult | null>(null);
   const [currentBlockHeight, setCurrentBlockHeight] = useState<number | null>(null);
+  const [showQR, setShowQR] = useState(false);
+  const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     // Fetch current block height on mount
     fetchBlockHeight();
   }, []);
+
+  // Generate QR code when address is available and QR is shown
+  useEffect(() => {
+    if (showQR && commitment?.address && qrCanvasRef.current) {
+      generateQRCode();
+    }
+  }, [showQR, commitment?.address]);
+
+  const generateQRCode = async () => {
+    if (!qrCanvasRef.current || !commitment?.address) return;
+
+    try {
+      // Create BIP21 Bitcoin URI for better wallet support
+      const btcAmount = commitment.amount / 100000000; // Convert sats to BTC
+      const bitcoinUri = `bitcoin:${commitment.address}?amount=${btcAmount}`;
+
+      await QRCodeLib.toCanvas(qrCanvasRef.current, bitcoinUri, {
+        width: 200,
+        margin: 2,
+        color: {
+          dark: '#212121',
+          light: '#FFFFFF',
+        },
+      });
+    } catch (error) {
+      console.error('Failed to generate QR code:', error);
+    }
+  };
 
   const fetchBlockHeight = async () => {
     try {
@@ -216,12 +249,34 @@ export default function BitcoinCommitment({
           </div>
         </div>
 
-        <div className="text-center py-8 bg-gray-50 border-2 border-dashed border-gray-300 mb-4">
-          <Bitcoin className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-          <p className="text-gray-600 font-medium">No commitment yet</p>
-          <p className="text-sm text-gray-500">
-            Create an on-chain proof that your timer was set
-          </p>
+        {/* Trust Level Explanation */}
+        <div className="mb-4 space-y-3">
+          <div className="p-3 bg-green-50 border border-green-200 rounded">
+            <p className="text-sm text-green-800 font-medium mb-1">
+              Your switch works without Bitcoin
+            </p>
+            <p className="text-xs text-green-700">
+              The Guardian Network monitors your heartbeats and releases your message automatically.
+              This is secure for most use cases.
+            </p>
+          </div>
+
+          <div className="p-3 bg-orange-50 border border-orange-200 rounded">
+            <p className="text-sm text-orange-800 font-medium mb-1">
+              For sensitive information, add Bitcoin
+            </p>
+            <p className="text-xs text-orange-700">
+              A Bitcoin commitment creates <strong>permanent, public proof</strong> that your timer
+              was set. Even if EchoLock disappears, anyone can verify when your switch was created.
+              No one - including us - can alter this record.
+            </p>
+          </div>
+        </div>
+
+        {/* Cost info */}
+        <div className="flex items-center justify-between p-3 bg-gray-100 rounded mb-4">
+          <span className="text-sm text-gray-600">One-time cost:</span>
+          <span className="text-sm font-bold">~$1 <span className="font-normal text-gray-500">(1,000 sats)</span></span>
         </div>
 
         <Button
@@ -230,18 +285,16 @@ export default function BitcoinCommitment({
           className="w-full"
         >
           <Bitcoin className="w-4 h-4 mr-2" />
-          Create Bitcoin Commitment
+          Add Bitcoin Proof
         </Button>
 
-        <div className="mt-4 p-3 bg-orange-50 border-2 border-orange-200">
-          <div className="flex gap-2">
-            <Shield className="w-4 h-4 text-orange-600 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-orange-700">
-              <strong>Optional but recommended.</strong> A Bitcoin commitment provides
-              unforgeable proof that your timer was set at a specific time.
-              Anyone can verify this on any block explorer.
-            </p>
-          </div>
+        <p className="text-xs text-gray-500 text-center mt-2">
+          Optional - your switch works without this
+        </p>
+
+        {/* Educational Section */}
+        <div className="mt-4">
+          <BitcoinExplainer defaultCollapsed={true} />
         </div>
       </Card>
     );
@@ -388,10 +441,58 @@ export default function BitcoinCommitment({
             <Clock className="w-5 h-5 text-yellow-600 flex-shrink-0" />
             <p className="font-bold text-sm text-yellow-800">Awaiting Funding</p>
           </div>
-          <p className="text-sm text-yellow-700">
-            Send <strong>{commitment.amount.toLocaleString()} sats</strong> to the address above
-            to create your on-chain commitment. Use any Bitcoin wallet.
+          <p className="text-sm text-yellow-700 mb-3">
+            Send <strong>{commitment.amount.toLocaleString()} sats</strong> (~$
+            {((commitment.amount / 100000000) * 100000).toFixed(2)}) to the address above
+            to create your on-chain commitment.
           </p>
+
+          {/* QR Code Toggle */}
+          <button
+            onClick={() => setShowQR(!showQR)}
+            className="flex items-center gap-2 text-sm text-yellow-700 hover:text-yellow-900 font-medium mb-3"
+          >
+            <QrCode className="w-4 h-4" />
+            {showQR ? 'Hide QR Code' : 'Show QR Code'}
+          </button>
+
+          {/* QR Code Display */}
+          {showQR && (
+            <div className="flex flex-col items-center bg-white p-4 rounded border border-yellow-200 mb-3">
+              <canvas ref={qrCanvasRef} className="mb-2" />
+              <p className="text-xs text-gray-500 text-center">
+                Scan with any Bitcoin wallet
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                (Includes BIP21 amount: {(commitment.amount / 100000000).toFixed(8)} BTC)
+              </p>
+            </div>
+          )}
+
+          <div className="flex gap-2 text-xs text-yellow-600">
+            <a
+              href={`https://mempool.space/${commitment.network === 'testnet' ? 'testnet/' : ''}address/${commitment.address}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 hover:text-yellow-800"
+            >
+              <ExternalLink className="w-3 h-3" />
+              View on mempool.space
+            </a>
+            {commitment.network === 'testnet' && (
+              <>
+                <span className="text-yellow-400">|</span>
+                <a
+                  href="https://testnet-faucet.mempool.co/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 hover:text-yellow-800"
+                >
+                  Get testnet coins
+                </a>
+              </>
+            )}
+          </div>
         </div>
       )}
 

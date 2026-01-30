@@ -1107,4 +1107,373 @@ router.post('/:id/generate-checkin-link', async (req, res) => {
   }
 });
 
+// ============================================================================
+// BITCOIN COMMITMENT
+// ============================================================================
+
+/**
+ * POST /api/switches/:id/bitcoin-commitment
+ * Create a Bitcoin timelock commitment for on-chain proof of timer
+ *
+ * This generates a P2WSH timelock address that the user can fund.
+ * Once funded, it provides unforgeable proof that the timer was set.
+ */
+router.post('/:id/bitcoin-commitment', requireEmailVerified, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const switchId = req.params.id;
+    const { password } = req.body;
+
+    // Check if Bitcoin feature is enabled
+    if (process.env.USE_BITCOIN_TIMELOCK !== 'true') {
+      return res.status(501).json({
+        error: 'Feature not enabled',
+        message: 'Bitcoin timelock feature is not enabled on this server'
+      });
+    }
+
+    if (!password) {
+      return res.status(400).json({
+        error: 'Password required',
+        message: 'Password is required to encrypt the Bitcoin private key'
+      });
+    }
+
+    const { query: dbQuery } = await import('../db/connection.js');
+
+    // Verify ownership and get switch data
+    const switchResult = await dbQuery(
+      `SELECT id, title, status, check_in_hours, expires_at,
+              bitcoin_enabled, bitcoin_status, bitcoin_address
+       FROM switches WHERE id = $1 AND user_id = $2`,
+      [switchId, userId]
+    );
+
+    if (switchResult.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Switch not found',
+        message: 'Switch does not exist or you do not have access'
+      });
+    }
+
+    const sw = switchResult.rows[0];
+
+    // Check if commitment already exists
+    if (sw.bitcoin_address) {
+      return res.status(400).json({
+        error: 'Commitment exists',
+        message: 'Bitcoin commitment already created for this switch',
+        data: {
+          address: sw.bitcoin_address,
+          status: sw.bitcoin_status
+        }
+      });
+    }
+
+    // Only allow for ARMED switches
+    if (sw.status !== 'ARMED') {
+      return res.status(400).json({
+        error: 'Invalid switch status',
+        message: 'Bitcoin commitment can only be created for armed switches'
+      });
+    }
+
+    // Import Bitcoin modules
+    const { createCommitment } = await import('../../bitcoin/commitment.js');
+    const { getCurrentBlockHeight } = await import('../../bitcoin/testnetClient.js');
+    const { deriveKeyHierarchy, encrypt, zeroize } = await import('../../crypto/keyDerivation.js');
+    const { ECPairFactory } = await import('ecpair');
+    const ecc = await import('tiny-secp256k1');
+    const crypto = await import('crypto');
+
+    const ECPair = ECPairFactory(ecc);
+
+    // Get current block height and calculate timelock
+    const currentHeight = await getCurrentBlockHeight();
+    const hoursToBlocks = Math.ceil((sw.check_in_hours * 60) / 10); // ~10 min per block
+    const timelockHeight = currentHeight + hoursToBlocks;
+
+    // Generate Bitcoin keypair
+    const randomPrivateKey = crypto.randomBytes(32);
+    const keyPair = ECPair.fromPrivateKey(randomPrivateKey, {
+      network: (await import('bitcoinjs-lib')).networks.testnet
+    });
+    const publicKey = keyPair.publicKey;
+
+    // Encrypt private key with password
+    const keyHierarchy = deriveKeyHierarchy(password, switchId);
+    const bitcoinEncryptionKey = keyHierarchy.bitcoinKey;
+
+    const { ciphertext: encryptedPrivateKey, iv, authTag } =
+      encrypt(Buffer.from(randomPrivateKey), bitcoinEncryptionKey);
+
+    // Zeroize sensitive data
+    zeroize(randomPrivateKey);
+    zeroize(bitcoinEncryptionKey);
+
+    // Create commitment
+    const commitment = createCommitment(switchId, timelockHeight, publicKey, {
+      network: 'testnet',
+      amount: 1000 // 1000 sats default
+    });
+
+    // Store in database
+    await dbQuery(
+      `UPDATE switches SET
+        bitcoin_enabled = TRUE,
+        bitcoin_status = 'pending',
+        bitcoin_address = $1,
+        bitcoin_locktime = $2,
+        bitcoin_script = $3,
+        bitcoin_public_key = $4,
+        bitcoin_encrypted_private_key = $5,
+        bitcoin_private_key_iv = $6,
+        bitcoin_private_key_auth_tag = $7,
+        bitcoin_private_key_salt = $8,
+        bitcoin_network = 'testnet',
+        bitcoin_amount = 1000,
+        updated_at = NOW()
+       WHERE id = $9`,
+      [
+        commitment.address,
+        timelockHeight,
+        commitment.script,
+        publicKey.toString('hex'),
+        encryptedPrivateKey.toString('base64'),
+        iv.toString('base64'),
+        authTag.toString('base64'),
+        keyHierarchy.salt.toString('base64'),
+        switchId
+      ]
+    );
+
+    // Audit log
+    await dbQuery(
+      `INSERT INTO audit_log (user_id, event_type, event_data, ip_address, user_agent)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        userId,
+        'BITCOIN_COMMITMENT_CREATED',
+        JSON.stringify({
+          switchId,
+          title: sw.title,
+          address: commitment.address,
+          timelockHeight,
+          currentHeight
+        }),
+        req.ip,
+        req.get('user-agent')
+      ]
+    );
+
+    logger.info('Bitcoin commitment created', {
+      switchId,
+      address: commitment.address,
+      timelockHeight
+    });
+
+    res.status(201).json({
+      message: 'Bitcoin commitment created',
+      data: {
+        switchId,
+        address: commitment.address,
+        amount: 1000,
+        amountBtc: 0.00001,
+        network: 'testnet',
+        status: 'pending',
+        locktime: timelockHeight,
+        currentHeight,
+        blocksUntilValid: timelockHeight - currentHeight,
+        explorerUrl: `https://mempool.space/testnet/address/${commitment.address}`,
+        instructions: 'Send 1000 satoshis (0.00001 BTC) to the address above to create your on-chain commitment.'
+      }
+    });
+  } catch (error) {
+    logger.error('Create Bitcoin commitment error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to create Bitcoin commitment'
+    });
+  }
+});
+
+/**
+ * GET /api/switches/:id/bitcoin-commitment
+ * Get Bitcoin commitment status for a switch
+ */
+router.get('/:id/bitcoin-commitment', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const switchId = req.params.id;
+
+    const { query: dbQuery } = await import('../db/connection.js');
+
+    // Get switch with Bitcoin data
+    const switchResult = await dbQuery(
+      `SELECT id, title, status,
+              bitcoin_enabled, bitcoin_status, bitcoin_address, bitcoin_txid,
+              bitcoin_amount, bitcoin_locktime, bitcoin_network,
+              bitcoin_confirmed_at, bitcoin_block_height
+       FROM switches WHERE id = $1 AND user_id = $2`,
+      [switchId, userId]
+    );
+
+    if (switchResult.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Switch not found',
+        message: 'Switch does not exist or you do not have access'
+      });
+    }
+
+    const sw = switchResult.rows[0];
+
+    if (!sw.bitcoin_enabled || !sw.bitcoin_address) {
+      return res.json({
+        message: 'No Bitcoin commitment',
+        data: {
+          enabled: false,
+          status: 'none'
+        }
+      });
+    }
+
+    // Get current block height for time estimates
+    let currentHeight = null;
+    let blocksRemaining = null;
+    try {
+      const { getCurrentBlockHeight } = await import('../../bitcoin/testnetClient.js');
+      currentHeight = await getCurrentBlockHeight();
+      blocksRemaining = Math.max(0, sw.bitcoin_locktime - currentHeight);
+    } catch (e) {
+      logger.warn('Could not fetch current block height', { error: e.message });
+    }
+
+    const network = sw.bitcoin_network || 'testnet';
+    const explorerBase = network === 'mainnet' ? 'https://mempool.space' : 'https://mempool.space/testnet';
+
+    res.json({
+      message: 'Bitcoin commitment retrieved',
+      data: {
+        enabled: true,
+        status: sw.bitcoin_status,
+        address: sw.bitcoin_address,
+        txid: sw.bitcoin_txid,
+        amount: sw.bitcoin_amount,
+        locktime: sw.bitcoin_locktime,
+        network,
+        currentHeight,
+        blocksRemaining,
+        estimatedTimeRemaining: blocksRemaining ? blocksRemaining * 10 * 60 * 1000 : null, // ~10 min per block in ms
+        confirmedAt: sw.bitcoin_confirmed_at,
+        blockHeight: sw.bitcoin_block_height,
+        explorerUrl: sw.bitcoin_txid
+          ? `${explorerBase}/tx/${sw.bitcoin_txid}`
+          : `${explorerBase}/address/${sw.bitcoin_address}`,
+        addressUrl: `${explorerBase}/address/${sw.bitcoin_address}`
+      }
+    });
+  } catch (error) {
+    logger.error('Get Bitcoin commitment error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to retrieve Bitcoin commitment'
+    });
+  }
+});
+
+/**
+ * POST /api/switches/:id/bitcoin-commitment/verify
+ * Manually trigger verification of a Bitcoin commitment
+ */
+router.post('/:id/bitcoin-commitment/verify', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const switchId = req.params.id;
+
+    const { query: dbQuery } = await import('../db/connection.js');
+
+    // Get switch with Bitcoin data
+    const switchResult = await dbQuery(
+      `SELECT id, bitcoin_address, bitcoin_network, bitcoin_status
+       FROM switches WHERE id = $1 AND user_id = $2`,
+      [switchId, userId]
+    );
+
+    if (switchResult.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Switch not found'
+      });
+    }
+
+    const sw = switchResult.rows[0];
+
+    if (!sw.bitcoin_address) {
+      return res.status(400).json({
+        error: 'No commitment',
+        message: 'No Bitcoin commitment exists for this switch'
+      });
+    }
+
+    // Check for funding
+    const { checkAddressFunded } = await import('../jobs/bitcoinFundingMonitor.js');
+    const fundingInfo = await checkAddressFunded(sw.bitcoin_address, sw.bitcoin_network || 'testnet');
+
+    if (!fundingInfo) {
+      return res.json({
+        message: 'Commitment not yet funded',
+        data: {
+          funded: false,
+          status: sw.bitcoin_status,
+          address: sw.bitcoin_address
+        }
+      });
+    }
+
+    // Update if newly funded
+    if (sw.bitcoin_status === 'pending' || !sw.bitcoin_status) {
+      const newStatus = fundingInfo.confirmed ? 'confirmed' : 'pending';
+      await dbQuery(
+        `UPDATE switches SET
+          bitcoin_status = $1,
+          bitcoin_txid = $2,
+          bitcoin_amount = $3,
+          bitcoin_block_height = $4,
+          bitcoin_confirmed_at = CASE WHEN $5 THEN NOW() ELSE NULL END,
+          updated_at = NOW()
+         WHERE id = $6`,
+        [newStatus, fundingInfo.txid, fundingInfo.amount, fundingInfo.blockHeight, fundingInfo.confirmed, switchId]
+      );
+
+      // Send WebSocket notification
+      websocketService.notifyBitcoinFunded(userId, {
+        switchId,
+        txid: fundingInfo.txid,
+        amount: fundingInfo.amount,
+        confirmed: fundingInfo.confirmed,
+        blockHeight: fundingInfo.blockHeight,
+        explorerUrl: fundingInfo.explorerUrl,
+        network: sw.bitcoin_network || 'testnet'
+      });
+    }
+
+    res.json({
+      message: 'Commitment verified',
+      data: {
+        funded: true,
+        txid: fundingInfo.txid,
+        amount: fundingInfo.amount,
+        confirmed: fundingInfo.confirmed,
+        blockHeight: fundingInfo.blockHeight,
+        explorerUrl: fundingInfo.explorerUrl
+      }
+    });
+  } catch (error) {
+    logger.error('Verify Bitcoin commitment error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to verify Bitcoin commitment'
+    });
+  }
+});
+
 export default router;

@@ -103,6 +103,46 @@ export interface AuditLogEvent {
 }
 
 /**
+ * Bitcoin commitment status
+ */
+export type BitcoinCommitmentStatus = 'none' | 'pending' | 'confirmed' | 'spent' | 'expired'
+
+/**
+ * Bitcoin commitment data
+ */
+export interface BitcoinCommitment {
+  enabled: boolean
+  status: BitcoinCommitmentStatus
+  address?: string
+  txid?: string | null
+  amount?: number
+  locktime?: number
+  network?: 'testnet' | 'mainnet'
+  currentHeight?: number | null
+  blocksRemaining?: number | null
+  estimatedTimeRemaining?: number | null
+  confirmedAt?: string | null
+  blockHeight?: number | null
+  explorerUrl?: string
+  addressUrl?: string
+}
+
+/**
+ * Bitcoin funding notification payload
+ */
+export interface BitcoinFundedPayload {
+  switchId: string
+  title?: string
+  txid: string
+  amount: number
+  confirmed: boolean
+  blockHeight?: number | null
+  explorerUrl: string
+  network: 'testnet' | 'mainnet'
+  timestamp: string
+}
+
+/**
  * WebSocket message types
  */
 export type WebSocketMessageType =
@@ -111,6 +151,8 @@ export type WebSocketMessageType =
   | 'check_in'
   | 'switch_deleted'
   | 'connection_established'
+  | 'bitcoin_funded'
+  | 'expiry_warning'
 
 export interface WebSocketMessage<T = unknown> {
   type: WebSocketMessageType

@@ -339,6 +339,28 @@ class WebSocketService {
   }
 
   /**
+   * Send Bitcoin commitment funded notification to user
+   * @param {string} userId - User ID
+   * @param {Object} commitmentData - Bitcoin commitment data
+   */
+  notifyBitcoinFunded(userId, commitmentData) {
+    this.broadcastToUser(userId, {
+      type: 'bitcoin_funded',
+      payload: {
+        switchId: commitmentData.switchId,
+        title: commitmentData.title,
+        txid: commitmentData.txid,
+        amount: commitmentData.amount,
+        confirmed: commitmentData.confirmed,
+        blockHeight: commitmentData.blockHeight,
+        explorerUrl: commitmentData.explorerUrl,
+        network: commitmentData.network,
+        timestamp: new Date().toISOString()
+      }
+    });
+  }
+
+  /**
    * Get connected client count
    * @returns {number} Number of connected clients
    */

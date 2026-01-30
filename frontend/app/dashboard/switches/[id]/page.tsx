@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { ArrowLeft, Clock, Users, AlertCircle, Trash2, Activity, Shield, Link as LinkIcon, Bitcoin, Circle, Triangle, Octagon } from 'lucide-react'
 import Link from 'next/link'
@@ -9,7 +9,11 @@ import StatusBadge from '@/components/ui/StatusBadge'
 import AnalogGauge from '@/components/AnalogGauge'
 import Sparkline, { generateMockSparklineData } from '@/components/Sparkline'
 import CheckInButton from '@/components/CheckInButton'
-import { switchesAPI } from '@/lib/api'
+import BitcoinCommitment from '@/components/BitcoinCommitment'
+import { showToast } from '@/components/ui/ToastContainer'
+import api, { switchesAPI } from '@/lib/api'
+import { useWebSocket } from '@/lib/websocket'
+import type { BitcoinCommitment as BitcoinCommitmentType, BitcoinFundedPayload } from '@/lib/types'
 
 interface SwitchDetail {
   id: string
@@ -48,12 +52,24 @@ export default function SwitchDetailPage() {
 
   const [switchData, setSwitchData] = useState<SwitchDetail | null>(null)
   const [checkIns, setCheckIns] = useState<CheckIn[]>([])
+  const [bitcoinCommitment, setBitcoinCommitment] = useState<BitcoinCommitmentType | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showDangerZone, setShowDangerZone] = useState(false)
 
+  // WebSocket handler for Bitcoin funding notifications
+  const handleBitcoinFunded = useCallback((data: BitcoinFundedPayload) => {
+    if (data.switchId === id) {
+      showToast('Bitcoin commitment funded!', 'success')
+      loadBitcoinCommitment()
+    }
+  }, [id])
+
+  useWebSocket('bitcoin_funded', handleBitcoinFunded)
+
   useEffect(() => {
     loadSwitch()
+    loadBitcoinCommitment()
   }, [id])
 
   const loadSwitch = async () => {
@@ -71,6 +87,39 @@ export default function SwitchDetailPage() {
       setError(err.response?.data?.message || 'Failed to load switch')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadBitcoinCommitment = async () => {
+    try {
+      const response = await api.get(`/switches/${id}/bitcoin-commitment`)
+      setBitcoinCommitment(response.data.data)
+    } catch (err) {
+      // Bitcoin commitment might not exist, that's OK
+      setBitcoinCommitment({ enabled: false, status: 'none' })
+    }
+  }
+
+  const handleCreateBitcoinCommitment = async () => {
+    const password = prompt('Enter your password to encrypt the Bitcoin private key:')
+    if (!password) return
+
+    try {
+      const response = await api.post(`/switches/${id}/bitcoin-commitment`, { password })
+      setBitcoinCommitment({
+        enabled: true,
+        status: 'pending',
+        address: response.data.data.address,
+        amount: response.data.data.amount,
+        locktime: response.data.data.locktime,
+        network: response.data.data.network,
+        currentHeight: response.data.data.currentHeight,
+        blocksRemaining: response.data.data.blocksUntilValid,
+        explorerUrl: response.data.data.explorerUrl
+      })
+      showToast('Bitcoin commitment created! Send funds to the address shown.', 'success')
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Failed to create Bitcoin commitment', 'error')
     }
   }
 
@@ -310,28 +359,20 @@ export default function SwitchDetailPage() {
         </div>
 
         {/* Bitcoin Commitment */}
-        <div className="bg-white border border-slate-200">
-          <div className="p-4 border-b border-slate-100">
-            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-              <Bitcoin className="h-4 w-4 text-slate-400" strokeWidth={2} />
-              Bitcoin Commitment
-            </h2>
-          </div>
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-slate-500">Status:</span>
-              <span className="px-2 py-1 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold uppercase">
-                Optional
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 mb-4">
-              Bitcoin timelocks provide cryptographic proof using OP_CHECKLOCKTIMEVERIFY.
-            </p>
-            <button className="w-full px-4 py-2 bg-slate-100 border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-wider hover:bg-slate-200 transition-colors">
-              Create Commitment
-            </button>
-          </div>
-        </div>
+        <BitcoinCommitment
+          commitment={bitcoinCommitment && bitcoinCommitment.enabled ? {
+            switchId: id,
+            locktime: bitcoinCommitment.locktime || 0,
+            address: bitcoinCommitment.address || '',
+            txid: bitcoinCommitment.txid || null,
+            amount: bitcoinCommitment.amount || 1000,
+            status: bitcoinCommitment.status as 'pending' | 'confirmed' | 'spent' | 'expired',
+            network: bitcoinCommitment.network || 'testnet',
+            blockHeight: bitcoinCommitment.blockHeight || null
+          } : null}
+          onCreateCommitment={handleCreateBitcoinCommitment}
+          onVerify={loadBitcoinCommitment}
+        />
 
         {/* Activity History */}
         <div className="bg-white border border-slate-200">
