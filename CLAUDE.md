@@ -402,6 +402,27 @@ Bitcoin provides **unforgeable timestamps** and **programmatic release**.
 - [x] Database: `redundancy_checks` table for audit trail
 - [x] Frontend: `RedundancyDashboard.tsx`
 
+### Feature 8: Bitcoin Timelock UX (Production-Ready)
+- [x] Database: Migration 008 adds Bitcoin commitment columns to switches
+- [x] Backend: `bitcoinFundingMonitor.js` cron job (polls every 2 minutes)
+- [x] Backend: WebSocket `notifyBitcoinFunded()` for real-time notifications
+- [x] Backend: API endpoints `POST/GET /api/switches/:id/bitcoin-commitment`
+- [x] Frontend: `BitcoinCommitment.tsx` integrated into switch detail page
+- [x] Frontend: QR code generation with BIP21 URI (`bitcoin:addr?amount=X`)
+- [x] Frontend: `BitcoinExplainer.tsx` educational component (Simple/Technical toggle)
+- [x] UX: Tiered trust messaging (works without Bitcoin, recommended for sensitive data)
+- [x] Status: Locked to testnet until security audit
+
+**Key Files:**
+- `src/api/jobs/bitcoinFundingMonitor.js` - Background funding detection
+- `src/api/db/migrations/008_add_bitcoin_commitment.js` - Database schema
+- `frontend/components/BitcoinCommitment.tsx` - Main UI component
+- `frontend/components/BitcoinExplainer.tsx` - "Why Bitcoin?" education
+
+**User Guidance:**
+- Skip Bitcoin: Personal notes, account passwords, non-time-critical info
+- Use Bitcoin: Financial info, legal documents, sensitive secrets needing proof
+
 ### New Database Tables (Migration 007)
 ```sql
 - recipient_groups (id, user_id, name, description)
@@ -411,6 +432,19 @@ Bitcoin provides **unforgeable timestamps** and **programmatic release**.
 - redundancy_checks (id, switch_id, check_type, status, details)
 - legal_documents (id, user_id, template_id, switch_id, content, generated_at)
 - proof_documents (id, switch_id, content, checksum, generated_at)
+```
+
+### Bitcoin Commitment Columns (Migration 008)
+```sql
+ALTER TABLE switches ADD COLUMN bitcoin_enabled BOOLEAN DEFAULT FALSE;
+ALTER TABLE switches ADD COLUMN bitcoin_status VARCHAR(20) DEFAULT 'none';
+ALTER TABLE switches ADD COLUMN bitcoin_address VARCHAR(100);
+ALTER TABLE switches ADD COLUMN bitcoin_txid VARCHAR(64);
+ALTER TABLE switches ADD COLUMN bitcoin_amount INTEGER;
+ALTER TABLE switches ADD COLUMN bitcoin_locktime INTEGER;
+ALTER TABLE switches ADD COLUMN bitcoin_network VARCHAR(10) DEFAULT 'testnet';
+ALTER TABLE switches ADD COLUMN bitcoin_confirmed_at TIMESTAMP;
+ALTER TABLE switches ADD COLUMN bitcoin_block_height INTEGER;
 ```
 
 ### New API Endpoints
@@ -427,6 +461,9 @@ GET /api/emergency-alerts/:token/acknowledge (public)
 GET /api/legal/templates
 POST /api/legal/documents/generate
 GET /api/legal/documents/:id
+POST /api/switches/:id/bitcoin-commitment (create timelock address)
+GET /api/switches/:id/bitcoin-commitment (get status, txid, confirmations)
+POST /api/switches/:id/bitcoin-commitment/verify (manual verification)
 ```
 
 ---
