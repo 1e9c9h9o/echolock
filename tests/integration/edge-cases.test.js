@@ -80,42 +80,42 @@ describe('ECHOLOCK Edge Cases', () => {
 
       expect(result).toBeDefined();
       expect(result.switchId).toBeDefined();
-      expect(result.expiryHours).toBe(1);
+      expect(result.checkInHours).toBe(1);
     });
 
     test('should handle edge of 24 hour minimum (24 hours)', async () => {
       const result = await createSwitch('Test message', 24, false);
 
       expect(result).toBeDefined();
-      expect(result.expiryHours).toBe(24);
+      expect(result.checkInHours).toBe(24);
     });
 
     test('should handle standard timelock (72 hours)', async () => {
       const result = await createSwitch('Test message', 72, false);
 
       expect(result).toBeDefined();
-      expect(result.expiryHours).toBe(72);
+      expect(result.checkInHours).toBe(72);
     });
 
     test('should handle long timelock (1 week / 168 hours)', async () => {
       const result = await createSwitch('Test message', 168, false);
 
       expect(result).toBeDefined();
-      expect(result.expiryHours).toBe(168);
+      expect(result.checkInHours).toBe(168);
     });
 
     test('should handle very long timelock (1 month / 720 hours)', async () => {
       const result = await createSwitch('Test message', 720, false);
 
       expect(result).toBeDefined();
-      expect(result.expiryHours).toBe(720);
+      expect(result.checkInHours).toBe(720);
     });
 
     test('should handle extreme timelock (1 year / 8760 hours)', async () => {
       const result = await createSwitch('Test message', 8760, false);
 
       expect(result).toBeDefined();
-      expect(result.expiryHours).toBe(8760);
+      expect(result.checkInHours).toBe(8760);
     }, 30000);
 
     test('should handle fractional hours (0.5 hours / 30 minutes)', async () => {
@@ -417,7 +417,7 @@ describe('ECHOLOCK Edge Cases', () => {
 
       expect(results).toHaveLength(5);
       results.forEach((result, i) => {
-        expect(result.expiryHours).toBe(durations[i]);
+        expect(result.checkInHours).toBe(durations[i]);
       });
     });
 

@@ -128,7 +128,7 @@ describe('ECHOLOCK Full Lifecycle Integration Tests', () => {
       timeController.advanceHours(checkInHours * 0.5);
 
       // Perform check-in
-      const checkInResult = dms.checkIn(result.switchId);
+      const checkInResult = await dms.checkIn(result.switchId);
 
       expect(checkInResult.success).toBe(true);
       expect(checkInResult.newExpiryTime).toBeGreaterThan(originalExpiry);
@@ -151,7 +151,7 @@ describe('ECHOLOCK Full Lifecycle Integration Tests', () => {
       // Perform 3 check-ins
       for (let i = 0; i < 3; i++) {
         timeController.advanceHours(checkInHours * 0.3);
-        const checkInResult = dms.checkIn(result.switchId);
+        const checkInResult = await dms.checkIn(result.switchId);
         expect(checkInResult.success).toBe(true);
         expect(checkInResult.checkInCount).toBe(i + 1);
       }
@@ -177,7 +177,7 @@ describe('ECHOLOCK Full Lifecycle Integration Tests', () => {
       expect(status.status).toBe('TRIGGERED');
 
       // Try to check-in (should fail)
-      const checkInResult = dms.checkIn(result.switchId);
+      const checkInResult = await dms.checkIn(result.switchId);
       expect(checkInResult.success).toBe(false);
       expect(checkInResult.message).toContain('triggered');
     });
@@ -471,7 +471,7 @@ describe('ECHOLOCK Full Lifecycle Integration Tests', () => {
       // Perform multiple check-ins
       for (let i = 0; i < 3; i++) {
         timeController.advanceHours(0.003);
-        dms.checkIn(result.switchId);
+        await dms.checkIn(result.switchId);
       }
 
       const status = await dms.getStatus(result.switchId);

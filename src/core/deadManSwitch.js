@@ -50,47 +50,57 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../..');
 
-const SWITCHES_FILE = path.join(projectRoot, 'data/switches.json');
-const FRAGMENTS_FILE = path.join(projectRoot, 'data/fragments.json');
+// Get data directory dynamically to support test environment
+function getDataDir() {
+  return process.env.ECHOLOCK_DATA_DIR || path.join(projectRoot, 'data');
+}
+
+function getSwitchesFile() {
+  return path.join(getDataDir(), 'switches.json');
+}
+
+function getFragmentsFile() {
+  return path.join(getDataDir(), 'fragments.json');
+}
 
 /**
  * Load switches database
  */
 function loadSwitches() {
-  if (!fs.existsSync(SWITCHES_FILE)) {
+  if (!fs.existsSync(getSwitchesFile())) {
     return {};
   }
-  return JSON.parse(fs.readFileSync(SWITCHES_FILE, 'utf8'));
+  return JSON.parse(fs.readFileSync(getSwitchesFile(), 'utf8'));
 }
 
 /**
  * Save switches database (atomic write to prevent corruption)
  */
 function saveSwitches(switches) {
-  const tmpFile = SWITCHES_FILE + '.tmp';
+  const tmpFile = getSwitchesFile() + '.tmp';
   const data = JSON.stringify(switches, null, 2);
   fs.writeFileSync(tmpFile, data, 'utf8');
-  fs.renameSync(tmpFile, SWITCHES_FILE);
+  fs.renameSync(tmpFile, getSwitchesFile());
 }
 
 /**
  * Load fragments database
  */
 function loadFragments() {
-  if (!fs.existsSync(FRAGMENTS_FILE)) {
+  if (!fs.existsSync(getFragmentsFile())) {
     return {};
   }
-  return JSON.parse(fs.readFileSync(FRAGMENTS_FILE, 'utf8'));
+  return JSON.parse(fs.readFileSync(getFragmentsFile(), 'utf8'));
 }
 
 /**
  * Save fragments database (atomic write to prevent corruption)
  */
 function saveFragments(fragments) {
-  const tmpFile = FRAGMENTS_FILE + '.tmp';
+  const tmpFile = getFragmentsFile() + '.tmp';
   const data = JSON.stringify(fragments, null, 2);
   fs.writeFileSync(tmpFile, data, 'utf8');
-  fs.renameSync(tmpFile, FRAGMENTS_FILE);
+  fs.renameSync(tmpFile, getFragmentsFile());
 }
 
 /**
@@ -520,8 +530,8 @@ export async function getStatus(switchId, includeBitcoinStatus = false) {
   const timeRemaining = Math.max(0, sw.expiryTime - now);
   const isExpired = timeRemaining === 0;
 
-  // Update status if expired
-  if (isExpired && sw.status !== 'TRIGGERED') {
+  // Update status if expired (but don't overwrite RELEASED or CANCELLED)
+  if (isExpired && sw.status === 'ARMED') {
     sw.status = 'TRIGGERED';
     saveSwitches(switches);
   }

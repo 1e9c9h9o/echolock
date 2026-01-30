@@ -58,7 +58,9 @@ export function advanceTime(ms) {
   }
 
   currentMockTime += ms;
-  jest.advanceTimersByTime(ms);
+  // Note: We only need to advance Date.now(), not Jest fake timers
+  // jest.advanceTimersByTime is only needed for setTimeout/setInterval
+  // which we don't use in deadManSwitch core logic
 }
 
 /**
