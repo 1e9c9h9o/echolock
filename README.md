@@ -602,9 +602,10 @@ export DEBUG=true
 The EchoLock frontend provides a modern, feature-rich interface built with Next.js 14 and Tailwind CSS:
 
 **🎨 Design System**
-- Neo-brutalist aesthetic with bold borders and high contrast
-- Risograph-inspired color palette (Cream, Blue, Red, Black)
-- Custom fonts: Syne (headings), Space Mono (body)
+- **High Performance HMI** - Industrial-grade cognitive ergonomics for situational awareness
+- Muted slate palette for structure, color reserved for status alerts
+- Redundant shape+color coding for accessibility (Circle/Triangle/Octagon)
+- Analog gauges and sparkline trends for pattern recognition
 - Responsive layouts (mobile, tablet, desktop)
 - Dark mode with theme persistence
 
@@ -642,7 +643,8 @@ For detailed feature documentation, see [DASHBOARD_ENHANCEMENTS.md](DASHBOARD_EN
 - **Bitcoin Integration**: See [BITCOIN_INTEGRATION.md](BITCOIN_INTEGRATION.md)
 - **Nostr Implementation**: See [NOSTR_IMPLEMENTATION.md](NOSTR_IMPLEMENTATION.md)
 - **Dashboard Features**: See [DASHBOARD_ENHANCEMENTS.md](DASHBOARD_ENHANCEMENTS.md)
-- **UX Features Guide**: See [frontend/docs/UX_FEATURES.md](frontend/docs/UX_FEATURES.md) ✨ NEW
+- **HMI Design System**: See [docs/HMI-DESIGN-SYSTEM.md](docs/HMI-DESIGN-SYSTEM.md) ✨ NEW
+- **UX Features Guide**: See [frontend/docs/UX_FEATURES.md](frontend/docs/UX_FEATURES.md)
 - **Implementation Summary**: See [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) ✨ NEW
 - **Architecture**: See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - **Development**: See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)

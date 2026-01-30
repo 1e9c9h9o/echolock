@@ -392,7 +392,9 @@ import { QRCodeButton } from '@/components/QRCodeModal'
 
 **New Page:** `frontend/app/dashboard/enhanced/page.tsx`
 
-This is a fully-featured dashboard that integrates ALL 8 enhancements:
+This is a fully-featured dashboard that integrates ALL 8 enhancements.
+
+> **NEW (Jan 2026):** The dashboard now implements **High Performance HMI** principles for industrial-grade situational awareness. See [docs/HMI-DESIGN-SYSTEM.md](docs/HMI-DESIGN-SYSTEM.md) for details on the cognitive ergonomics design patterns including analog gauges, sparkline trends, and redundant shape+color coding.
 
 **Features Included:**
 ✅ Dark mode support
