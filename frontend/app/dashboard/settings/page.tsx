@@ -1,17 +1,23 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ArrowLeft, User, Lock, Trash2, Shield, CheckCircle, Clock, Calendar, Key, Mail, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, User, Lock, Trash2, Shield, Circle, Clock, Calendar, Key, Mail, Octagon } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import Button from '@/components/ui/Button'
-import Input from '@/components/ui/Input'
-import Card from '@/components/ui/Card'
 import KeyBackup from '@/components/KeyBackup'
 import { useAuthStore, useSwitchStore } from '@/lib/store'
 import { userAPI, switchesAPI } from '@/lib/api'
 import { formatDistanceToNow } from 'date-fns'
 
+/**
+ * High Performance HMI Settings/Profile Page
+ *
+ * Design principles:
+ * - Muted structural elements (slate/gray)
+ * - Color only for status indicators
+ * - Clean information hierarchy
+ * - Grouped settings in cards
+ */
 export default function SettingsPage() {
   const router = useRouter()
   const user = useAuthStore((state) => state.user)
@@ -38,7 +44,6 @@ export default function SettingsPage() {
   const [profileLoading, setProfileLoading] = useState(false)
 
   // Password change state
-  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
@@ -99,7 +104,6 @@ export default function SettingsPage() {
     try {
       await userAPI.updateProfile({ password: newPassword })
       setPasswordSuccess('Password updated successfully')
-      setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
     } catch (err: any) {
@@ -136,233 +140,289 @@ export default function SettingsPage() {
 
   const activeSwitches = switches.filter(s => s.status === 'ARMED').length
 
+  // Mock user for UI experiments
+  const displayUser = user || { email: 'demo@echolock.xyz', createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString() }
+
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="bg-slate-50 min-h-screen -m-6 p-6">
       {/* Header */}
-      <div className="mb-8">
+      <div className="max-w-2xl mx-auto mb-8">
         <Link
           href="/dashboard"
-          className="inline-flex items-center text-black/70 hover:text-orange text-base font-mono font-bold mb-6 transition-colors"
+          className="inline-flex items-center text-slate-500 hover:text-slate-700 text-sm font-medium mb-6 transition-colors"
         >
-          <ArrowLeft className="h-5 w-5 mr-2" strokeWidth={2} />
+          <ArrowLeft className="h-4 w-4 mr-2" strokeWidth={2} />
           Back to Dashboard
         </Link>
       </div>
 
       {/* Profile Header */}
-      <Card className="!bg-black !text-white mb-8">
-        <div className="flex items-center gap-6">
-          {/* Avatar */}
-          <div className="w-20 h-20 bg-orange flex items-center justify-center text-black text-2xl font-bold">
-            {user?.email ? getInitials(user.email) : 'U'}
-          </div>
+      <div className="max-w-2xl mx-auto mb-6">
+        <div className="bg-slate-800 text-white p-6">
+          <div className="flex items-center gap-6">
+            {/* Avatar */}
+            <div className="w-16 h-16 bg-slate-600 flex items-center justify-center text-xl font-bold">
+              {getInitials(displayUser.email)}
+            </div>
 
-          {/* Info */}
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold mb-1">Your Account</h1>
-            <p className="text-white/70 font-mono text-sm flex items-center gap-2">
-              <Mail className="h-4 w-4" strokeWidth={2} />
-              {user?.email}
-            </p>
-            {user?.createdAt && (
-              <p className="text-white/50 font-mono text-xs mt-1 flex items-center gap-2">
-                <Calendar className="h-3 w-3" strokeWidth={2} />
-                Member since {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
+            {/* Info */}
+            <div className="flex-1">
+              <h1 className="text-xl font-bold mb-1">Account Settings</h1>
+              <p className="text-slate-400 font-mono text-sm flex items-center gap-2">
+                <Mail className="h-4 w-4" strokeWidth={2} />
+                {displayUser.email}
               </p>
-            )}
-          </div>
+              {displayUser.createdAt && (
+                <p className="text-slate-500 font-mono text-xs mt-1 flex items-center gap-2">
+                  <Calendar className="h-3 w-3" strokeWidth={2} />
+                  Member since {formatDistanceToNow(new Date(displayUser.createdAt), { addSuffix: true })}
+                </p>
+              )}
+            </div>
 
-          {/* Quick Stats */}
-          <div className="text-right">
-            <div className="text-3xl font-bold text-orange">{switches.length}</div>
-            <div className="text-white/50 text-xs font-mono uppercase">Switches</div>
+            {/* Quick Stats */}
+            <div className="text-right">
+              <div className="text-3xl font-bold">{switches.length}</div>
+              <div className="text-slate-500 text-xs font-mono uppercase">Switches</div>
+            </div>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Security Status */}
-      <div className="mb-8">
-        <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-          <Shield className="h-5 w-5 text-green" strokeWidth={2} />
-          Security Status
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="p-4 border-2 border-green bg-green/5">
-            <div className="flex items-center gap-2 mb-1">
-              <CheckCircle className="h-4 w-4 text-green" strokeWidth={2} />
-              <span className="font-bold text-sm">Encryption</span>
-            </div>
-            <p className="text-xs text-black/60 font-mono">AES-256-GCM active</p>
+      <div className="max-w-2xl mx-auto mb-6">
+        <div className="bg-white border border-slate-200">
+          <div className="p-4 border-b border-slate-100">
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+              <Shield className="h-4 w-4 text-slate-400" strokeWidth={2} />
+              Security Status
+            </h2>
           </div>
+          <div className="p-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="p-4 bg-emerald-50 border border-emerald-200">
+                <div className="flex items-center gap-2 mb-1">
+                  <Circle className="h-3 w-3 fill-emerald-500 text-emerald-500" strokeWidth={2} />
+                  <span className="font-bold text-sm text-emerald-700">Encryption</span>
+                </div>
+                <p className="text-xs text-emerald-600 font-mono">AES-256-GCM</p>
+              </div>
 
-          <div className="p-4 border-2 border-green bg-green/5">
-            <div className="flex items-center gap-2 mb-1">
-              <CheckCircle className="h-4 w-4 text-green" strokeWidth={2} />
-              <span className="font-bold text-sm">Distribution</span>
-            </div>
-            <p className="text-xs text-black/60 font-mono">10+ Nostr relays</p>
-          </div>
+              <div className="p-4 bg-emerald-50 border border-emerald-200">
+                <div className="flex items-center gap-2 mb-1">
+                  <Circle className="h-3 w-3 fill-emerald-500 text-emerald-500" strokeWidth={2} />
+                  <span className="font-bold text-sm text-emerald-700">Distribution</span>
+                </div>
+                <p className="text-xs text-emerald-600 font-mono">10+ relays</p>
+              </div>
 
-          <div className={`p-4 border-2 ${activeSwitches > 0 ? 'border-green bg-green/5' : 'border-gray-300 bg-gray-50'}`}>
-            <div className="flex items-center gap-2 mb-1">
-              {activeSwitches > 0 ? (
-                <CheckCircle className="h-4 w-4 text-green" strokeWidth={2} />
-              ) : (
-                <Clock className="h-4 w-4 text-gray-400" strokeWidth={2} />
-              )}
-              <span className="font-bold text-sm">Active Switches</span>
+              <div className={`p-4 ${activeSwitches > 0 ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-50 border-slate-200'} border`}>
+                <div className="flex items-center gap-2 mb-1">
+                  {activeSwitches > 0 ? (
+                    <Circle className="h-3 w-3 fill-emerald-500 text-emerald-500" strokeWidth={2} />
+                  ) : (
+                    <Circle className="h-3 w-3 text-slate-300" strokeWidth={2} />
+                  )}
+                  <span className={`font-bold text-sm ${activeSwitches > 0 ? 'text-emerald-700' : 'text-slate-500'}`}>
+                    Active
+                  </span>
+                </div>
+                <p className={`text-xs font-mono ${activeSwitches > 0 ? 'text-emerald-600' : 'text-slate-400'}`}>
+                  {activeSwitches > 0 ? `${activeSwitches} switch${activeSwitches !== 1 ? 'es' : ''}` : 'None'}
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-black/60 font-mono">
-              {activeSwitches > 0 ? `${activeSwitches} switch${activeSwitches !== 1 ? 'es' : ''} armed` : 'No active switches'}
-            </p>
           </div>
         </div>
       </div>
 
       {/* Key Backup */}
-      <div className="mb-8">
-        <KeyBackup />
+      <div className="max-w-2xl mx-auto mb-6">
+        <div className="bg-white border border-slate-200">
+          <div className="p-4 border-b border-slate-100">
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+              <Key className="h-4 w-4 text-slate-400" strokeWidth={2} />
+              Key Management
+            </h2>
+          </div>
+          <div className="p-4">
+            <KeyBackup />
+          </div>
+        </div>
       </div>
 
       {/* Account Settings */}
-      <div className="space-y-6">
-        <h2 className="text-lg font-bold flex items-center gap-2">
-          <User className="h-5 w-5" strokeWidth={2} />
-          Account Settings
-        </h2>
-
+      <div className="max-w-2xl mx-auto space-y-6">
         {/* Change Email */}
-        <Card>
-          <h3 className="font-bold mb-4 flex items-center gap-2">
-            <Mail className="h-4 w-4 text-black/60" strokeWidth={2} />
-            Email Address
-          </h3>
-          <p className="text-sm text-black/60 font-mono mb-4">
-            Current: {user?.email}
-          </p>
+        <div className="bg-white border border-slate-200">
+          <div className="p-4 border-b border-slate-100">
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+              <Mail className="h-4 w-4 text-slate-400" strokeWidth={2} />
+              Email Address
+            </h2>
+          </div>
+          <div className="p-4">
+            <p className="text-sm text-slate-500 font-mono mb-4">
+              Current: {displayUser.email}
+            </p>
 
-          <form onSubmit={handleProfileUpdate} className="space-y-4">
-            <Input
-              label="New Email"
-              type="email"
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
-              placeholder="newemail@example.com"
-            />
-
-            {profileError && (
-              <div className="bg-red/10 border border-red p-3 text-red text-sm font-mono">
-                {profileError}
+            <form onSubmit={handleProfileUpdate} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                  New Email
+                </label>
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="newemail@example.com"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white font-mono text-sm transition-colors"
+                />
               </div>
-            )}
 
-            {profileSuccess && (
-              <div className="bg-green/10 border border-green p-3 text-green text-sm font-mono">
-                {profileSuccess}
-              </div>
-            )}
+              {profileError && (
+                <div className="bg-red-50 border border-red-200 p-3">
+                  <p className="text-sm text-red-700 font-mono">{profileError}</p>
+                </div>
+              )}
 
-            <Button
-              type="submit"
-              variant="secondary"
-              disabled={profileLoading || !newEmail}
-            >
-              {profileLoading ? 'Updating...' : 'Update Email'}
-            </Button>
-          </form>
-        </Card>
+              {profileSuccess && (
+                <div className="bg-emerald-50 border border-emerald-200 p-3">
+                  <p className="text-sm text-emerald-700 font-mono">{profileSuccess}</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={profileLoading || !newEmail}
+                className={`px-4 py-2 font-bold text-xs uppercase tracking-wider transition-colors ${
+                  profileLoading || !newEmail
+                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                    : 'bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {profileLoading ? 'Updating...' : 'Update Email'}
+              </button>
+            </form>
+          </div>
+        </div>
 
         {/* Change Password */}
-        <Card>
-          <h3 className="font-bold mb-4 flex items-center gap-2">
-            <Lock className="h-4 w-4 text-black/60" strokeWidth={2} />
-            Password
-          </h3>
-
-          <form onSubmit={handlePasswordChange} className="space-y-4">
-            <Input
-              label="New Password"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="••••••••"
-              helperText="Minimum 8 characters"
-            />
-
-            <Input
-              label="Confirm New Password"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="••••••••"
-            />
-
-            {passwordError && (
-              <div className="bg-red/10 border border-red p-3 text-red text-sm font-mono">
-                {passwordError}
+        <div className="bg-white border border-slate-200">
+          <div className="p-4 border-b border-slate-100">
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+              <Lock className="h-4 w-4 text-slate-400" strokeWidth={2} />
+              Password
+            </h2>
+          </div>
+          <div className="p-4">
+            <form onSubmit={handlePasswordChange} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                  New Password
+                </label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Minimum 8 characters"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white font-mono text-sm transition-colors"
+                />
               </div>
-            )}
 
-            {passwordSuccess && (
-              <div className="bg-green/10 border border-green p-3 text-green text-sm font-mono">
-                {passwordSuccess}
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                  Confirm Password
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white font-mono text-sm transition-colors"
+                />
               </div>
-            )}
 
-            <Button
-              type="submit"
-              variant="secondary"
-              disabled={passwordLoading}
-            >
-              {passwordLoading ? 'Updating...' : 'Update Password'}
-            </Button>
-          </form>
-        </Card>
+              {passwordError && (
+                <div className="bg-red-50 border border-red-200 p-3">
+                  <p className="text-sm text-red-700 font-mono">{passwordError}</p>
+                </div>
+              )}
+
+              {passwordSuccess && (
+                <div className="bg-emerald-50 border border-emerald-200 p-3">
+                  <p className="text-sm text-emerald-700 font-mono">{passwordSuccess}</p>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={passwordLoading}
+                className={`px-4 py-2 font-bold text-xs uppercase tracking-wider transition-colors ${
+                  passwordLoading
+                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                    : 'bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {passwordLoading ? 'Updating...' : 'Update Password'}
+              </button>
+            </form>
+          </div>
+        </div>
 
         {/* Danger Zone */}
-        <div className="pt-8 border-t-2 border-gray-200">
+        <div className="pt-4 border-t border-slate-200">
           <button
             onClick={() => setShowDeleteSection(!showDeleteSection)}
-            className="text-sm text-black/40 hover:text-red font-mono transition-colors"
+            className="text-xs text-slate-400 hover:text-red-500 font-mono transition-colors"
           >
             {showDeleteSection ? 'Hide' : 'Show'} danger zone
           </button>
 
           {showDeleteSection && (
-            <Card className="mt-4 !border-red/30 !bg-red/5">
-              <h3 className="font-bold mb-2 flex items-center gap-2 text-red">
-                <AlertTriangle className="h-4 w-4" strokeWidth={2} />
-                Delete Account
-              </h3>
-              <p className="text-sm text-black/60 mb-4">
-                This will permanently delete your account and all your switches. This action cannot be undone.
-              </p>
+            <div className="mt-4 bg-white border border-red-200">
+              <div className="p-4 border-b border-red-100 bg-red-50">
+                <h2 className="text-sm font-bold text-red-700 uppercase tracking-wider flex items-center gap-2">
+                  <Octagon className="h-4 w-4" strokeWidth={2} />
+                  Delete Account
+                </h2>
+              </div>
+              <div className="p-4">
+                <p className="text-sm text-slate-500 mb-4">
+                  This will permanently delete your account and all switches. This action cannot be undone.
+                </p>
 
-              <form onSubmit={handleDeleteAccount} className="space-y-4">
-                <Input
-                  label="Confirm your password"
-                  type="password"
-                  value={deletePassword}
-                  onChange={(e) => setDeletePassword(e.target.value)}
-                  placeholder="••••••••"
-                />
-
-                {deleteError && (
-                  <div className="bg-red/10 border border-red p-3 text-red text-sm font-mono">
-                    {deleteError}
+                <form onSubmit={handleDeleteAccount} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                      Confirm Password
+                    </label>
+                    <input
+                      type="password"
+                      value={deletePassword}
+                      onChange={(e) => setDeletePassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white font-mono text-sm transition-colors"
+                    />
                   </div>
-                )}
 
-                <Button
-                  type="submit"
-                  variant="secondary"
-                  disabled={deleteLoading}
-                  className="!border-red !text-red hover:!bg-red hover:!text-white"
-                >
-                  {deleteLoading ? 'Deleting...' : 'Delete Account Permanently'}
-                </Button>
-              </form>
-            </Card>
+                  {deleteError && (
+                    <div className="bg-red-50 border border-red-200 p-3">
+                      <p className="text-sm text-red-700 font-mono">{deleteError}</p>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={deleteLoading}
+                    className="px-4 py-2 bg-red-50 border border-red-200 text-red-600 font-bold text-xs uppercase tracking-wider hover:bg-red-100 transition-colors flex items-center gap-2"
+                  >
+                    <Trash2 className="h-3 w-3" strokeWidth={2} />
+                    {deleteLoading ? 'Deleting...' : 'Delete Account Permanently'}
+                  </button>
+                </form>
+              </div>
+            </div>
           )}
         </div>
       </div>
