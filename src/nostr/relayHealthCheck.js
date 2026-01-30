@@ -12,6 +12,17 @@ import { SimplePool } from 'nostr-tools/pool';
 // Exponential backoff state for each relay
 const relayBackoffState = new Map();
 
+// Configuration for backoff and recovery
+const BACKOFF_CONFIG = {
+  baseDelay: 1000,       // 1 second
+  maxDelay: 300000,      // 5 minutes max
+  maxFailures: 10,       // After 10 failures, mark for recovery attempt
+  recoveryInterval: 600000, // Try recovery every 10 minutes
+};
+
+// Track last recovery attempt time
+let lastRecoveryAttempt = 0;
+
 /**
  * Calculate exponential backoff delay
  * @param {number} attemptCount - Number of failed attempts
@@ -19,7 +30,7 @@ const relayBackoffState = new Map();
  * @param {number} maxDelay - Maximum delay in milliseconds
  * @returns {number} Delay in milliseconds
  */
-function calculateBackoff(attemptCount, baseDelay = 1000, maxDelay = 60000) {
+function calculateBackoff(attemptCount, baseDelay = BACKOFF_CONFIG.baseDelay, maxDelay = BACKOFF_CONFIG.maxDelay) {
   const delay = Math.min(baseDelay * Math.pow(2, attemptCount), maxDelay);
   // Add jitter to prevent thundering herd
   return delay + Math.random() * 1000;
@@ -27,6 +38,8 @@ function calculateBackoff(attemptCount, baseDelay = 1000, maxDelay = 60000) {
 
 /**
  * Check if relay should be attempted based on backoff state
+ * Includes recovery logic for relays that have been failed for too long
+ *
  * @param {string} relayUrl - Relay URL
  * @returns {boolean} True if relay should be attempted
  */
@@ -35,7 +48,26 @@ function shouldAttemptRelay(relayUrl) {
   if (!state) return true;
 
   const now = Date.now();
-  return now >= state.nextAttemptTime;
+
+  // Normal case: check if backoff period has elapsed
+  if (now >= state.nextAttemptTime) {
+    return true;
+  }
+
+  // Recovery case: if relay has been failing for too long, try recovery
+  // This prevents relays from being permanently blacklisted
+  if (state.failureCount >= BACKOFF_CONFIG.maxFailures) {
+    const timeSinceLastRecoveryAttempt = now - (state.lastRecoveryAttempt || 0);
+    if (timeSinceLastRecoveryAttempt >= BACKOFF_CONFIG.recoveryInterval) {
+      // Mark that we're attempting recovery
+      state.lastRecoveryAttempt = now;
+      relayBackoffState.set(relayUrl, state);
+      console.log(`[RelayHealth] Attempting recovery for relay: ${relayUrl} (failed ${state.failureCount} times)`);
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -208,4 +240,105 @@ export function resetBackoffState(relayUrl = null) {
   } else {
     relayBackoffState.clear();
   }
+}
+
+/**
+ * Attempt to recover failed relays
+ * This function tries to reconnect to relays that have been in backoff state
+ *
+ * @param {Array<string>} relayUrls - Optional list of specific relays to recover
+ * @returns {Object} { recovered, stillFailed, total }
+ */
+export async function attemptRelayRecovery(relayUrls = null) {
+  const now = Date.now();
+
+  // Don't attempt recovery too frequently
+  if (now - lastRecoveryAttempt < BACKOFF_CONFIG.recoveryInterval / 2) {
+    return {
+      recovered: [],
+      stillFailed: [],
+      total: 0,
+      skipped: true,
+      reason: 'Recovery attempted too recently',
+    };
+  }
+
+  lastRecoveryAttempt = now;
+
+  // Get relays to recover
+  const failedRelays = relayUrls
+    ? relayUrls.filter((url) => relayBackoffState.has(url))
+    : Array.from(relayBackoffState.keys());
+
+  if (failedRelays.length === 0) {
+    return {
+      recovered: [],
+      stillFailed: [],
+      total: 0,
+      skipped: false,
+    };
+  }
+
+  console.log(`[RelayHealth] Attempting recovery for ${failedRelays.length} failed relay(s)`);
+
+  const recovered = [];
+  const stillFailed = [];
+
+  // Check each failed relay
+  for (const relayUrl of failedRelays) {
+    // Temporarily clear backoff to allow health check
+    const previousState = relayBackoffState.get(relayUrl);
+    relayBackoffState.delete(relayUrl);
+
+    const health = await checkRelayHealth(relayUrl);
+
+    if (health.healthy) {
+      recovered.push(relayUrl);
+      console.log(`[RelayHealth] Recovered relay: ${relayUrl}`);
+    } else {
+      stillFailed.push(relayUrl);
+      // Restore previous state but update recovery attempt time
+      if (previousState) {
+        previousState.lastRecoveryAttempt = now;
+        relayBackoffState.set(relayUrl, previousState);
+      }
+    }
+  }
+
+  return {
+    recovered,
+    stillFailed,
+    total: failedRelays.length,
+    skipped: false,
+  };
+}
+
+/**
+ * Get statistics about relay health
+ * @returns {Object} Statistics about relay states
+ */
+export function getRelayHealthStats() {
+  const now = Date.now();
+  let healthy = 0;
+  let inBackoff = 0;
+  let criticallyFailed = 0;
+
+  for (const [url, state] of relayBackoffState) {
+    if (now >= state.nextAttemptTime) {
+      // Backoff expired, will be attempted next time
+      inBackoff++;
+    } else if (state.failureCount >= BACKOFF_CONFIG.maxFailures) {
+      criticallyFailed++;
+    } else {
+      inBackoff++;
+    }
+  }
+
+  return {
+    healthy,
+    inBackoff,
+    criticallyFailed,
+    total: relayBackoffState.size,
+    lastRecoveryAttempt: lastRecoveryAttempt ? new Date(lastRecoveryAttempt).toISOString() : null,
+  };
 }

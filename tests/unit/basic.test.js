@@ -174,11 +174,8 @@ describe('Module Imports - Nostr Layer', () => {
 });
 
 describe('Module Imports - Core Layer', () => {
-  test('can import coordinator module', async () => {
-    const module = await import('../../src/core/coordinator.js');
-    expect(module).toBeDefined();
-    expect(module.default).toBeDefined();
-  });
+  // Coordinator module was removed as it was unused dead code
+  // All coordination is handled by deadManSwitch.js
 
   test('can import config module', async () => {
     const module = await import('../../src/core/config.js');
@@ -215,7 +212,6 @@ describe('Security Boundaries', () => {
       'src/nostr/multiRelayClient.js',
       'src/nostr/relayHealthCheck.js',
       'src/nostr/constants.js',
-      'src/core/coordinator.js',
       'src/core/config.js',
       'src/index.js',
       'src/cli/index.js'

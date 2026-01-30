@@ -17,10 +17,12 @@ import { createFragmentPayload, serializePayload, deserializeAndVerify } from '.
 
 /**
  * Publish an event to multiple Nostr relays with redundancy
+ * Tracks per-relay success/failure for accurate reporting
+ *
  * @param {Object} event - Nostr event object
  * @param {Array<string>} relayUrls - Array of relay WebSocket URLs
  * @param {number} minSuccessCount - Minimum successful publishes required
- * @returns {Object} { successCount, failures }
+ * @returns {Object} { successCount, failures, successes }
  */
 export async function publishToRelays(event, relayUrls, minSuccessCount = 5) {
   if (relayUrls.length < 7) {
@@ -32,33 +34,60 @@ export async function publishToRelays(event, relayUrls, minSuccessCount = 5) {
   const successes = [];
 
   try {
-    // Publish to relays using SimplePool.publish which returns a Promise
-    const publishPromises = pool.publish(relayUrls, event);
+    // Publish to each relay individually to track per-relay results
+    const publishPromises = relayUrls.map(async (url) => {
+      try {
+        // Create individual publish promise with timeout
+        const publishPromise = new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Publish timeout'));
+          }, 10000);
 
-    // Wait for the publish to propagate with timeout
-    await Promise.race([
-      publishPromises,
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Publish timeout')), 10000))
-    ]).then(() => {
-      // Assume success for all relays if no error
-      relayUrls.forEach(url => successes.push(url));
-    }).catch(error => {
-      // On error, mark all as failed (conservative approach)
-      relayUrls.forEach(url => failures.push({ url, error: error.message }));
+          // Use pool.publish but track this specific relay
+          pool.publish([url], event)
+            .then(() => {
+              clearTimeout(timeout);
+              resolve(url);
+            })
+            .catch((err) => {
+              clearTimeout(timeout);
+              reject(err);
+            });
+        });
+
+        await publishPromise;
+        return { url, success: true };
+      } catch (error) {
+        return { url, success: false, error: error.message };
+      }
     });
+
+    // Wait for all publish attempts to complete
+    const results = await Promise.all(publishPromises);
+
+    // Categorize results
+    for (const result of results) {
+      if (result.success) {
+        successes.push(result.url);
+      } else {
+        failures.push({ url: result.url, error: result.error });
+      }
+    }
 
     const successCount = successes.length;
 
     if (successCount < minSuccessCount) {
       throw new Error(
-        `Insufficient successful publishes. Required: ${minSuccessCount}, Achieved: ${successCount}`
+        `Insufficient successful publishes. Required: ${minSuccessCount}, Achieved: ${successCount}. ` +
+        `Failed relays: ${failures.map(f => f.url).join(', ')}`
       );
     }
 
     return {
       successCount,
       failures,
-      successes
+      successes,
+      totalAttempted: relayUrls.length
     };
   } finally {
     // Close connections after a small delay to allow messages to send

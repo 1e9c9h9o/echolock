@@ -33,8 +33,10 @@ import {
   GuardianStatus,
   validateGuardianNpub,
   getDefaultGuardians,
+  queryGuardianAcks,
 } from '@/lib/guardian';
 import { showToast } from '@/components/ui/ToastContainer';
+import { DEFAULT_RELAYS } from '@/lib/nostr/types';
 
 interface GuardianManagerProps {
   switchId: string;
@@ -53,9 +55,60 @@ export default function GuardianManager({
   const [newGuardianNpub, setNewGuardianNpub] = useState('');
   const [newGuardianName, setNewGuardianName] = useState('');
   const [newGuardianType, setNewGuardianType] = useState<GuardianType>('personal');
+  const [checkingAcks, setCheckingAcks] = useState(false);
+  const [lastAckCheck, setLastAckCheck] = useState<Date | null>(null);
 
   const activeGuardians = guardians.filter((g) => g.status === 'active');
   const pendingGuardians = guardians.filter((g) => g.status === 'pending');
+
+  // Check for guardian acknowledgments periodically
+  useEffect(() => {
+    const checkAcks = async () => {
+      if (!switchId || guardians.length === 0) return;
+
+      const pendingNpubs = guardians
+        .filter((g) => g.status === 'pending')
+        .map((g) => g.npub);
+
+      if (pendingNpubs.length === 0) return;
+
+      setCheckingAcks(true);
+      try {
+        const acks = await queryGuardianAcks(switchId, pendingNpubs, [...DEFAULT_RELAYS]);
+
+        // Update guardian statuses based on ACKs
+        let hasUpdates = false;
+        const updatedGuardians = guardians.map((g) => {
+          if (g.status === 'pending' && acks.get(g.npub)) {
+            hasUpdates = true;
+            return {
+              ...g,
+              status: 'active' as GuardianStatus,
+              lastAckAt: new Date().toISOString(),
+            };
+          }
+          return g;
+        });
+
+        if (hasUpdates) {
+          onGuardiansChange(updatedGuardians);
+          showToast('Guardian acknowledgment(s) received!', 'success');
+        }
+
+        setLastAckCheck(new Date());
+      } catch (error) {
+        console.error('Failed to check guardian ACKs:', error);
+      } finally {
+        setCheckingAcks(false);
+      }
+    };
+
+    // Check immediately and then every 30 seconds
+    checkAcks();
+    const interval = setInterval(checkAcks, 30000);
+
+    return () => clearInterval(interval);
+  }, [switchId, guardians, onGuardiansChange]);
 
   const handleAddGuardian = () => {
     if (!validateGuardianNpub(newGuardianNpub)) {
@@ -189,7 +242,7 @@ export default function GuardianManager({
       </div>
 
       {/* Guardian Status Summary */}
-      <div className="grid grid-cols-3 gap-3 mb-6 p-3 bg-gray-50 border-2 border-gray-200">
+      <div className="grid grid-cols-3 gap-3 mb-4 p-3 bg-gray-50 border-2 border-gray-200">
         <div className="text-center">
           <p className="text-2xl font-bold text-green-600">{activeGuardians.length}</p>
           <p className="text-xs text-gray-500">Active</p>
@@ -203,6 +256,60 @@ export default function GuardianManager({
           <p className="text-xs text-gray-500">Total</p>
         </div>
       </div>
+
+      {/* ACK Check Status */}
+      {pendingGuardians.length > 0 && (
+        <div className="flex items-center justify-between mb-6 p-2 bg-yellow-50 border border-yellow-200 text-sm">
+          <div className="flex items-center gap-2">
+            {checkingAcks ? (
+              <>
+                <Clock className="w-4 h-4 text-yellow-600 animate-spin" />
+                <span className="text-yellow-700">Checking for acknowledgments...</span>
+              </>
+            ) : (
+              <>
+                <Clock className="w-4 h-4 text-yellow-600" />
+                <span className="text-yellow-700">
+                  {lastAckCheck
+                    ? `Last checked: ${lastAckCheck.toLocaleTimeString()}`
+                    : 'Waiting for acknowledgments'}
+                </span>
+              </>
+            )}
+          </div>
+          <button
+            onClick={async () => {
+              const pendingNpubs = guardians.filter((g) => g.status === 'pending').map((g) => g.npub);
+              if (pendingNpubs.length === 0) return;
+              setCheckingAcks(true);
+              try {
+                const acks = await queryGuardianAcks(switchId, pendingNpubs, [...DEFAULT_RELAYS]);
+                let hasUpdates = false;
+                const updatedGuardians = guardians.map((g) => {
+                  if (g.status === 'pending' && acks.get(g.npub)) {
+                    hasUpdates = true;
+                    return { ...g, status: 'active' as GuardianStatus, lastAckAt: new Date().toISOString() };
+                  }
+                  return g;
+                });
+                if (hasUpdates) {
+                  onGuardiansChange(updatedGuardians);
+                  showToast('Guardian acknowledgment(s) received!', 'success');
+                } else {
+                  showToast('No new acknowledgments found', 'info');
+                }
+                setLastAckCheck(new Date());
+              } finally {
+                setCheckingAcks(false);
+              }
+            }}
+            disabled={checkingAcks}
+            className="text-yellow-700 hover:text-yellow-900 font-medium disabled:opacity-50"
+          >
+            Refresh
+          </button>
+        </div>
+      )}
 
       {/* Guardian List */}
       <div className="space-y-3 mb-6">

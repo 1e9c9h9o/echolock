@@ -204,6 +204,214 @@ export async function verifyTimelockValidity(locktime) {
 }
 
 /**
+ * Broadcast a signed transaction to the Bitcoin network
+ * Uses multiple broadcasting services for redundancy
+ *
+ * @param {string} txHex - Signed transaction hex
+ * @returns {Promise<Object>} Broadcast result
+ */
+export async function broadcastTransaction(txHex) {
+  const endpoints = [
+    {
+      name: 'mempool.space',
+      url: CURRENT_NETWORK === bitcoin.networks.testnet
+        ? 'https://mempool.space/testnet/api/tx'
+        : 'https://mempool.space/api/tx',
+      method: 'POST',
+      contentType: 'text/plain',
+    },
+    {
+      name: 'blockstream.info',
+      url: CURRENT_NETWORK === bitcoin.networks.testnet
+        ? 'https://blockstream.info/testnet/api/tx'
+        : 'https://blockstream.info/api/tx',
+      method: 'POST',
+      contentType: 'text/plain',
+    },
+  ];
+
+  const results = [];
+  let successfulBroadcast = null;
+
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint.url, {
+        method: endpoint.method,
+        headers: { 'Content-Type': endpoint.contentType },
+        body: txHex,
+      });
+
+      if (response.ok) {
+        const txid = await response.text();
+        results.push({
+          endpoint: endpoint.name,
+          success: true,
+          txid: txid.trim(),
+        });
+        if (!successfulBroadcast) {
+          successfulBroadcast = txid.trim();
+        }
+      } else {
+        const error = await response.text();
+        results.push({
+          endpoint: endpoint.name,
+          success: false,
+          error,
+        });
+      }
+    } catch (error) {
+      results.push({
+        endpoint: endpoint.name,
+        success: false,
+        error: error.message,
+      });
+    }
+  }
+
+  return {
+    success: !!successfulBroadcast,
+    txid: successfulBroadcast,
+    broadcastResults: results,
+  };
+}
+
+/**
+ * Check transaction status in mempool and blockchain
+ *
+ * @param {string} txid - Transaction ID to check
+ * @returns {Promise<Object>} Transaction status
+ */
+export async function checkTransactionStatus(txid) {
+  const baseUrl = CURRENT_NETWORK === bitcoin.networks.testnet
+    ? 'https://mempool.space/testnet/api'
+    : 'https://mempool.space/api';
+
+  try {
+    const response = await fetch(`${baseUrl}/tx/${txid}`);
+
+    if (response.status === 404) {
+      return {
+        found: false,
+        status: 'not_found',
+        reason: 'Transaction not found - may have been dropped from mempool',
+      };
+    }
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    const txData = await response.json();
+
+    return {
+      found: true,
+      txid: txData.txid,
+      status: txData.status.confirmed ? 'confirmed' : 'pending',
+      confirmed: txData.status.confirmed,
+      blockHeight: txData.status.block_height || null,
+      blockHash: txData.status.block_hash || null,
+      fee: txData.fee,
+      size: txData.size,
+      weight: txData.weight,
+    };
+  } catch (error) {
+    return {
+      found: false,
+      status: 'error',
+      error: error.message,
+    };
+  }
+}
+
+/**
+ * Monitor and rebroadcast transaction if dropped
+ * Implements exponential backoff for retries
+ *
+ * @param {string} txHex - Signed transaction hex
+ * @param {string} expectedTxid - Expected transaction ID
+ * @param {Object} options - Monitoring options
+ * @param {number} options.maxRetries - Maximum number of rebroadcast attempts (default: 5)
+ * @param {number} options.checkIntervalMs - Initial check interval in ms (default: 60000)
+ * @param {number} options.maxWaitTimeMs - Maximum total wait time in ms (default: 3600000 = 1hr)
+ * @returns {Promise<Object>} Final transaction status
+ */
+export async function monitorAndRebroadcast(txHex, expectedTxid, options = {}) {
+  const {
+    maxRetries = 5,
+    checkIntervalMs = 60000,
+    maxWaitTimeMs = 3600000,
+  } = options;
+
+  const startTime = Date.now();
+  let retryCount = 0;
+  let currentInterval = checkIntervalMs;
+  let lastStatus = null;
+
+  while (Date.now() - startTime < maxWaitTimeMs) {
+    // Check current status
+    const status = await checkTransactionStatus(expectedTxid);
+    lastStatus = status;
+
+    // Success: Transaction confirmed
+    if (status.confirmed) {
+      return {
+        success: true,
+        status: 'confirmed',
+        txid: expectedTxid,
+        blockHeight: status.blockHeight,
+        retryCount,
+      };
+    }
+
+    // Transaction still in mempool
+    if (status.found && status.status === 'pending') {
+      console.log(`[TxMonitor] Transaction ${expectedTxid.slice(0, 8)}... still pending in mempool`);
+      await new Promise((resolve) => setTimeout(resolve, currentInterval));
+      continue;
+    }
+
+    // Transaction dropped - attempt rebroadcast
+    if (!status.found || status.status === 'not_found') {
+      if (retryCount >= maxRetries) {
+        return {
+          success: false,
+          status: 'max_retries_exceeded',
+          txid: expectedTxid,
+          retryCount,
+          error: `Transaction dropped and max retries (${maxRetries}) exceeded`,
+        };
+      }
+
+      console.log(`[TxMonitor] Transaction ${expectedTxid.slice(0, 8)}... dropped from mempool, rebroadcasting (attempt ${retryCount + 1}/${maxRetries})`);
+
+      const broadcastResult = await broadcastTransaction(txHex);
+
+      if (broadcastResult.success) {
+        console.log(`[TxMonitor] Rebroadcast successful`);
+        retryCount++;
+      } else {
+        console.warn(`[TxMonitor] Rebroadcast failed:`, broadcastResult.broadcastResults);
+        retryCount++;
+      }
+
+      // Exponential backoff for next check
+      currentInterval = Math.min(currentInterval * 1.5, 300000); // Max 5 minutes
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, currentInterval));
+  }
+
+  return {
+    success: false,
+    status: 'timeout',
+    txid: expectedTxid,
+    retryCount,
+    lastStatus,
+    error: `Monitoring timed out after ${maxWaitTimeMs}ms`,
+  };
+}
+
+/**
  * Decrypt Bitcoin private key using password
  * Supports both legacy (v1) and hierarchical HKDF (v2) key derivation
  *

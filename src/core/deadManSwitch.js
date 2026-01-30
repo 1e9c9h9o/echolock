@@ -246,9 +246,19 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
         // Zeroize fragment keys after use (they're derived, not stored)
         // Note: We keep encryptionKey and nostrKey for use below
       } else {
-        // Legacy: Random key if no password provided (with entropy validation)
-        fragmentEncryptionKey = secureRandomBytes(32);
+        // v1 Passwordless: Derive fragment encryption key from Nostr private key
+        // This ensures the key is recoverable without a password
+        // Security note: v1 mode stores Nostr key in plaintext, so this is equivalent security
         fragmentEncryptionSalt = secureRandomBytes(32);
+
+        // Use HKDF to derive fragment encryption key from Nostr private key
+        // This makes it deterministically recoverable during release
+        const nostrKeyBuffer = Buffer.from(nostrPrivateKey);
+        fragmentEncryptionKey = crypto.createHmac('sha256', fragmentEncryptionSalt)
+          .update(nostrKeyBuffer)
+          .update(Buffer.from('ECHOLOCK-V1-FRAGMENT-KEY'))
+          .digest();
+
         nostrEncryptionKey = null;
         keyVersion = 1;
       }
@@ -329,9 +339,21 @@ export async function createSwitch(message, checkInHours = 72, useBitcoinTimeloc
 
       console.log(`Fragments published to ${healthyRelays.length} Nostr relays`);
     } catch (error) {
-      console.warn('Nostr distribution failed, falling back to local storage:', error.message);
-      // Fallback to local storage
+      // SECURITY WARNING: Do NOT silently fall back to local storage
+      // User must be informed that Nostr distribution failed
+      console.error('Nostr distribution failed:', error.message);
+
+      // Store locally as fallback BUT mark it clearly
       distributionInfo = await storeFragmentsLocally(switchId, authenticatedShares, authKey);
+
+      // Add explicit warning to distribution info
+      distributionInfo.nostrFailed = true;
+      distributionInfo.nostrError = error.message;
+      distributionInfo.warning = 'CRITICAL: Nostr distribution failed. Shares are stored locally only. ' +
+        'This switch will NOT work if this server is unavailable. ' +
+        'Consider recreating the switch or manually distributing shares to guardians.';
+
+      console.warn('SECURITY WARNING:', distributionInfo.warning);
     }
   } else {
     // Store locally
@@ -670,10 +692,23 @@ export async function testRelease(switchId, password = null, dryRun = true) {
           fragmentEncryptionKey = deriveKey(password, fragmentSalt).key;
         }
       } else {
-        return {
-          success: false,
-          message: 'Fragment encryption not yet implemented for passwordless mode'
-        };
+        // v1 Passwordless: Derive fragment encryption key from Nostr private key
+        // The key was derived using HMAC(nostrPrivateKey, salt || domain)
+        if (!fragmentInfo.nostrPrivateKey) {
+          return {
+            success: false,
+            message: 'No Nostr private key found for v1 passwordless switch'
+          };
+        }
+
+        const fragmentSalt = Buffer.from(fragmentInfo.fragmentEncryptionSalt, 'base64');
+        const nostrKeyBuffer = Buffer.from(fragmentInfo.nostrPrivateKey, 'hex');
+
+        // Recreate the same derivation used during creation
+        fragmentEncryptionKey = crypto.createHmac('sha256', fragmentSalt)
+          .update(nostrKeyBuffer)
+          .update(Buffer.from('ECHOLOCK-V1-FRAGMENT-KEY'))
+          .digest();
       }
 
       // Decrypt authKey
