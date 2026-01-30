@@ -197,6 +197,28 @@ export const switchesAPI = {
     const response = await api.get(`/switches/${id}/check-ins`)
     return response.data.data
   },
+
+  // Test Drill Mode
+  testDrill: async (id: string, options: { sendTestEmails?: boolean } = {}) => {
+    const response = await api.post(`/switches/${id}/test-drill`, options)
+    return response.data.data
+  },
+
+  // Vacation Mode
+  setVacationMode: async (id: string, options: {
+    enabled: boolean
+    extendHours?: number
+    until?: string
+  }) => {
+    const response = await api.post(`/switches/${id}/vacation-mode`, options)
+    return response.data.data
+  },
+
+  // Quick Check-In Link
+  generateCheckInLink: async (id: string, expiresInHours = 24) => {
+    const response = await api.post(`/switches/${id}/generate-checkin-link`, { expiresInHours })
+    return response.data.data
+  },
 }
 
 // User API

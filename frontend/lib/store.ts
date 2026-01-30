@@ -4,6 +4,7 @@ interface User {
   id: string
   email: string
   email_verified?: boolean
+  createdAt?: string
 }
 
 interface Switch {

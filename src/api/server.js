@@ -58,6 +58,7 @@ import switchRoutes from './routes/switches.js';
 import userRoutes from './routes/users.js';
 import securityRoutes from './routes/security.js';
 import adminRoutes from './routes/admin.js';
+import quickCheckinRoutes from './routes/quickCheckin.js';
 
 // Import auth middleware for cleanup
 import { stopRateLimitCleanup } from './middleware/auth.js';
@@ -308,6 +309,7 @@ app.use('/api/switches', switchRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/security', securityRoutes);
+app.use('/api/quick-checkin', quickCheckinRoutes);
 
 // ============================================================================
 // ERROR HANDLING

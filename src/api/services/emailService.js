@@ -361,9 +361,150 @@ EchoLock - Censorship-resistant dead man's switch
   return await sendEmail(email, `⏰ Check-in reminder: ${switchTitle}`, html, text);
 }
 
+/**
+ * Send test drill notification to recipient
+ * @param {string} email - Recipient email
+ * @param {string} name - Recipient name
+ * @param {string} switchTitle - Switch title
+ */
+export async function sendTestDrillEmail(email, name, switchTitle) {
+  const recipientName = name || email.split('@')[0];
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #2196F3; color: white; padding: 20px; text-align: center; }
+          .test-banner { background: #e3f2fd; border: 3px dashed #2196F3; padding: 15px; text-align: center; margin: 20px 0; }
+          .content { padding: 30px; background: #f9f9f9; }
+          .footer { text-align: center; color: #666; font-size: 12px; padding: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🔔 EchoLock Test Drill</h1>
+          </div>
+          <div class="content">
+            <div class="test-banner">
+              <strong>⚠️ THIS IS A TEST - NOT A REAL TRIGGER ⚠️</strong>
+            </div>
+            <h2>Hello ${recipientName},</h2>
+            <p>The owner of the dead man's switch "${switchTitle}" has run a test drill.</p>
+            <p><strong>This is only a test.</strong> No actual message has been released. The switch owner is simply verifying that their system is configured correctly and that you would receive notifications if needed.</p>
+            <p>If you have any questions about this test, please contact the person who set you up as a recipient.</p>
+            <div class="test-banner">
+              <strong>NO ACTION REQUIRED</strong>
+            </div>
+          </div>
+          <div class="footer">
+            <p>EchoLock - Censorship-resistant dead man's switch</p>
+            <p>&copy; ${new Date().getFullYear()} EchoLock. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const text = `
+🔔 ECHOLOCK TEST DRILL
+
+⚠️ THIS IS A TEST - NOT A REAL TRIGGER ⚠️
+
+Hello ${recipientName},
+
+The owner of the dead man's switch "${switchTitle}" has run a test drill.
+
+This is only a test. No actual message has been released. The switch owner is simply verifying that their system is configured correctly.
+
+NO ACTION REQUIRED
+
+---
+EchoLock - Censorship-resistant dead man's switch
+  `;
+
+  return await sendEmail(email, `🔔 [TEST] EchoLock Drill: ${switchTitle}`, html, text);
+}
+
+/**
+ * Send quick check-in link via email
+ * @param {string} email - User email
+ * @param {string} switchTitle - Switch title
+ * @param {string} checkInUrl - One-click check-in URL
+ * @param {Date} expiresAt - When the link expires
+ */
+export async function sendQuickCheckInLink(email, switchTitle, checkInUrl, expiresAt) {
+  const expiresText = expiresAt.toLocaleString();
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #1a1a1a; color: white; padding: 20px; text-align: center; }
+          .content { padding: 30px; background: #f9f9f9; }
+          .button { display: inline-block; padding: 16px 32px; background: #4CAF50; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; font-weight: bold; font-size: 18px; }
+          .footer { text-align: center; color: #666; font-size: 12px; padding: 20px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🔒 EchoLock Quick Check-In</h1>
+          </div>
+          <div class="content">
+            <h2>One-Click Check-In</h2>
+            <p>Click the button below to instantly check in to your switch "${switchTitle}".</p>
+            <p style="text-align: center;">
+              <a href="${checkInUrl}" class="button">✓ CHECK IN NOW</a>
+            </p>
+            <p style="color: #666; font-size: 14px; text-align: center;">
+              This link expires: ${expiresText}
+            </p>
+            <p style="color: #999; font-size: 12px;">
+              Security note: This link can only be used once and is tied to your account.
+              Do not share this link with anyone.
+            </p>
+          </div>
+          <div class="footer">
+            <p>EchoLock - Censorship-resistant dead man's switch</p>
+            <p>&copy; ${new Date().getFullYear()} EchoLock. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+    </html>
+  `;
+
+  const text = `
+🔒 ECHOLOCK QUICK CHECK-IN
+
+Click the link below to check in to "${switchTitle}":
+
+${checkInUrl}
+
+This link expires: ${expiresText}
+
+Security note: This link can only be used once. Do not share it with anyone.
+
+---
+EchoLock - Censorship-resistant dead man's switch
+  `;
+
+  return await sendEmail(email, `✓ Quick Check-In: ${switchTitle}`, html, text);
+}
+
 export default {
   sendVerificationEmail,
   sendPasswordResetEmail,
   sendSwitchReleaseEmail,
-  sendCheckInReminder
+  sendCheckInReminder,
+  sendTestDrillEmail,
+  sendQuickCheckInLink
 };

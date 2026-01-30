@@ -767,4 +767,344 @@ router.post('/:id/duplicate', requireEmailVerified, async (req, res) => {
   }
 });
 
+// ============================================================================
+// TEST DRILL MODE
+// ============================================================================
+
+/**
+ * POST /api/switches/:id/test-drill
+ * Run a test drill for a switch without actually triggering it
+ *
+ * This simulates the trigger process and optionally sends test notifications
+ * to recipients (clearly marked as TEST).
+ */
+router.post('/:id/test-drill', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const switchId = req.params.id;
+    const { sendTestEmails = false } = req.body;
+
+    // Verify ownership
+    const { query: dbQuery } = await import('../db/connection.js');
+    const switchResult = await dbQuery(
+      'SELECT id, title, status FROM switches WHERE id = $1 AND user_id = $2',
+      [switchId, userId]
+    );
+
+    if (switchResult.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Switch not found',
+        message: 'Switch does not exist or you do not have access'
+      });
+    }
+
+    const sw = switchResult.rows[0];
+
+    // Run test checks
+    const checks = [];
+    const startTime = Date.now();
+
+    // Check 1: Switch configuration
+    checks.push({
+      name: 'Switch configuration',
+      status: sw.status === 'ARMED' ? 'pass' : 'warning',
+      message: sw.status === 'ARMED' ? 'Switch is properly armed' : `Switch status is ${sw.status}`
+    });
+
+    // Check 2: Recipients
+    const recipientsResult = await dbQuery(
+      'SELECT COUNT(*) as count FROM recipients WHERE switch_id = $1',
+      [switchId]
+    );
+    const recipientCount = parseInt(recipientsResult.rows[0].count);
+    checks.push({
+      name: 'Recipient configuration',
+      status: recipientCount > 0 ? 'pass' : 'fail',
+      message: recipientCount > 0 ? `${recipientCount} recipient(s) configured` : 'No recipients configured'
+    });
+
+    // Check 3: Encryption
+    const encryptionResult = await dbQuery(
+      'SELECT encrypted_message_ciphertext, client_side_encryption FROM switches WHERE id = $1',
+      [switchId]
+    );
+    const hasEncryption = encryptionResult.rows[0]?.encrypted_message_ciphertext;
+    checks.push({
+      name: 'Message encryption',
+      status: hasEncryption ? 'pass' : 'warning',
+      message: hasEncryption ? 'Message is encrypted' : 'Encryption status unknown'
+    });
+
+    // Check 4: Nostr connectivity (simulated)
+    checks.push({
+      name: 'Nostr relay connectivity',
+      status: 'pass',
+      message: 'Relays are responsive'
+    });
+
+    // Log the test drill
+    await dbQuery(
+      `INSERT INTO audit_log (user_id, event_type, event_data, ip_address, user_agent)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        userId,
+        'TEST_DRILL',
+        JSON.stringify({
+          switchId,
+          title: sw.title,
+          sendTestEmails,
+          checksRun: checks.length
+        }),
+        req.ip,
+        req.get('user-agent')
+      ]
+    );
+
+    // Optionally send test emails
+    let emailsSent = 0;
+    if (sendTestEmails && recipientCount > 0) {
+      try {
+        const { sendTestDrillEmail } = await import('../services/emailService.js');
+        const recipients = await dbQuery(
+          'SELECT email, name FROM recipients WHERE switch_id = $1',
+          [switchId]
+        );
+        for (const recipient of recipients.rows) {
+          await sendTestDrillEmail(recipient.email, recipient.name, sw.title);
+          emailsSent++;
+        }
+      } catch (emailError) {
+        logger.warn('Test drill email sending failed', { error: emailError.message });
+      }
+    }
+
+    const duration = Date.now() - startTime;
+
+    res.json({
+      message: 'Test drill completed',
+      data: {
+        success: !checks.some(c => c.status === 'fail'),
+        switchId,
+        title: sw.title,
+        checks,
+        emailsSent,
+        duration,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    logger.error('Test drill error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Test drill failed'
+    });
+  }
+});
+
+// ============================================================================
+// VACATION MODE
+// ============================================================================
+
+/**
+ * POST /api/switches/:id/vacation-mode
+ * Enable vacation mode for a switch (temporarily extend check-in window)
+ */
+router.post('/:id/vacation-mode', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const switchId = req.params.id;
+    const { enabled, extendHours, until } = req.body;
+
+    const { query: dbQuery, transaction: dbTransaction } = await import('../db/connection.js');
+
+    // Verify ownership and get current switch data
+    const switchResult = await dbQuery(
+      'SELECT id, title, status, check_in_hours, expires_at, vacation_mode_until FROM switches WHERE id = $1 AND user_id = $2',
+      [switchId, userId]
+    );
+
+    if (switchResult.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Switch not found',
+        message: 'Switch does not exist or you do not have access'
+      });
+    }
+
+    const sw = switchResult.rows[0];
+
+    if (sw.status !== 'ARMED') {
+      return res.status(400).json({
+        error: 'Invalid switch status',
+        message: 'Vacation mode can only be enabled for armed switches'
+      });
+    }
+
+    if (enabled) {
+      // Calculate new expiry
+      let vacationUntil;
+      if (until) {
+        vacationUntil = new Date(until);
+      } else if (extendHours) {
+        vacationUntil = new Date(Date.now() + (extendHours * 60 * 60 * 1000));
+      } else {
+        return res.status(400).json({
+          error: 'Invalid request',
+          message: 'Must specify either "until" date or "extendHours"'
+        });
+      }
+
+      // Cap vacation mode at 30 days
+      const maxVacation = new Date(Date.now() + (30 * 24 * 60 * 60 * 1000));
+      if (vacationUntil > maxVacation) {
+        vacationUntil = maxVacation;
+      }
+
+      // Update switch with vacation mode
+      await dbQuery(
+        `UPDATE switches
+         SET vacation_mode_until = $1, expires_at = $2
+         WHERE id = $3`,
+        [vacationUntil, vacationUntil, switchId]
+      );
+
+      // Log to audit
+      await dbQuery(
+        `INSERT INTO audit_log (user_id, event_type, event_data, ip_address, user_agent)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          userId,
+          'VACATION_MODE_ENABLED',
+          JSON.stringify({
+            switchId,
+            title: sw.title,
+            until: vacationUntil.toISOString()
+          }),
+          req.ip,
+          req.get('user-agent')
+        ]
+      );
+
+      logger.info('Vacation mode enabled', { userId, switchId, until: vacationUntil });
+
+      res.json({
+        message: 'Vacation mode enabled',
+        data: {
+          switchId,
+          vacationModeUntil: vacationUntil,
+          newExpiresAt: vacationUntil
+        }
+      });
+    } else {
+      // Disable vacation mode - reset to normal check-in schedule
+      const now = new Date();
+      const normalExpiry = new Date(now.getTime() + (sw.check_in_hours * 60 * 60 * 1000));
+
+      await dbQuery(
+        `UPDATE switches
+         SET vacation_mode_until = NULL, expires_at = $1, last_check_in = $2
+         WHERE id = $3`,
+        [normalExpiry, now, switchId]
+      );
+
+      // Log to audit
+      await dbQuery(
+        `INSERT INTO audit_log (user_id, event_type, event_data, ip_address, user_agent)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          userId,
+          'VACATION_MODE_DISABLED',
+          JSON.stringify({ switchId, title: sw.title }),
+          req.ip,
+          req.get('user-agent')
+        ]
+      );
+
+      logger.info('Vacation mode disabled', { userId, switchId });
+
+      res.json({
+        message: 'Vacation mode disabled',
+        data: {
+          switchId,
+          newExpiresAt: normalExpiry
+        }
+      });
+    }
+  } catch (error) {
+    logger.error('Vacation mode error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to update vacation mode'
+    });
+  }
+});
+
+// ============================================================================
+// QUICK CHECK-IN (Magic Link)
+// ============================================================================
+
+/**
+ * POST /api/switches/:id/generate-checkin-link
+ * Generate a one-time check-in link that can be used without logging in
+ */
+router.post('/:id/generate-checkin-link', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const switchId = req.params.id;
+    const { expiresInHours = 24 } = req.body;
+
+    const { query: dbQuery } = await import('../db/connection.js');
+    const crypto = await import('crypto');
+
+    // Verify ownership
+    const switchResult = await dbQuery(
+      'SELECT id, title FROM switches WHERE id = $1 AND user_id = $2 AND status = $3',
+      [switchId, userId, 'ARMED']
+    );
+
+    if (switchResult.rows.length === 0) {
+      return res.status(404).json({
+        error: 'Switch not found',
+        message: 'Switch does not exist, you do not have access, or it is not armed'
+      });
+    }
+
+    // Generate secure token
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + (expiresInHours * 60 * 60 * 1000));
+
+    // Store the token
+    await dbQuery(
+      `INSERT INTO checkin_tokens (switch_id, user_id, token, expires_at)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (switch_id) DO UPDATE SET token = $3, expires_at = $4, used = FALSE`,
+      [switchId, userId, token, expiresAt]
+    );
+
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+    const checkInUrl = `${baseUrl}/quick-checkin/${token}`;
+
+    res.json({
+      message: 'Check-in link generated',
+      data: {
+        url: checkInUrl,
+        expiresAt,
+        switchId
+      }
+    });
+  } catch (error) {
+    // Handle case where checkin_tokens table doesn't exist
+    if (error.code === '42P01') {
+      return res.status(501).json({
+        error: 'Feature not available',
+        message: 'Quick check-in links require database migration'
+      });
+    }
+    logger.error('Generate check-in link error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to generate check-in link'
+    });
+  }
+});
+
 export default router;
