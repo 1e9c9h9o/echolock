@@ -150,6 +150,13 @@ app.use(cookieParser(cookieSecret));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Static file serving for uploads (avatars, etc.)
+import path from 'path';
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // CSRF Protection middleware for state-changing requests
 // Uses double-submit cookie pattern
 const csrfProtection = (req, res, next) => {

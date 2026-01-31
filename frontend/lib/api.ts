@@ -255,13 +255,34 @@ export const switchesAPI = {
 // User API
 export const userAPI = {
   getProfile: async () => {
-    const response = await api.get('/user/profile')
+    const response = await api.get('/users/me')
     return response.data.data
   },
 
-  updateProfile: async (data: { email?: string; password?: string }) => {
-    const response = await api.put('/user/profile', data)
+  updateProfile: async (data: { displayName?: string; bio?: string }) => {
+    const response = await api.patch('/users/me', data)
+    return response.data
+  },
+
+  updatePassword: async (currentPassword: string, newPassword: string) => {
+    const response = await api.patch('/users/me', { currentPassword, newPassword })
+    return response.data
+  },
+
+  uploadAvatar: async (file: File) => {
+    const formData = new FormData()
+    formData.append('avatar', file)
+    const response = await api.post('/users/me/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
     return response.data.data
+  },
+
+  removeAvatar: async () => {
+    const response = await api.delete('/users/me/avatar')
+    return response.data
   },
 
   deleteAccount: async (password: string) => {

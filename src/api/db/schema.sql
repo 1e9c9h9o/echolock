@@ -19,6 +19,9 @@ CREATE TABLE users (
   verification_token VARCHAR(255),
   reset_token VARCHAR(255),
   reset_token_expires TIMESTAMP,
+  display_name VARCHAR(255),
+  bio TEXT,
+  avatar_url VARCHAR(500),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
   last_login TIMESTAMP

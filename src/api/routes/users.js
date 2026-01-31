@@ -6,15 +6,47 @@
  * Handles user profile operations:
  * - Get current user profile
  * - Update profile/password
+ * - Upload avatar
  * - Delete account
  */
 
 import express from 'express';
+import multer from 'multer';
+import sharp from 'sharp';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import { authenticateToken } from '../middleware/auth.js';
 import { query, transaction } from '../db/connection.js';
 import { hashPassword, verifyPassword } from '../utils/crypto.js';
 import { logger } from '../utils/logger.js';
 import { isValidPassword } from '../middleware/validate.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, '../../uploads/avatars');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Configure multer for avatar uploads
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB max
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (allowedTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only JPEG, PNG, GIF, and WebP are allowed.'));
+    }
+  },
+});
 
 const router = express.Router();
 
@@ -31,7 +63,7 @@ router.get('/me', async (req, res) => {
 
     // Get user data
     const userResult = await query(
-      'SELECT id, email, email_verified, created_at, last_login FROM users WHERE id = $1',
+      'SELECT id, email, email_verified, display_name, bio, avatar_url, created_at, last_login FROM users WHERE id = $1',
       [userId]
     );
 
@@ -59,6 +91,9 @@ router.get('/me', async (req, res) => {
           id: user.id,
           email: user.email,
           emailVerified: user.email_verified,
+          displayName: user.display_name,
+          bio: user.bio,
+          avatarUrl: user.avatar_url,
           createdAt: user.created_at,
           lastLogin: user.last_login,
           switchCount
@@ -76,81 +111,249 @@ router.get('/me', async (req, res) => {
 
 /**
  * PATCH /api/users/me
- * Update user profile or password
+ * Update user profile (display name, bio) or password
  */
 router.patch('/me', async (req, res) => {
   try {
     const userId = req.user.id;
-    const { currentPassword, newPassword } = req.body;
+    const { displayName, bio, currentPassword, newPassword } = req.body;
 
-    // Currently only support password change
-    if (!currentPassword || !newPassword) {
-      return res.status(400).json({
-        error: 'Missing fields',
-        message: 'Current password and new password are required'
+    // Handle password change if requested
+    if (currentPassword && newPassword) {
+      // Validate new password
+      const passwordCheck = isValidPassword(newPassword);
+      if (!passwordCheck.valid) {
+        return res.status(400).json({
+          error: 'Invalid password',
+          message: passwordCheck.message
+        });
+      }
+
+      // Get current password hash
+      const result = await query(
+        'SELECT password_hash FROM users WHERE id = $1',
+        [userId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          error: 'User not found',
+          message: 'User account not found'
+        });
+      }
+
+      const user = result.rows[0];
+
+      // Verify current password
+      const passwordValid = await verifyPassword(currentPassword, user.password_hash);
+
+      if (!passwordValid) {
+        return res.status(401).json({
+          error: 'Invalid password',
+          message: 'Current password is incorrect'
+        });
+      }
+
+      // Hash new password
+      const newPasswordHash = await hashPassword(newPassword);
+
+      // Update password
+      await query(
+        'UPDATE users SET password_hash = $1 WHERE id = $2',
+        [newPasswordHash, userId]
+      );
+
+      // Audit log
+      await query(
+        `INSERT INTO audit_log (user_id, event_type, ip_address, user_agent)
+         VALUES ($1, $2, $3, $4)`,
+        [userId, 'PASSWORD_CHANGED', req.ip, req.get('user-agent')]
+      );
+
+      logger.info('Password changed', { userId });
+
+      return res.json({
+        message: 'Password updated successfully'
       });
     }
 
-    // Validate new password
-    const passwordCheck = isValidPassword(newPassword);
-    if (!passwordCheck.valid) {
-      return res.status(400).json({
-        error: 'Invalid password',
-        message: passwordCheck.message
+    // Handle profile update (displayName, bio)
+    if (displayName !== undefined || bio !== undefined) {
+      // Validate display name length
+      if (displayName && displayName.length > 100) {
+        return res.status(400).json({
+          error: 'Invalid display name',
+          message: 'Display name must be 100 characters or less'
+        });
+      }
+
+      // Validate bio length
+      if (bio && bio.length > 500) {
+        return res.status(400).json({
+          error: 'Invalid bio',
+          message: 'Bio must be 500 characters or less'
+        });
+      }
+
+      // Build update query dynamically
+      const updates = [];
+      const values = [];
+      let paramCount = 1;
+
+      if (displayName !== undefined) {
+        updates.push(`display_name = $${paramCount++}`);
+        values.push(displayName || null);
+      }
+      if (bio !== undefined) {
+        updates.push(`bio = $${paramCount++}`);
+        values.push(bio || null);
+      }
+
+      values.push(userId);
+
+      await query(
+        `UPDATE users SET ${updates.join(', ')} WHERE id = $${paramCount}`,
+        values
+      );
+
+      // Audit log
+      await query(
+        `INSERT INTO audit_log (user_id, event_type, event_data, ip_address, user_agent)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [userId, 'PROFILE_UPDATED', JSON.stringify({ displayName, bio }), req.ip, req.get('user-agent')]
+      );
+
+      logger.info('Profile updated', { userId });
+
+      return res.json({
+        message: 'Profile updated successfully'
       });
     }
 
-    // Get current password hash
-    const result = await query(
-      'SELECT password_hash FROM users WHERE id = $1',
-      [userId]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        error: 'User not found',
-        message: 'User account not found'
-      });
-    }
-
-    const user = result.rows[0];
-
-    // Verify current password
-    const passwordValid = await verifyPassword(currentPassword, user.password_hash);
-
-    if (!passwordValid) {
-      return res.status(401).json({
-        error: 'Invalid password',
-        message: 'Current password is incorrect'
-      });
-    }
-
-    // Hash new password
-    const newPasswordHash = await hashPassword(newPassword);
-
-    // Update password
-    await query(
-      'UPDATE users SET password_hash = $1 WHERE id = $2',
-      [newPasswordHash, userId]
-    );
-
-    // Audit log
-    await query(
-      `INSERT INTO audit_log (user_id, event_type, ip_address, user_agent)
-       VALUES ($1, $2, $3, $4)`,
-      [userId, 'PASSWORD_CHANGED', req.ip, req.get('user-agent')]
-    );
-
-    logger.info('Password changed', { userId });
-
-    res.json({
-      message: 'Password updated successfully'
+    return res.status(400).json({
+      error: 'Missing fields',
+      message: 'No fields provided to update'
     });
   } catch (error) {
     logger.error('Update profile error:', error);
     res.status(500).json({
       error: 'Server error',
       message: 'Failed to update profile'
+    });
+  }
+});
+
+/**
+ * POST /api/users/me/avatar
+ * Upload user avatar
+ */
+router.post('/me/avatar', upload.single('avatar'), async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    if (!req.file) {
+      return res.status(400).json({
+        error: 'No file uploaded',
+        message: 'Please select an image to upload'
+      });
+    }
+
+    // Process image with sharp - resize and convert to webp
+    const filename = `${userId}-${Date.now()}.webp`;
+    const filepath = path.join(uploadsDir, filename);
+
+    await sharp(req.file.buffer)
+      .resize(256, 256, {
+        fit: 'cover',
+        position: 'center'
+      })
+      .webp({ quality: 80 })
+      .toFile(filepath);
+
+    // Generate URL path for the avatar
+    const avatarUrl = `/uploads/avatars/${filename}`;
+
+    // Delete old avatar if exists
+    const oldResult = await query(
+      'SELECT avatar_url FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (oldResult.rows[0]?.avatar_url) {
+      const oldFilename = oldResult.rows[0].avatar_url.split('/').pop();
+      const oldPath = path.join(uploadsDir, oldFilename);
+      if (fs.existsSync(oldPath)) {
+        fs.unlinkSync(oldPath);
+      }
+    }
+
+    // Update user's avatar URL
+    await query(
+      'UPDATE users SET avatar_url = $1 WHERE id = $2',
+      [avatarUrl, userId]
+    );
+
+    // Audit log
+    await query(
+      `INSERT INTO audit_log (user_id, event_type, ip_address, user_agent)
+       VALUES ($1, $2, $3, $4)`,
+      [userId, 'AVATAR_UPDATED', req.ip, req.get('user-agent')]
+    );
+
+    logger.info('Avatar uploaded', { userId, filename });
+
+    res.json({
+      message: 'Avatar uploaded successfully',
+      data: { avatarUrl }
+    });
+  } catch (error) {
+    logger.error('Avatar upload error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to upload avatar'
+    });
+  }
+});
+
+/**
+ * DELETE /api/users/me/avatar
+ * Remove user avatar
+ */
+router.delete('/me/avatar', async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Get current avatar
+    const result = await query(
+      'SELECT avatar_url FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (result.rows[0]?.avatar_url) {
+      // Delete file
+      const filename = result.rows[0].avatar_url.split('/').pop();
+      const filepath = path.join(uploadsDir, filename);
+      if (fs.existsSync(filepath)) {
+        fs.unlinkSync(filepath);
+      }
+    }
+
+    // Clear avatar URL
+    await query(
+      'UPDATE users SET avatar_url = NULL WHERE id = $1',
+      [userId]
+    );
+
+    logger.info('Avatar removed', { userId });
+
+    res.json({
+      message: 'Avatar removed successfully'
+    });
+  } catch (error) {
+    logger.error('Avatar removal error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to remove avatar'
     });
   }
 });

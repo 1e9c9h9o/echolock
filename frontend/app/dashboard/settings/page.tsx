@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import KeyBackup from '@/components/KeyBackup'
 import TwoFactorSettings from '@/components/TwoFactorSettings'
+import ProfileSettings from '@/components/ProfileSettings'
 import { useAuthStore, useSwitchStore } from '@/lib/store'
 import { userAPI, switchesAPI } from '@/lib/api'
 import { formatDistanceToNow } from 'date-fns'
@@ -186,6 +187,21 @@ export default function SettingsPage() {
               <div className="text-3xl font-bold">{switches.length}</div>
               <div className="text-slate-500 text-xs font-mono uppercase">Switches</div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Profile */}
+      <div className="max-w-2xl mx-auto mb-6">
+        <div className="bg-white border border-slate-200">
+          <div className="p-4 border-b border-slate-100">
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+              <User className="h-4 w-4 text-slate-400" strokeWidth={2} />
+              Profile
+            </h2>
+          </div>
+          <div className="p-4">
+            <ProfileSettings />
           </div>
         </div>
       </div>
