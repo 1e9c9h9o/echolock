@@ -62,7 +62,7 @@ export default function WelcomeModal({ onStartTour, onClose }: WelcomeModalProps
             </div>
             <div>
               <h2 id="welcome-modal-title" className="text-3xl font-bold font-heading uppercase">
-                Welcome to EchoLock!
+                Welcome to EchoLock
               </h2>
               <p className="text-sm opacity-90 font-mono">Your censorship-resistant dead man's switch</p>
             </div>
@@ -99,24 +99,22 @@ export default function WelcomeModal({ onStartTour, onClose }: WelcomeModalProps
             />
           </div>
 
-          <div className="bg-red/10 border-2 border-red p-4 rounded">
-            <p className="font-bold font-heading uppercase text-red mb-2">⚠️ Important</p>
-            <ul className="font-mono text-sm space-y-1 list-disc list-inside">
+          <div className="bg-slate-100 border border-slate-300 p-4">
+            <p className="font-bold text-sm text-slate-700 mb-2">Before you start</p>
+            <ul className="text-sm text-slate-600 space-y-1 list-disc list-inside">
               <li>Check in regularly to prevent accidental message releases</li>
-              <li>Test with non-sensitive data first to understand how it works</li>
+              <li>Test with non-sensitive data first</li>
               <li>Store your recovery keys safely - they cannot be recovered</li>
-              <li>Recipients will receive messages automatically if you don't check in</li>
             </ul>
           </div>
 
-          <div className="bg-blue/10 border-2 border-blue p-4 rounded">
-            <p className="font-bold font-heading uppercase text-blue mb-2">💡 Getting Started</p>
-            <ol className="font-mono text-sm space-y-2 list-decimal list-inside">
-              <li>Take the interactive tour to learn the interface</li>
-              <li>Create your first dead man's switch</li>
-              <li>Add recipients who will receive your message</li>
-              <li>Set a check-in interval that works for you</li>
-              <li>Verify your email to enable all features</li>
+          <div className="border border-slate-200 p-4">
+            <p className="font-bold text-sm text-slate-700 mb-2">Getting Started</p>
+            <ol className="text-sm text-slate-600 space-y-1 list-decimal list-inside">
+              <li>Create your first switch</li>
+              <li>Add recipients</li>
+              <li>Set a check-in interval</li>
+              <li>Verify your email</li>
             </ol>
           </div>
         </div>

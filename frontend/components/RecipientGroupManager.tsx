@@ -39,7 +39,6 @@ interface Recipient {
   email: string;
   name?: string;
   custom_message?: string;
-  read_at?: string;
   switch_id: string;
   switch_title?: string;
 }
@@ -343,16 +342,6 @@ export default function RecipientGroupManager({
                       <p className="text-xs text-slate-400 mt-1">
                         From: {recipient.switch_title}
                       </p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    {recipient.read_at ? (
-                      <span className="text-xs text-emerald-600 flex items-center gap-1">
-                        <Check className="w-3 h-3" />
-                        Read
-                      </span>
-                    ) : (
-                      <span className="text-xs text-slate-400">Not read</span>
                     )}
                   </div>
                 </div>

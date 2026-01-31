@@ -178,12 +178,10 @@ export default function OnboardingChecklist({ className = '' }: OnboardingCheckl
             )}
             <div>
               <h3 className="font-bold font-heading uppercase text-lg">
-                {isComplete ? '🎉 All Done!' : 'Getting Started'}
+                {isComplete ? 'Setup Complete' : 'Getting Started'}
               </h3>
               <p className="text-sm opacity-90 font-mono">
-                {isComplete
-                  ? "You've completed all onboarding steps!"
-                  : `${completedCount} of ${totalCount} steps completed`}
+                {completedCount} of {totalCount} steps
               </p>
             </div>
           </div>
@@ -212,15 +210,14 @@ export default function OnboardingChecklist({ className = '' }: OnboardingCheckl
       </div>
 
       {/* Progress Bar */}
-      <div className="bg-gray-200 h-2">
+      <div className="bg-slate-200 h-1">
         <div
-          className="bg-green-500 h-full transition-all duration-500"
+          className="bg-slate-600 h-full"
           style={{ width: `${progressPercentage}%` }}
           role="progressbar"
           aria-valuenow={progressPercentage}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label="Onboarding progress"
         />
       </div>
 
@@ -232,13 +229,9 @@ export default function OnboardingChecklist({ className = '' }: OnboardingCheckl
           ))}
 
           {isComplete && (
-            <div className="bg-green-50 border-2 border-green-500 p-4 rounded mt-4">
-              <p className="font-bold font-heading uppercase text-green-700 mb-2">
-                🎊 Congratulations!
-              </p>
-              <p className="font-mono text-sm text-green-900">
-                You've completed all onboarding steps and are ready to use EchoLock. Remember to
-                check in regularly!
+            <div className="bg-slate-50 border border-slate-200 p-4 mt-4">
+              <p className="text-sm text-slate-600">
+                Setup complete. Remember to check in before your timer expires.
               </p>
             </div>
           )}
@@ -256,37 +249,31 @@ interface ChecklistItemRowProps {
 function ChecklistItemRow({ item, onMarkComplete }: ChecklistItemRowProps) {
   return (
     <div
-      className={`flex items-start gap-3 p-3 rounded transition-all ${
+      className={`flex items-start gap-3 p-3 transition-colors ${
         item.completed
-          ? 'bg-green-50 border-2 border-green-300'
-          : 'bg-gray-50 border-2 border-gray-300 hover:border-blue'
+          ? 'bg-slate-50'
+          : 'bg-white border border-slate-200'
       }`}
     >
       <div className="flex-shrink-0 mt-0.5">
         {item.completed ? (
-          <CheckCircle2 className="w-6 h-6 text-green-600" aria-label="Completed" />
+          <CheckCircle2 className="w-5 h-5 text-slate-400" aria-label="Completed" />
         ) : (
-          <Circle className="w-6 h-6 text-gray-400" aria-label="Not completed" />
+          <Circle className="w-5 h-5 text-slate-300" aria-label="Not completed" />
         )}
       </div>
       <div className="flex-1 min-w-0">
         <h4
-          className={`font-bold font-mono text-sm mb-1 ${
-            item.completed ? 'text-green-900 line-through' : 'text-black'
+          className={`font-medium text-sm ${
+            item.completed ? 'text-slate-400' : 'text-slate-700'
           }`}
         >
           {item.title}
         </h4>
-        <p className={`font-mono text-xs ${item.completed ? 'text-green-700' : 'text-gray-600'}`}>
-          {item.description}
-        </p>
-        {!item.completed && item.action && item.actionLabel && (
-          <button
-            onClick={item.action}
-            className="mt-2 text-xs font-bold text-blue hover:underline"
-          >
-            {item.actionLabel} →
-          </button>
+        {!item.completed && (
+          <p className="text-xs text-slate-500 mt-0.5">
+            {item.description}
+          </p>
         )}
       </div>
     </div>

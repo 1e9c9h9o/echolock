@@ -65,7 +65,7 @@ import healthCheckRoutes from './routes/healthCheck.js';
 import emergencyContactsRoutes, { acknowledgeAlertRoute } from './routes/emergencyContacts.js';
 import backupRoutes from './routes/backup.js';
 import legalRoutes from './routes/legal.js';
-import trackingRoutes from './routes/tracking.js';
+// Removed: trackingRoutes - email tracking pixels are privacy-hostile
 
 // Import auth middleware for cleanup
 import { stopRateLimitCleanup } from './middleware/auth.js';
@@ -340,7 +340,7 @@ app.use('/api/emergency-contacts', emergencyContactsRoutes);
 app.use('/api/acknowledge-alert', acknowledgeAlertRoute);  // Public route for alert acknowledgment
 app.use('/api/account', backupRoutes);
 app.use('/api/legal', legalRoutes);
-app.use('/api/track', trackingRoutes);  // Public route for tracking pixels
+// Removed: /api/track - email tracking pixels are privacy-hostile
 
 // ============================================================================
 // ERROR HANDLING
