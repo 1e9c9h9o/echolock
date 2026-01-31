@@ -60,7 +60,7 @@ export default function SwitchDetailPage() {
   // WebSocket handler for Bitcoin funding notifications
   const handleBitcoinFunded = useCallback((data: BitcoinFundedPayload) => {
     if (data.switchId === id) {
-      showToast('Bitcoin commitment funded!', 'success')
+      showToast('Bitcoin commitment funded', 'success')
       loadBitcoinCommitment()
     }
   }, [id])

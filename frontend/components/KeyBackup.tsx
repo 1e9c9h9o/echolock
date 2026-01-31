@@ -65,7 +65,7 @@ export default function KeyBackup({ onBackupComplete }: KeyBackupProps) {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
 
-      showToast('Keys exported successfully! Store this file securely.', 'success');
+      showToast('Keys exported. Store this file securely.', 'success');
       setMode('menu');
       setPassword('');
       setConfirmPassword('');

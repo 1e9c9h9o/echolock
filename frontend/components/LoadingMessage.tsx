@@ -4,17 +4,14 @@ import { useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 
 const LOADING_MESSAGES = [
-  '🔐 Encrypting your secret...',
-  '✂️ Splitting into fragments...',
-  '📡 Distributing to relays...',
-  '🔗 Establishing connections...',
-  '🛡️ Securing your data...',
-  '🎲 Generating cryptographic randomness...',
-  '⚡ Almost there...',
-  '🔑 Creating encryption keys...',
-  '📝 Preparing secure message...',
-  '🌐 Connecting to network...',
-  '✨ Finalizing setup...',
+  'Encrypting...',
+  'Splitting into fragments...',
+  'Distributing to relays...',
+  'Establishing connections...',
+  'Securing data...',
+  'Generating keys...',
+  'Preparing message...',
+  'Connecting to network...',
 ]
 
 interface LoadingMessageProps {
@@ -25,7 +22,7 @@ interface LoadingMessageProps {
 }
 
 /**
- * Loading component with rotating fun messages
+ * Loading component with rotating status messages
  */
 export default function LoadingMessage({
   message,

@@ -78,7 +78,7 @@ export default function VacationMode({
       }
 
       const data = await response.json()
-      showToast('Vacation mode enabled!', 'success')
+      showToast('Vacation mode enabled', 'success')
       onUpdate(new Date(data.data.newExpiresAt))
       onClose()
     } catch (error: any) {

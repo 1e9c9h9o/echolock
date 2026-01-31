@@ -59,7 +59,7 @@ function VerifyEmailContent() {
     try {
       const response = await authAPI.verifyEmail(token!)
       setStatus('success')
-      setMessage(response.message || 'Email verified successfully')
+      setMessage(response.message || 'Email verified')
     } catch (err: any) {
       setStatus('error')
       setMessage(err.response?.data?.message || 'Verification failed')
@@ -87,7 +87,7 @@ function VerifyEmailContent() {
               {status === 'success' && (
                 <>
                   <CheckCircle className="w-16 h-16 text-orange mx-auto mb-6" strokeWidth={2} />
-                  <h2 className="text-xl font-bold mb-4">Email Verified!</h2>
+                  <h2 className="text-xl font-bold mb-4">Email Verified</h2>
                   <p className="text-sm mb-6">{message}</p>
                   <Button
                     variant="primary"

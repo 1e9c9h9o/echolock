@@ -77,7 +77,7 @@ export default function SettingsPage() {
 
     try {
       await userAPI.updateProfile({ email: newEmail })
-      setProfileSuccess('Email updated successfully')
+      setProfileSuccess('Email updated')
       setNewEmail('')
     } catch (err: any) {
       setProfileError(err.response?.data?.message || 'Failed to update email')
@@ -105,7 +105,7 @@ export default function SettingsPage() {
 
     try {
       await userAPI.updateProfile({ password: newPassword })
-      setPasswordSuccess('Password updated successfully')
+      setPasswordSuccess('Password updated')
       setNewPassword('')
       setConfirmPassword('')
     } catch (err: any) {

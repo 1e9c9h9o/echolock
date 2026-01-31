@@ -210,14 +210,14 @@ export default function InteractiveDemo() {
         <div className="space-y-6 animate-fade-in-up">
           <div className="flex items-center gap-3 text-green-600">
             <span className="text-2xl">✓</span>
-            <span className="text-lg font-bold">Message Encrypted!</span>
+            <span className="text-lg font-bold">Message Encrypted</span>
           </div>
           <div className="bg-black text-green-400 p-4 border-2 border-green-600 font-mono text-sm">
             <div className="opacity-70 mb-2">// Encrypted output:</div>
             <div className="break-all">{encryptedDisplay}</div>
           </div>
           <div className="bg-blue/10 p-3 border-2 border-blue text-sm text-center">
-            <strong>Now unreadable!</strong> Only the encryption key can decrypt this.
+            <strong>Now unreadable.</strong> Only the encryption key can decrypt this.
           </div>
         </div>
       )}
@@ -248,7 +248,7 @@ export default function InteractiveDemo() {
                 CHECK IN
               </button>
               <div className="absolute -top-3 -right-3 bg-red text-white px-2 py-1 text-xs font-bold border-2 border-black rotate-12">
-                NOT PRESSED!
+                NOT PRESSED
               </div>
             </div>
 
@@ -266,7 +266,7 @@ export default function InteractiveDemo() {
       {step === 'releasing' && (
         <div className="space-y-6 animate-fade-in-up">
           <div className="bg-red/20 p-4 border-2 border-red text-center">
-            <p className="text-xl font-bold text-red">TIMER EXPIRED!</p>
+            <p className="text-xl font-bold text-red">TIMER EXPIRED</p>
             <p className="text-base opacity-70 mt-2">No check-in received. Releasing message...</p>
           </div>
           <div className="space-y-3">
@@ -305,7 +305,7 @@ export default function InteractiveDemo() {
       {step === 'complete' && (
         <div className="space-y-6 animate-fade-in-up">
           <div className="bg-green-600 text-white p-6 border-2 border-black text-center">
-            <p className="text-2xl font-bold mb-2">Message Released!</p>
+            <p className="text-2xl font-bold mb-2">Message Released</p>
             <p className="text-base opacity-90">Your secret has been automatically delivered</p>
           </div>
           <div className="bg-cream p-6 border-2 border-black">

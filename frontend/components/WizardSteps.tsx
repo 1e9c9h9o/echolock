@@ -502,7 +502,7 @@ export function Step5Success({ switchId, nextCheckInAt, onDashboard, onCreateAno
         <Check className="h-20 w-20 text-white" strokeWidth={3} />
       </div>
 
-      <h2 className="text-4xl font-bold mb-4">SWITCH CREATED!</h2>
+      <h2 className="text-4xl font-bold mb-4">SWITCH CREATED</h2>
       <p className="text-lg font-mono mb-8 max-w-2xl mx-auto">
         Your dead man's switch is now active and monitoring for check-ins.
       </p>
@@ -515,7 +515,7 @@ export function Step5Success({ switchId, nextCheckInAt, onDashboard, onCreateAno
               onClick={copyToClipboard}
               className="font-mono text-xs text-black/70 hover:text-orange transition-colors"
             >
-              {copied ? '✓ Copied!' : 'Copy'}
+              {copied ? '✓ Copied' : 'Copy'}
             </button>
           </div>
           <p className="font-mono text-base break-all">{switchId}</p>

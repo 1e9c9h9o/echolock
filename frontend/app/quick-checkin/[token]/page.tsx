@@ -158,12 +158,12 @@ export default function QuickCheckInPage() {
               {/* Success State */}
               {status === 'success' && (
                 <div className="text-center">
-                  <div className="bg-green-100 border-2 border-green-600 p-6 mb-6">
-                    <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-600" />
-                    <h2 className="text-xl font-bold text-green-800 mb-2">
-                      Check-In Successful!
+                  <div className="bg-slate-50 border border-slate-200 p-6 mb-6">
+                    <CheckCircle className="w-12 h-12 mx-auto mb-4 text-slate-500" />
+                    <h2 className="text-xl font-bold mb-2">
+                      Check-In Complete
                     </h2>
-                    <p className="text-sm text-green-700">
+                    <p className="text-sm text-slate-600">
                       Your switch timer has been reset.
                     </p>
                   </div>
@@ -215,7 +215,7 @@ export default function QuickCheckInPage() {
                     <h2 className="text-xl font-bold mb-2">Already Used</h2>
                     <p className="text-sm">
                       This check-in link has already been used.
-                      Your switch was checked in successfully.
+                      Your switch was checked in.
                     </p>
                   </div>
 

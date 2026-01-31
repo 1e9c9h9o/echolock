@@ -114,7 +114,7 @@ export default function RecipientGroupManager({
       setNewGroupName('');
       setNewGroupDescription('');
       setShowCreateForm(false);
-      showToast('Group created successfully', 'success');
+      showToast('Group created', 'success');
     } catch (error: any) {
       showToast(error.response?.data?.message || 'Failed to create group', 'error');
     }

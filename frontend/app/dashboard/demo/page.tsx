@@ -55,7 +55,7 @@ export default function DemoPage() {
           status: 'expired',
         })
         setPhase('triggered')
-        showToast('⚠️ Demo switch triggered! Secret will be released in 1 minute.', 'warning')
+        showToast('Demo switch triggered. Secret will be released in 1 minute.', 'warning')
       }
     }
   }, [demoSwitch, timeElapsed])
@@ -65,7 +65,7 @@ export default function DemoPage() {
     if (phase === 'triggered' && demoSwitch) {
       const releaseTimer = setTimeout(() => {
         setPhase('released')
-        showToast('✅ Demo complete! Secret has been released.', 'success')
+        showToast('Demo complete. Secret has been released.', 'success')
       }, DEMO_INTERVAL_MINUTES * 60 * 1000) // 1 minute
 
       return () => clearTimeout(releaseTimer)
@@ -89,7 +89,7 @@ export default function DemoPage() {
     setDemoSwitch(newSwitch)
     setPhase('armed')
     setTimeElapsed(0)
-    showToast('🚀 Demo started! This is an accelerated 1-minute lifecycle.', 'info')
+    showToast('Demo started. This runs on an accelerated 1-minute cycle.', 'info')
   }
 
   const resetDemo = () => {
@@ -232,12 +232,12 @@ export default function DemoPage() {
 
           {/* Explanation Card */}
           <Card variant="info">
-            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">WHAT'S HAPPENING?</h3>
-            <div className="font-mono text-xs md:text-sm space-y-2 md:space-y-3 break-words">
-              <p>✅ Your switch is ARMED and monitoring for check-ins</p>
-              <p>⏱️ You must check in within 1 minute to reset the timer</p>
-              <p>⚠️ If you don't check in, the switch will TRIGGER</p>
-              <p>📧 Once triggered, your secret will be released after another 1 minute</p>
+            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">How it works</h3>
+            <div className="font-mono text-xs md:text-sm space-y-2 md:space-y-3 break-words text-slate-600">
+              <p>Your switch is armed and monitoring for check-ins</p>
+              <p>You must check in within 1 minute to reset the timer</p>
+              <p>If you don't check in, the switch will trigger</p>
+              <p>Once triggered, your secret will be released after another 1 minute</p>
             </div>
           </Card>
 
@@ -261,14 +261,14 @@ export default function DemoPage() {
         <div className="space-y-6 md:space-y-8">
           <Card variant="urgent">
             <div className="flex flex-wrap items-center justify-between gap-2 md:gap-4 mb-4 md:mb-6">
-              <h2 className="text-xl md:text-2xl font-bold">SWITCH TRIGGERED!</h2>
+              <h2 className="text-xl md:text-2xl font-bold">Switch Triggered</h2>
               <StatusBadge status={demoSwitch.status} />
             </div>
 
             <div className="space-y-4 md:space-y-6">
-              <div className="bg-red-100 p-4 md:p-6 border-2 border-black">
-                <p className="font-mono text-xs md:text-sm font-bold mb-2">⚠️ TIMER EXPIRED</p>
-                <p className="font-mono text-sm md:text-base break-words">
+              <div className="bg-slate-100 p-4 md:p-6 border border-slate-300">
+                <p className="font-mono text-xs md:text-sm font-bold mb-2">Timer expired</p>
+                <p className="font-mono text-sm md:text-base break-words text-slate-600">
                   You didn't check in within the 1-minute window. The switch has been triggered
                   and your secret will be released shortly.
                 </p>
@@ -316,23 +316,23 @@ export default function DemoPage() {
         <div className="space-y-6 md:space-y-8">
           <Card>
             <div className="flex flex-wrap items-center justify-between gap-2 md:gap-4 mb-4 md:mb-6">
-              <h2 className="text-xl md:text-2xl font-bold">SECRET RELEASED</h2>
-              <span className="bg-green-600 text-white px-3 py-1 md:px-4 md:py-2 border-2 border-black text-xs font-bold uppercase">
-                COMPLETE
+              <h2 className="text-xl md:text-2xl font-bold">Secret Released</h2>
+              <span className="bg-slate-700 text-white px-3 py-1 md:px-4 md:py-2 text-xs font-bold uppercase">
+                Complete
               </span>
             </div>
 
             <div className="space-y-4 md:space-y-6">
-              <div className="bg-green-100 p-4 md:p-6 border-2 border-black">
-                <p className="font-mono text-xs md:text-sm font-bold mb-2">✅ DEMO COMPLETE</p>
-                <p className="font-mono text-sm md:text-base break-words">
+              <div className="bg-slate-50 p-4 md:p-6 border border-slate-200">
+                <p className="font-mono text-xs md:text-sm font-bold mb-2">Demo complete</p>
+                <p className="font-mono text-sm md:text-base break-words text-slate-600">
                   The full lifecycle has completed. In real use, your secret would now be
                   delivered to all recipients.
                 </p>
               </div>
 
-              <div className="bg-white p-4 md:p-6 border-2 border-black">
-                <p className="font-mono text-xs md:text-sm font-bold mb-3">SECRET MESSAGE (DECRYPTED)</p>
+              <div className="bg-white p-4 md:p-6 border border-slate-200">
+                <p className="font-mono text-xs md:text-sm font-bold mb-3">Secret message (decrypted)</p>
                 <p className="font-mono text-sm md:text-base break-words">
                   {demoSwitch.secret}
                 </p>
@@ -346,15 +346,15 @@ export default function DemoPage() {
           </Card>
 
           <Card variant="info">
-            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">DEMO SUMMARY</h3>
-            <div className="font-mono text-xs md:text-sm space-y-2 md:space-y-3 break-words">
-              <p>✅ Switch created and armed</p>
-              <p>✅ {demoSwitch.checkInCount > 0 ? `${demoSwitch.checkInCount} check-in(s) performed` : 'No check-ins (let it expire naturally)'}</p>
-              <p>✅ Timer expired and switch triggered</p>
-              <p>✅ Secret fragments retrieved and reconstructed</p>
-              <p>✅ Secret released to recipients</p>
-              <p className="text-xs md:text-sm opacity-90 mt-3 md:mt-4">
-                In production, this lifecycle typically takes 24-168 hours (1-7 days)
+            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Summary</h3>
+            <div className="font-mono text-xs md:text-sm space-y-2 md:space-y-3 break-words text-slate-600">
+              <p>Switch created and armed</p>
+              <p>{demoSwitch.checkInCount > 0 ? `${demoSwitch.checkInCount} check-in(s) performed` : 'No check-ins (expired naturally)'}</p>
+              <p>Timer expired and switch triggered</p>
+              <p>Secret fragments retrieved and reconstructed</p>
+              <p>Secret released to recipients</p>
+              <p className="text-xs md:text-sm opacity-70 mt-3 md:mt-4">
+                In production, this lifecycle typically takes 24-168 hours
               </p>
             </div>
           </Card>

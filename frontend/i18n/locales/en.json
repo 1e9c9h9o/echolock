@@ -104,7 +104,7 @@
   },
   "onboarding": {
     "welcome": {
-      "title": "Welcome to EchoLock!",
+      "title": "Welcome to EchoLock",
       "subtitle": "Your censorship-resistant dead man's switch",
       "description": "EchoLock helps you protect sensitive information by automatically releasing encrypted messages if you fail to check in regularly.",
       "startTour": "Start Interactive Tour",
@@ -112,7 +112,7 @@
     },
     "tour": {
       "step1": {
-        "title": "Welcome to EchoLock!",
+        "title": "Welcome to EchoLock",
         "content": "EchoLock is a censorship-resistant dead man's switch that automatically releases encrypted messages if you fail to check in regularly. This quick tour will show you the key features."
       },
       "step2": {
@@ -136,13 +136,13 @@
         "content": "Access your account settings, preferences, and logout from here."
       },
       "complete": {
-        "title": "You're All Set!",
-        "content": "You're ready to create your first dead man's switch. Remember to check in regularly!"
+        "title": "Setup Complete",
+        "content": "You're ready to create your first dead man's switch. Remember to check in regularly."
       }
     },
     "checklist": {
       "title": "Getting Started",
-      "allDone": "All Done!",
+      "allDone": "Setup Complete",
       "completed": "{count} of {total} steps completed",
       "items": {
         "verifyEmail": {
@@ -173,10 +173,10 @@
     }
   },
   "notifications": {
-    "checkInSuccess": "Check-in successful! Timer reset.",
-    "switchCreated": "Switch created successfully",
-    "switchUpdated": "Switch updated successfully",
-    "switchDeleted": "Switch deleted successfully",
+    "checkInSuccess": "Check-in complete. Timer reset.",
+    "switchCreated": "Switch created",
+    "switchUpdated": "Switch updated",
+    "switchDeleted": "Switch deleted",
     "error": "An error occurred. Please try again.",
     "emailVerificationSent": "Verification email sent. Check your inbox.",
     "reminderSet": "Calendar reminder added"

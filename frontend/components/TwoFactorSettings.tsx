@@ -95,7 +95,7 @@ export default function TwoFactorSettings() {
       setBackupCodes(result.backupCodes)
       setSetupState('backup-codes')
       setCode('')
-      showToast('Two-factor authentication enabled!', 'success')
+      showToast('Two-factor authentication enabled', 'success')
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to enable 2FA')
     } finally {
@@ -137,7 +137,7 @@ export default function TwoFactorSettings() {
       setBackupCodes(result.backupCodes)
       setSetupState('backup-codes')
       setCode('')
-      showToast('Backup codes regenerated!', 'success')
+      showToast('Backup codes regenerated', 'success')
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to regenerate backup codes')
     } finally {
@@ -446,7 +446,7 @@ If you lose access to your authenticator app, you can use one of these codes to 
           <div className="flex items-center gap-3">
             <ShieldCheck className="w-6 h-6 text-green-600" />
             <div>
-              <h4 className="font-bold text-green-800">Authenticator Verified!</h4>
+              <h4 className="font-bold text-green-800">Authenticator Verified</h4>
               <p className="text-sm text-green-700">
                 Enter one more code to enable two-factor authentication
               </p>

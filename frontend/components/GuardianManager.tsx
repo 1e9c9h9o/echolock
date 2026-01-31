@@ -92,7 +92,7 @@ export default function GuardianManager({
 
         if (hasUpdates) {
           onGuardiansChange(updatedGuardians);
-          showToast('Guardian acknowledgment(s) received!', 'success');
+          showToast('Guardian acknowledgment(s) received', 'success');
         }
 
         setLastAckCheck(new Date());
@@ -294,7 +294,7 @@ export default function GuardianManager({
                 });
                 if (hasUpdates) {
                   onGuardiansChange(updatedGuardians);
-                  showToast('Guardian acknowledgment(s) received!', 'success');
+                  showToast('Guardian acknowledgment(s) received', 'success');
                 } else {
                   showToast('No new acknowledgments found', 'info');
                 }

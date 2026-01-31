@@ -120,7 +120,7 @@ export default function CreateWizardPage() {
         localSwitchId: encryptedSwitch.switchId,
       })
       setCurrentStep(totalSteps) // Move to success step
-      showToast('Switch created with client-side encryption!', 'success')
+      showToast('Switch created with client-side encryption', 'success')
     } catch (error: any) {
       console.error('Switch creation error:', error)
       showToast(

@@ -91,10 +91,10 @@ function ResetPasswordContent() {
                 <span>Password Reset</span>
               </div>
               <div className="p-8 text-center">
-                <CheckCircle className="w-16 h-16 text-orange mx-auto mb-6" strokeWidth={2} />
-                <h2 className="text-xl font-bold mb-4">Password Reset Complete!</h2>
-                <p className="text-sm mb-6">
-                  Your password has been successfully reset. You can now log in with your new password.
+                <CheckCircle className="w-12 h-12 text-slate-500 mx-auto mb-6" strokeWidth={2} />
+                <h2 className="text-xl font-bold mb-4">Password Reset</h2>
+                <p className="text-sm text-slate-600 mb-6">
+                  Your password has been reset. You can now log in with your new password.
                 </p>
                 <Button
                   variant="primary"

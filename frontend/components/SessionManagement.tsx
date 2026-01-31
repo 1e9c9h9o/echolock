@@ -46,7 +46,7 @@ export default function SessionManagement() {
     try {
       setRevoking(sessionId)
       await securityAPI.revokeSession(sessionId)
-      showToast('Session revoked successfully', 'success')
+      showToast('Session revoked', 'success')
       await loadSessions()
     } catch (err: any) {
       showToast(err.response?.data?.message || 'Failed to revoke session', 'error')

@@ -79,7 +79,7 @@ export default function ExportWizard({ onClose }: ExportWizardProps) {
 
       setExportResult(response.data.data);
       setStep('download');
-      showToast('Export generated successfully', 'success');
+      showToast('Export generated', 'success');
     } catch (error: any) {
       showToast(
         error.response?.data?.message || 'Export failed',
@@ -285,7 +285,7 @@ export default function ExportWizard({ onClose }: ExportWizardProps) {
               </div>
               <div>
                 <p className="font-bold text-emerald-800">
-                  Backup generated successfully
+                  Backup generated
                 </p>
                 <p className="text-sm text-emerald-600">
                   Encrypted with your password
@@ -326,7 +326,7 @@ export default function ExportWizard({ onClose }: ExportWizardProps) {
           <div className="p-3 bg-amber-50 border border-amber-200 rounded flex items-start gap-2">
             <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div className="text-sm text-amber-700">
-              <p className="font-bold">Keep your password safe!</p>
+              <p className="font-bold">Keep your password safe</p>
               <p>
                 Without your password, you cannot restore this backup. Store
                 both the backup file and password in a secure location.

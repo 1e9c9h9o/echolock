@@ -270,7 +270,7 @@ export default function ImportWizard({ onClose, onImportComplete }: ImportWizard
               </div>
               <div>
                 <p className="font-bold text-emerald-800">
-                  Backup restored successfully
+                  Backup restored
                 </p>
               </div>
             </div>

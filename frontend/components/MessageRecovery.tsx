@@ -97,7 +97,7 @@ export default function MessageRecovery({ onRecovered }: MessageRecoveryProps) {
       setResult(recoveryResult);
 
       if (recoveryResult.success && recoveryResult.message) {
-        showToast('Message recovered successfully!', 'success');
+        showToast('Message recovered', 'success');
         onRecovered?.(recoveryResult.message);
       } else {
         showToast(recoveryResult.error || 'Recovery failed', 'error');

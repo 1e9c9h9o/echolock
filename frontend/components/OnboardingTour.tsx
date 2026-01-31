@@ -11,7 +11,7 @@ const tourSteps: Step[] = [
     target: 'body',
     content: (
       <div className="p-2">
-        <h2 className="text-2xl font-bold font-heading uppercase mb-3">Welcome to EchoLock!</h2>
+        <h2 className="text-2xl font-bold font-heading uppercase mb-3">Welcome to EchoLock</h2>
         <p className="mb-3 font-mono">
           EchoLock is a censorship-resistant dead man's switch that automatically releases encrypted
           messages if you fail to check in regularly.
@@ -89,16 +89,15 @@ const tourSteps: Step[] = [
     target: 'body',
     content: (
       <div className="p-2">
-        <h2 className="text-2xl font-bold font-heading uppercase mb-3">You're All Set!</h2>
+        <h2 className="text-2xl font-bold font-heading uppercase mb-3">Setup Complete</h2>
         <p className="mb-3 font-mono">
-          You're ready to create your first dead man's switch. Remember to check in regularly!
+          You can now create a switch. Remember to check in before your timer expires.
         </p>
-        <div className="bg-blue/10 border-2 border-blue p-3 rounded mt-4">
-          <p className="font-mono text-sm font-bold mb-1">💡 Pro Tips:</p>
-          <ul className="list-disc list-inside font-mono text-sm space-y-1">
+        <div className="bg-slate-100 border border-slate-300 p-3 mt-4">
+          <p className="font-mono text-sm font-bold mb-1">Recommendations:</p>
+          <ul className="list-disc list-inside font-mono text-sm space-y-1 text-slate-600">
             <li>Set realistic check-in intervals</li>
-            <li>Use strong encryption for sensitive messages</li>
-            <li>Test with a non-critical switch first</li>
+            <li>Test with non-critical data first</li>
             <li>Add multiple recipients for redundancy</li>
           </ul>
         </div>

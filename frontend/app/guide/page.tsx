@@ -157,28 +157,13 @@ export default function GuidePage() {
                     <p className="text-sm mb-4">
                       Think of it like a <strong>safety deposit box</strong> that opens automatically if you don't visit the bank for a while.
                     </p>
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <span className="text-xl">📝</span>
-                        <span>You write a secret (like passwords or a message)</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <span className="text-xl">👥</span>
-                        <span>You pick 5 trusted people to help guard it</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <span className="text-xl">⏰</span>
-                        <span>You agree to "check in" every few days</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <span className="text-xl">✅</span>
-                        <span>As long as you check in, nothing happens</span>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <span className="text-xl">🔓</span>
-                        <span>If you stop checking in, your message gets delivered</span>
-                      </div>
-                    </div>
+                    <ol className="space-y-2 list-decimal list-inside text-sm">
+                      <li>You write a secret (like passwords or a message)</li>
+                      <li>You pick 5 trusted people to help guard it</li>
+                      <li>You agree to check in every few days</li>
+                      <li>As long as you check in, nothing happens</li>
+                      <li>If you stop checking in, your message gets delivered</li>
+                    </ol>
                   </div>
                   <p className="text-sm text-black/70">
                     It's like having a trusted friend who says "If I don't hear from you in a week, give this envelope to my family."
@@ -466,11 +451,11 @@ export default function GuidePage() {
               <div className="flex gap-4 items-start">
                 <div className="w-8 h-8 bg-green-500 text-white flex items-center justify-center flex-shrink-0 font-bold text-sm">4</div>
                 <div>
-                  <h4 className="font-bold text-black">{isEli5 ? "Message Unlocked! 🎉" : "Decryption"}</h4>
+                  <h4 className="font-bold text-black">{isEli5 ? "Message Delivered" : "Decryption"}</h4>
                   <p className="text-sm text-black/70">
                     {isEli5
-                      ? "The recipient uses the rebuilt key to unscramble your message. They can now read what you wanted them to know!"
-                      : "Recipient uses the key to decrypt your message. Done."}
+                      ? "The recipient uses the rebuilt key to unscramble your message."
+                      : "Recipient uses the key to decrypt your message."}
                   </p>
                 </div>
               </div>
@@ -568,16 +553,15 @@ export default function GuidePage() {
             <div className="space-y-6">
               {isEli5 ? (
                 <>
-                  <div className="bg-green-50 border-2 border-green-500 p-4">
-                    <h3 className="font-bold text-black mb-2 flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
+                  <div className="bg-slate-50 border border-slate-200 p-4">
+                    <h3 className="font-bold text-black mb-2">
                       What Makes It Secure
                     </h3>
                     <ul className="text-sm text-black/70 space-y-2">
-                      <li>✅ Your secret is scrambled on YOUR device — nobody else ever sees it unscrambled</li>
-                      <li>✅ The key is split into 5 pieces — need 3 to unlock, so 2 curious people can't peek</li>
-                      <li>✅ Even EchoLock can't read your message — we only see scrambled gibberish</li>
-                      <li>✅ If EchoLock disappears, everything still works — it's all stored publicly</li>
+                      <li>Your secret is encrypted on your device — the server never sees it</li>
+                      <li>The key is split into 5 pieces — need 3 to unlock</li>
+                      <li>EchoLock cannot read your message — we only see encrypted data</li>
+                      <li>If EchoLock disappears, everything still works — it's stored on public networks</li>
                     </ul>
                   </div>
 

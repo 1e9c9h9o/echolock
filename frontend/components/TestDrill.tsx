@@ -88,7 +88,7 @@ export default function TestDrill({
 
         // Simulate realistic results
         let status: 'pass' | 'fail' | 'warning' = 'pass'
-        let message = 'Check completed successfully'
+        let message = 'Check completed'
 
         // Add some realistic variation
         if (i === 3 && guardians.length < 3) {
@@ -127,7 +127,7 @@ export default function TestDrill({
       onComplete?.(drillResults)
 
       if (drillResults.success) {
-        showToast('Test drill completed successfully!', 'success')
+        showToast('Test drill complete', 'success')
       } else {
         showToast('Test drill completed with issues', 'warning')
       }
@@ -273,23 +273,23 @@ export default function TestDrill({
 
           {phase === 'complete' && results && (
             <>
-              <div className={`text-center mb-6 p-4 border-2 ${
-                results.success ? 'border-green-600 bg-green-50' : 'border-orange bg-orange/10'
+              <div className={`text-center mb-6 p-4 border ${
+                results.success ? 'border-slate-200 bg-slate-50' : 'border-orange/50 bg-orange/5'
               }`}>
                 {results.success ? (
                   <>
-                    <CheckCircle className="h-12 w-12 text-green-600 mx-auto mb-2" />
-                    <h2 className="text-xl font-bold text-green-800">Drill Successful!</h2>
-                    <p className="text-sm text-green-700 mt-1">
-                      Your switch is properly configured and ready.
+                    <CheckCircle className="h-10 w-10 text-slate-500 mx-auto mb-2" />
+                    <h2 className="text-xl font-bold">Drill Complete</h2>
+                    <p className="text-sm text-slate-600 mt-1">
+                      Your switch is properly configured.
                     </p>
                   </>
                 ) : (
                   <>
-                    <AlertTriangle className="h-12 w-12 text-orange mx-auto mb-2" />
-                    <h2 className="text-xl font-bold">Drill Completed with Warnings</h2>
-                    <p className="text-sm mt-1">
-                      Review the results below for recommendations.
+                    <AlertTriangle className="h-10 w-10 text-orange mx-auto mb-2" />
+                    <h2 className="text-xl font-bold">Drill Complete</h2>
+                    <p className="text-sm text-slate-600 mt-1">
+                      Review the results below.
                     </p>
                   </>
                 )}

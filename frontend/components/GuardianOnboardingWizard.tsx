@@ -150,7 +150,7 @@ export default function GuardianOnboardingWizard({
   const copyInvite = () => {
     navigator.clipboard.writeText(inviteLink)
     setCopied(true)
-    showToast('Invite link copied!', 'success')
+    showToast('Invite link copied', 'success')
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -505,11 +505,11 @@ Best regards`)
           {/* Step 5: Complete */}
           {step === 'complete' && (
             <div className="text-center">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Check className="h-10 w-10 text-green-600" />
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Check className="h-8 w-8 text-slate-500" />
               </div>
 
-              <h2 className="text-2xl font-bold mb-2">Guardian Added!</h2>
+              <h2 className="text-2xl font-bold mb-2">Guardian Added</h2>
               <p className="text-sm text-gray-600 mb-6">
                 {guardianName} has been added as a guardian for "{switchTitle}".
               </p>

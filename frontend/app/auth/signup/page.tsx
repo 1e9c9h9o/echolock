@@ -55,7 +55,7 @@ export default function SignupPage() {
 
     try {
       await authAPI.signup(email, password)
-      showToast('Account created successfully! Please login.', 'success', 3000)
+      showToast('Account created. Please log in.', 'success', 3000)
       setTimeout(() => router.push('/auth/login'), 1000)
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Registration failed. Please try again.'

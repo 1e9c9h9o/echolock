@@ -21,7 +21,7 @@ export default function EmergencyControls({ onPauseComplete }: { onPauseComplete
       setPausing(true)
       const result = await securityAPI.pauseAllSwitches()
       showToast(
-        `${result.data.pausedCount} switch(es) paused successfully`,
+        `${result.data.pausedCount} switch(es) paused`,
         'success'
       )
       setShowConfirm(false)
