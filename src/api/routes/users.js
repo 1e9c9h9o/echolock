@@ -180,18 +180,18 @@ router.patch('/me', async (req, res) => {
     // Handle profile update (displayName, bio)
     if (displayName !== undefined || bio !== undefined) {
       // Validate display name length
-      if (displayName && displayName.length > 100) {
+      if (displayName && displayName.length > 50) {
         return res.status(400).json({
-          error: 'Invalid display name',
-          message: 'Display name must be 100 characters or less'
+          error: 'Invalid name',
+          message: 'Name must be 50 characters or less'
         });
       }
 
-      // Validate bio length
-      if (bio && bio.length > 500) {
+      // Validate about length
+      if (bio && bio.length > 140) {
         return res.status(400).json({
-          error: 'Invalid bio',
-          message: 'Bio must be 500 characters or less'
+          error: 'Invalid about',
+          message: 'About must be 140 characters or less'
         });
       }
 
