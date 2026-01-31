@@ -909,12 +909,12 @@ export default function PublicDemoPage() {
             {/* Key takeaway */}
             <div className="bg-black text-white p-6 border-4 border-orange">
               <h3 className="font-bold text-orange mb-2">
-                {isEli5 ? "The Important Part" : "Key Takeaway"}
+                {isEli5 ? "Why This Matters" : "Key Takeaway"}
               </h3>
               <p className="text-sm text-white/80">
                 {isEli5
-                  ? "Notice what DIDN'T happen: EchoLock's servers weren't needed for the release. Your contacts watched public signals and acted on their own. If EchoLock disappeared, everything would still work exactly the same."
-                  : "Observe: EchoLock servers were not involved in the release. Guardians acted autonomously by monitoring public Nostr relays. Recipients reconstructed independently. If EchoLock ceased operations, the release would function identically."}
+                  ? "Your message is protected by a network of trusted contacts, not just one company. Even if EchoLock shut down tomorrow, your message would still reach your loved ones exactly as planned. That's the whole point."
+                  : "This release used decentralized infrastructure (Nostr relays and the Guardian Network). Message delivery is cryptographically guaranteed by the network itself, not dependent on any single company's servers."}
               </p>
             </div>
 
