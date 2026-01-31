@@ -101,11 +101,30 @@ export const authAPI = {
 
   login: async (email: string, password: string) => {
     const response = await api.post('/auth/login', { email, password })
-    const { user } = response.data.data
+    const data = response.data.data
+
+    // Check if 2FA is required
+    if (data.requiresTwoFactor) {
+      return {
+        requiresTwoFactor: true,
+        challengeToken: data.challengeToken,
+        user: data.user,
+      }
+    }
+
     // Tokens are now stored in httpOnly cookies by the server
     // Fetch new CSRF token after login
     await fetchCsrfToken()
-    return { user }
+    return { user: data.user, requiresTwoFactor: false }
+  },
+
+  // Complete login with 2FA verification
+  verify2FA: async (challengeToken: string, code: string) => {
+    const response = await api.post('/auth/2fa/verify', { challengeToken, code })
+    const { user } = response.data.data
+    // Fetch new CSRF token after successful 2FA
+    await fetchCsrfToken()
+    return { user, usedBackupCode: response.data.data.usedBackupCode }
   },
 
   logout: async () => {
@@ -288,6 +307,31 @@ export const securityAPI = {
   // 2FA
   getTwoFactorStatus: async () => {
     const response = await api.get('/security/2fa/status')
+    return response.data.data
+  },
+
+  setup2FA: async () => {
+    const response = await api.post('/security/2fa/setup')
+    return response.data.data
+  },
+
+  verifySetup2FA: async (code: string) => {
+    const response = await api.post('/security/2fa/verify-setup', { code })
+    return response.data.data
+  },
+
+  enable2FA: async (code: string) => {
+    const response = await api.post('/security/2fa/enable', { code })
+    return response.data.data
+  },
+
+  disable2FA: async (code: string) => {
+    const response = await api.post('/security/2fa/disable', { code })
+    return response.data.data
+  },
+
+  regenerateBackupCodes: async (code: string) => {
+    const response = await api.post('/security/2fa/backup-codes/regenerate', { code })
     return response.data.data
   },
 

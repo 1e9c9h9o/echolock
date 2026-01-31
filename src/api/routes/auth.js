@@ -19,7 +19,7 @@
 
 import express from 'express';
 import { query, transaction } from '../db/connection.js';
-import { hashPassword, verifyPassword, generateToken } from '../utils/crypto.js';
+import { hashPassword, verifyPassword, generateToken, decryptWithServiceKey } from '../utils/crypto.js';
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -29,6 +29,8 @@ import {
 import { logger, logSecurityEvent } from '../utils/logger.js';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../services/emailService.js';
 import { validateSignup, validateLogin, validateEmail, validatePassword } from '../middleware/validate.js';
+import { isTestAccount, generateChallengeToken, verifyChallengeToken } from '../utils/authHelpers.js';
+import { verifyTOTP, verifyBackupCode } from '../utils/totp.js';
 
 const router = express.Router();
 
@@ -172,7 +174,34 @@ router.post('/login', validateLogin, async (req, res) => {
       });
     }
 
-    // Generate tokens
+    // Check if user has 2FA enabled (skip for test accounts in non-production)
+    if (!isTestAccount(email)) {
+      const twoFactorResult = await query(
+        'SELECT enabled FROM two_factor_auth WHERE user_id = $1',
+        [user.id]
+      );
+
+      if (twoFactorResult.rows.length > 0 && twoFactorResult.rows[0].enabled) {
+        // 2FA is required - return challenge token instead of completing login
+        const challengeToken = generateChallengeToken(user.id, user.email);
+
+        logger.info('2FA challenge issued', { userId: user.id, email: user.email });
+
+        return res.json({
+          message: '2FA required',
+          data: {
+            requiresTwoFactor: true,
+            challengeToken,
+            user: {
+              id: user.id,
+              email: user.email
+            }
+          }
+        });
+      }
+    }
+
+    // No 2FA required - complete login
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
@@ -213,6 +242,158 @@ router.post('/login', validateLogin, async (req, res) => {
     res.status(500).json({
       error: 'Login failed',
       message: 'An error occurred during login'
+    });
+  }
+});
+
+/**
+ * POST /api/auth/2fa/verify
+ * Complete login after 2FA verification
+ */
+router.post('/2fa/verify', async (req, res) => {
+  try {
+    const { challengeToken, code } = req.body;
+
+    if (!challengeToken || !code) {
+      return res.status(400).json({
+        error: 'Missing fields',
+        message: 'Challenge token and verification code are required'
+      });
+    }
+
+    // Verify challenge token
+    const tokenResult = verifyChallengeToken(challengeToken);
+    if (!tokenResult.valid) {
+      logSecurityEvent('2FA_CHALLENGE_INVALID', {
+        error: tokenResult.error,
+        ip: req.ip
+      });
+
+      return res.status(401).json({
+        error: 'Invalid challenge',
+        message: tokenResult.error || 'Challenge token is invalid or expired'
+      });
+    }
+
+    const userId = tokenResult.userId;
+
+    // Get user and 2FA info
+    const result = await query(
+      `SELECT u.id, u.email, u.email_verified,
+              t.totp_secret, t.backup_codes, t.backup_codes_used_count
+       FROM users u
+       JOIN two_factor_auth t ON t.user_id = u.id
+       WHERE u.id = $1 AND t.enabled = TRUE`,
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        error: 'Invalid request',
+        message: '2FA is not enabled for this account'
+      });
+    }
+
+    const user = result.rows[0];
+
+    // Decrypt TOTP secret
+    const secret = decryptWithServiceKey(user.totp_secret);
+
+    // Try TOTP first
+    let isValid = verifyTOTP(secret, code);
+    let usedBackupCode = false;
+    let backupCodeIndex = -1;
+
+    // If TOTP failed, try backup code
+    if (!isValid && user.backup_codes) {
+      const backupCodes = typeof user.backup_codes === 'string'
+        ? JSON.parse(user.backup_codes)
+        : user.backup_codes;
+
+      const backupResult = verifyBackupCode(code, backupCodes);
+      if (backupResult.valid) {
+        isValid = true;
+        usedBackupCode = true;
+        backupCodeIndex = backupResult.index;
+      }
+    }
+
+    if (!isValid) {
+      logSecurityEvent('2FA_VERIFICATION_FAILED', {
+        userId,
+        ip: req.ip
+      });
+
+      return res.status(401).json({
+        error: 'Invalid code',
+        message: 'The verification code is incorrect'
+      });
+    }
+
+    // If backup code was used, mark it as used
+    if (usedBackupCode && backupCodeIndex >= 0) {
+      const backupCodes = typeof user.backup_codes === 'string'
+        ? JSON.parse(user.backup_codes)
+        : user.backup_codes;
+
+      backupCodes[backupCodeIndex].used = true;
+
+      await query(
+        `UPDATE two_factor_auth
+         SET backup_codes = $2, backup_codes_used_count = backup_codes_used_count + 1,
+             last_used = NOW(), updated_at = NOW()
+         WHERE user_id = $1`,
+        [userId, JSON.stringify(backupCodes)]
+      );
+    } else {
+      // Update last used timestamp
+      await query(
+        'UPDATE two_factor_auth SET last_used = NOW(), updated_at = NOW() WHERE user_id = $1',
+        [userId]
+      );
+    }
+
+    // Generate tokens - login complete
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+
+    // Update last login
+    await query(
+      'UPDATE users SET last_login = NOW() WHERE id = $1',
+      [userId]
+    );
+
+    // Log event
+    await query(
+      `INSERT INTO audit_log (user_id, event_type, event_data, ip_address, user_agent)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [userId, 'LOGIN_2FA', JSON.stringify({ usedBackupCode }), req.ip, req.get('user-agent')]
+    );
+
+    logger.info('User logged in with 2FA', { userId, email: user.email, usedBackupCode });
+
+    // Set httpOnly cookies for tokens
+    res.cookie('accessToken', accessToken, getCookieConfig(15 * 60 * 1000));
+    res.cookie('refreshToken', refreshToken, getCookieConfig(7 * 24 * 60 * 60 * 1000));
+
+    res.json({
+      message: 'Login successful',
+      data: {
+        accessToken,
+        refreshToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          emailVerified: user.email_verified
+        },
+        usedBackupCode
+      }
+    });
+  } catch (error) {
+    logger.error('2FA verification error:', error);
+    res.status(500).json({
+      error: '2FA verification failed',
+      message: 'An error occurred during verification'
     });
   }
 });

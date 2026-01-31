@@ -14,6 +14,16 @@ import express from 'express';
 import { query, transaction } from '../db/connection.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { logger } from '../utils/logger.js';
+import {
+  generateSecret,
+  generateQRCodeUri,
+  verifyTOTP,
+  generateBackupCodes,
+  hashBackupCodes,
+  verifyBackupCode,
+  formatBackupCodesForDisplay,
+} from '../utils/totp.js';
+import { encryptWithServiceKey, decryptWithServiceKey } from '../utils/crypto.js';
 
 const router = express.Router();
 
@@ -304,6 +314,397 @@ router.get('/2fa/status', async (req, res) => {
     res.status(500).json({
       error: 'Server error',
       message: 'Failed to retrieve 2FA status'
+    });
+  }
+});
+
+/**
+ * POST /api/security/2fa/setup
+ * Initialize 2FA setup - generate secret and QR code URI
+ */
+router.post('/2fa/setup', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const userEmail = req.user.email;
+
+    // Check if 2FA is already enabled
+    const existingResult = await query(
+      'SELECT enabled, totp_verified FROM two_factor_auth WHERE user_id = $1',
+      [userId]
+    );
+
+    if (existingResult.rows.length > 0 && existingResult.rows[0].enabled) {
+      return res.status(400).json({
+        error: '2FA already enabled',
+        message: 'Disable existing 2FA before setting up again'
+      });
+    }
+
+    // Generate new TOTP secret
+    const secret = generateSecret();
+    const qrCodeUri = generateQRCodeUri(secret, userEmail);
+
+    // Encrypt secret before storing
+    const encryptedSecret = encryptWithServiceKey(secret);
+
+    // Upsert 2FA record
+    await query(
+      `INSERT INTO two_factor_auth (user_id, totp_secret, totp_verified, method, created_at, updated_at)
+       VALUES ($1, $2, FALSE, 'TOTP', NOW(), NOW())
+       ON CONFLICT (user_id)
+       DO UPDATE SET totp_secret = $2, totp_verified = FALSE, updated_at = NOW()`,
+      [userId, encryptedSecret]
+    );
+
+    logger.info('2FA setup initiated', { userId });
+
+    res.json({
+      message: '2FA setup initiated',
+      data: {
+        secret, // Plaintext for manual entry (optional display)
+        qrCodeUri, // For QR code generation
+        manualEntryKey: secret.match(/.{1,4}/g).join(' '), // Formatted for manual entry
+      }
+    });
+  } catch (error) {
+    logger.error('2FA setup error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to initiate 2FA setup'
+    });
+  }
+});
+
+/**
+ * POST /api/security/2fa/verify-setup
+ * Verify TOTP code during setup (before enabling)
+ */
+router.post('/2fa/verify-setup', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        error: 'Code required',
+        message: 'Please enter your 6-digit code'
+      });
+    }
+
+    // Get stored secret
+    const result = await query(
+      'SELECT totp_secret, totp_verified, enabled FROM two_factor_auth WHERE user_id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0 || !result.rows[0].totp_secret) {
+      return res.status(400).json({
+        error: 'Setup not initiated',
+        message: 'Please start 2FA setup first'
+      });
+    }
+
+    const twoFactor = result.rows[0];
+
+    // Decrypt secret
+    const secret = decryptWithServiceKey(twoFactor.totp_secret);
+
+    // Verify TOTP code
+    const isValid = verifyTOTP(secret, code);
+
+    if (!isValid) {
+      return res.status(400).json({
+        error: 'Invalid code',
+        message: 'The code you entered is incorrect. Please try again.'
+      });
+    }
+
+    // Mark as verified (but not yet enabled)
+    await query(
+      'UPDATE two_factor_auth SET totp_verified = TRUE, updated_at = NOW() WHERE user_id = $1',
+      [userId]
+    );
+
+    logger.info('2FA setup verified', { userId });
+
+    res.json({
+      message: 'Code verified successfully',
+      data: { verified: true }
+    });
+  } catch (error) {
+    logger.error('2FA verify-setup error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to verify code'
+    });
+  }
+});
+
+/**
+ * POST /api/security/2fa/enable
+ * Enable 2FA after successful verification
+ */
+router.post('/2fa/enable', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { code } = req.body;
+
+    // Get current 2FA record
+    const result = await query(
+      'SELECT totp_secret, totp_verified, enabled FROM two_factor_auth WHERE user_id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({
+        error: 'Setup not initiated',
+        message: 'Please start 2FA setup first'
+      });
+    }
+
+    const twoFactor = result.rows[0];
+
+    if (twoFactor.enabled) {
+      return res.status(400).json({
+        error: '2FA already enabled',
+        message: 'Two-factor authentication is already enabled'
+      });
+    }
+
+    if (!twoFactor.totp_verified) {
+      return res.status(400).json({
+        error: 'Setup not verified',
+        message: 'Please verify your authenticator app first'
+      });
+    }
+
+    // Verify the code one more time
+    const secret = decryptWithServiceKey(twoFactor.totp_secret);
+    if (!verifyTOTP(secret, code)) {
+      return res.status(400).json({
+        error: 'Invalid code',
+        message: 'The code you entered is incorrect'
+      });
+    }
+
+    // Generate backup codes
+    const plaintextCodes = generateBackupCodes();
+    const hashedCodes = hashBackupCodes(plaintextCodes);
+
+    // Enable 2FA
+    await query(
+      `UPDATE two_factor_auth
+       SET enabled = TRUE, enabled_at = NOW(),
+           backup_codes = $2, backup_codes_generated_at = NOW(),
+           backup_codes_used_count = 0, updated_at = NOW()
+       WHERE user_id = $1`,
+      [userId, JSON.stringify(hashedCodes)]
+    );
+
+    // Log to audit log
+    await query(
+      `INSERT INTO audit_log (user_id, event_type, event_data, ip_address, user_agent)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        userId,
+        '2FA_ENABLED',
+        JSON.stringify({ method: 'TOTP' }),
+        req.ip,
+        req.get('user-agent')
+      ]
+    );
+
+    logger.info('2FA enabled', { userId });
+
+    res.json({
+      message: '2FA enabled successfully',
+      data: {
+        enabled: true,
+        backupCodes: formatBackupCodesForDisplay(plaintextCodes),
+        backupCodesCount: plaintextCodes.length
+      }
+    });
+  } catch (error) {
+    logger.error('2FA enable error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to enable 2FA'
+    });
+  }
+});
+
+/**
+ * POST /api/security/2fa/disable
+ * Disable 2FA (requires current TOTP or backup code)
+ */
+router.post('/2fa/disable', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        error: 'Code required',
+        message: 'Please enter your authentication code or backup code'
+      });
+    }
+
+    // Get current 2FA record
+    const result = await query(
+      'SELECT totp_secret, enabled, backup_codes FROM two_factor_auth WHERE user_id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0 || !result.rows[0].enabled) {
+      return res.status(400).json({
+        error: '2FA not enabled',
+        message: 'Two-factor authentication is not enabled'
+      });
+    }
+
+    const twoFactor = result.rows[0];
+
+    // Try TOTP first
+    const secret = decryptWithServiceKey(twoFactor.totp_secret);
+    let isValid = verifyTOTP(secret, code);
+
+    // If TOTP failed, try backup code
+    let usedBackupCode = false;
+    if (!isValid && twoFactor.backup_codes) {
+      const backupCodes = typeof twoFactor.backup_codes === 'string'
+        ? JSON.parse(twoFactor.backup_codes)
+        : twoFactor.backup_codes;
+
+      const backupResult = verifyBackupCode(code, backupCodes);
+      if (backupResult.valid) {
+        isValid = true;
+        usedBackupCode = true;
+      }
+    }
+
+    if (!isValid) {
+      return res.status(400).json({
+        error: 'Invalid code',
+        message: 'The code you entered is incorrect'
+      });
+    }
+
+    // Disable 2FA
+    await query(
+      `UPDATE two_factor_auth
+       SET enabled = FALSE, totp_secret = NULL, totp_verified = FALSE,
+           backup_codes = NULL, backup_codes_generated_at = NULL,
+           backup_codes_used_count = 0, updated_at = NOW()
+       WHERE user_id = $1`,
+      [userId]
+    );
+
+    // Log to audit log
+    await query(
+      `INSERT INTO audit_log (user_id, event_type, event_data, ip_address, user_agent)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        userId,
+        '2FA_DISABLED',
+        JSON.stringify({ usedBackupCode }),
+        req.ip,
+        req.get('user-agent')
+      ]
+    );
+
+    logger.info('2FA disabled', { userId, usedBackupCode });
+
+    res.json({
+      message: '2FA disabled successfully',
+      data: { disabled: true }
+    });
+  } catch (error) {
+    logger.error('2FA disable error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to disable 2FA'
+    });
+  }
+});
+
+/**
+ * POST /api/security/2fa/backup-codes/regenerate
+ * Regenerate backup codes (requires current TOTP)
+ */
+router.post('/2fa/backup-codes/regenerate', async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { code } = req.body;
+
+    if (!code) {
+      return res.status(400).json({
+        error: 'Code required',
+        message: 'Please enter your 6-digit code from your authenticator app'
+      });
+    }
+
+    // Get current 2FA record
+    const result = await query(
+      'SELECT totp_secret, enabled FROM two_factor_auth WHERE user_id = $1',
+      [userId]
+    );
+
+    if (result.rows.length === 0 || !result.rows[0].enabled) {
+      return res.status(400).json({
+        error: '2FA not enabled',
+        message: 'Two-factor authentication must be enabled first'
+      });
+    }
+
+    // Verify TOTP code
+    const secret = decryptWithServiceKey(result.rows[0].totp_secret);
+    if (!verifyTOTP(secret, code)) {
+      return res.status(400).json({
+        error: 'Invalid code',
+        message: 'The code you entered is incorrect'
+      });
+    }
+
+    // Generate new backup codes
+    const plaintextCodes = generateBackupCodes();
+    const hashedCodes = hashBackupCodes(plaintextCodes);
+
+    // Update backup codes
+    await query(
+      `UPDATE two_factor_auth
+       SET backup_codes = $2, backup_codes_generated_at = NOW(),
+           backup_codes_used_count = 0, updated_at = NOW()
+       WHERE user_id = $1`,
+      [userId, JSON.stringify(hashedCodes)]
+    );
+
+    // Log to audit log
+    await query(
+      `INSERT INTO audit_log (user_id, event_type, event_data, ip_address, user_agent)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [
+        userId,
+        '2FA_BACKUP_CODES_REGENERATED',
+        JSON.stringify({ count: plaintextCodes.length }),
+        req.ip,
+        req.get('user-agent')
+      ]
+    );
+
+    logger.info('2FA backup codes regenerated', { userId });
+
+    res.json({
+      message: 'Backup codes regenerated successfully',
+      data: {
+        backupCodes: formatBackupCodesForDisplay(plaintextCodes),
+        backupCodesCount: plaintextCodes.length
+      }
+    });
+  } catch (error) {
+    logger.error('2FA backup codes regenerate error:', error);
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Failed to regenerate backup codes'
     });
   }
 });
