@@ -35,12 +35,12 @@ const router = express.Router();
 // Cookie configuration helper
 const getCookieConfig = (maxAge) => {
   const isProduction = process.env.NODE_ENV === 'production';
+  // For cross-origin requests (frontend on different port), we need sameSite: 'none'
+  // Chrome 89+ allows Secure cookies on localhost without HTTPS
   return {
     httpOnly: true,
-    secure: isProduction,
-    // Use 'none' for cross-origin requests (frontend and API on different domains)
-    // 'none' requires secure: true (HTTPS)
-    sameSite: isProduction ? 'none' : 'lax',
+    secure: true, // Required for sameSite: 'none', works on localhost in modern browsers
+    sameSite: 'none', // Required for cross-origin cookie sending
     maxAge,
     path: '/'
   };

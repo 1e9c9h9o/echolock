@@ -23,14 +23,35 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const { user, isAuthenticated, logout } = useAuthStore()
+  const { user, isAuthenticated, setUser, logout } = useAuthStore()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(true)
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/auth/login')
+    // Verify session on page load
+    const verifySession = async () => {
+      try {
+        const currentUser = await authAPI.getMe()
+        if (currentUser) {
+          setUser(currentUser)
+        } else {
+          router.push('/auth/login')
+        }
+      } catch (error) {
+        console.error('Session verification failed:', error)
+        router.push('/auth/login')
+      } finally {
+        setIsVerifying(false)
+      }
     }
-  }, [isAuthenticated, router])
+
+    // Only verify if we're not already authenticated
+    if (!isAuthenticated) {
+      verifySession()
+    } else {
+      setIsVerifying(false)
+    }
+  }, [isAuthenticated, setUser, router])
 
   const handleLogout = async () => {
     try {
@@ -40,6 +61,20 @@ export default function DashboardLayout({
     } catch (error) {
       console.error('Logout error:', error)
     }
+  }
+
+  // Show loading while verifying session
+  if (isVerifying) {
+    return (
+      <div className="min-h-screen bg-blue flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 mx-auto mb-4">
+            <LogoMark className="w-full h-full text-black animate-pulse" />
+          </div>
+          <p className="text-sm text-black/60 uppercase tracking-wider">Verifying session...</p>
+        </div>
+      </div>
+    )
   }
 
   if (!isAuthenticated) {

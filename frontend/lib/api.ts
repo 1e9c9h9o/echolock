@@ -129,6 +129,18 @@ export const authAPI = {
     const response = await api.post('/auth/verify-email', { token })
     return response.data
   },
+
+  // Verify current session and get user info
+  // Returns user if session is valid, null if not authenticated
+  getMe: async () => {
+    try {
+      const response = await api.get('/users/me')
+      return response.data.data.user || response.data.user || null
+    } catch (error) {
+      // 401 means not authenticated, which is expected
+      return null
+    }
+  },
 }
 
 // Switches API
