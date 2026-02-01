@@ -1,6 +1,8 @@
 import axios, { AxiosError } from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+// In production, NEXT_PUBLIC_API_URL is empty (API proxied through Vercel rewrites)
+// In development, set NEXT_PUBLIC_API_URL=http://localhost:3000 in .env.local
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? ''
 
 // CSRF token storage (non-sensitive, can be in memory)
 let csrfToken: string | null = null

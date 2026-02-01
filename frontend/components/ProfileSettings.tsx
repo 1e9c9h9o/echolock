@@ -5,7 +5,7 @@ import { Camera, Loader2 } from 'lucide-react'
 import { userAPI } from '@/lib/api'
 import { useAuthStore } from '@/lib/store'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? ''
 
 export default function ProfileSettings() {
   const { user } = useAuthStore()

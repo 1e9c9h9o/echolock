@@ -5,7 +5,8 @@ import { useParams } from 'next/navigation'
 import { Shield, Clock, User, AlertCircle, ExternalLink, Download } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+// Use empty string for same-origin in production (proxied), localhost in dev
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? ''
 
 interface MessageData {
   title: string
