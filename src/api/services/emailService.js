@@ -270,53 +270,176 @@ export async function sendSwitchReleaseEmail(email, message, switchTitle, trigge
       <head>
         <meta charset="utf-8">
         <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: #d32f2f; color: white; padding: 20px; text-align: center; }
-          .content { padding: 30px; background: #fff3cd; border: 2px solid #ffc107; }
-          .message-box { background: white; padding: 20px; margin: 20px 0; border-left: 4px solid #d32f2f; }
-          .footer { text-align: center; color: #666; font-size: 12px; padding: 20px; }
+          @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@700;800&display=swap');
+          body {
+            font-family: 'IBM Plex Mono', 'Courier New', monospace;
+            line-height: 1.5;
+            color: #0A0A0A;
+            font-size: 14px;
+            letter-spacing: -0.01em;
+            background: #7BA3C9;
+            margin: 0;
+            padding: 20px;
+          }
+          h1, h2, h3 {
+            font-family: 'IBM Plex Sans', Arial, sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            margin: 0;
+          }
+          .container { max-width: 600px; margin: 0 auto; }
+          .hazard-stripe {
+            height: 12px;
+            background: repeating-linear-gradient(
+              -45deg,
+              #FFD000,
+              #FFD000 10px,
+              #1A1A1A 10px,
+              #1A1A1A 20px
+            );
+          }
+          .header {
+            background: #1A1A1A;
+            color: white;
+            padding: 24px 20px;
+          }
+          .header-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: #FF6B00;
+            margin-bottom: 8px;
+          }
+          .header h1 {
+            font-size: 24px;
+            color: white;
+          }
+          .content {
+            padding: 30px;
+            background: white;
+            border: 4px solid #0A0A0A;
+            border-top: none;
+          }
+          .trigger-box {
+            background: #7BA3C9;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            border-left: 4px solid #FF6B00;
+          }
+          .trigger-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.6;
+            margin-bottom: 4px;
+          }
+          .message-box {
+            background: #F5F5F5;
+            padding: 20px;
+            margin: 24px 0;
+            border: 4px solid #0A0A0A;
+          }
+          .message-header {
+            background: #0A0A0A;
+            color: white;
+            padding: 8px 12px;
+            margin: -20px -20px 16px -20px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+          }
+          .message-content {
+            white-space: pre-wrap;
+            font-family: 'IBM Plex Mono', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+          }
+          .view-online {
+            text-align: center;
+            margin: 24px 0;
+            padding: 20px;
+            background: #7BA3C9;
+            border: 4px solid #0A0A0A;
+          }
+          .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            background: #FF6B00;
+            color: white;
+            text-decoration: none;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border: none;
+          }
+          .btn:hover {
+            background: #FFD000;
+            color: #0A0A0A;
+          }
+          .explainer {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 2px solid #7BA3C9;
+            font-size: 12px;
+            opacity: 0.7;
+          }
+          .footer {
+            background: #1A1A1A;
+            color: white;
+            text-align: center;
+            font-size: 11px;
+            padding: 20px;
+            opacity: 0.7;
+          }
+          .footer p { margin: 4px 0; }
+          .footer-accent { color: #FF6B00; }
         </style>
       </head>
       <body>
         <div class="container">
+          <div class="hazard-stripe"></div>
           <div class="header">
-            <h1>⚠️ EchoLock Dead Man's Switch Triggered</h1>
+            <div class="header-label">⚠ Switch Triggered</div>
+            <h1>${switchTitle}</h1>
           </div>
           <div class="content">
-            <h2>Important Message from: ${switchTitle}</h2>
-            <p><strong>Trigger Reason:</strong> ${triggerReason}</p>
+            <div class="trigger-box">
+              <div class="trigger-label">Trigger Reason</div>
+              <div>${triggerReason}</div>
+            </div>
+
             <p>This message was automatically released because the sender failed to check in before the deadline.</p>
 
             <div class="message-box">
-              <h3>Message:</h3>
-              <div style="white-space: pre-wrap; font-family: 'Courier New', monospace;">${message}</div>
+              <div class="message-header">Message Content</div>
+              <div class="message-content">${message}</div>
             </div>
 
             ${viewUrl ? `
-            <div style="text-align: center; margin: 20px 0; padding: 15px; background: #e8f5e9; border: 1px solid #4caf50;">
-              <p style="margin: 0 0 10px 0; font-size: 14px;">
+            <div class="view-online">
+              <p style="margin: 0 0 12px 0; font-size: 12px;">
                 <strong>View this message online:</strong>
               </p>
-              <a href="${viewUrl}" style="display: inline-block; padding: 10px 20px; background: #4CAF50; color: white; text-decoration: none; border-radius: 4px;">
-                View Message
-              </a>
-              <p style="margin: 10px 0 0 0; font-size: 11px; color: #666;">
-                This link expires in 30 days
+              <a href="${viewUrl}" class="btn">View Message</a>
+              <p style="margin: 12px 0 0 0; font-size: 10px; opacity: 0.7;">
+                Link expires in 30 days
               </p>
             </div>
             ` : ''}
 
-            <p style="color: #666; font-size: 12px;">
+            <div class="explainer">
               <strong>What is this?</strong> EchoLock is a dead man's switch service that automatically releases
-              pre-written messages if the sender doesn't check in regularly. This protects sensitive information
-              and ensures important messages reach their intended recipients even if something happens to the sender.
-            </p>
+              pre-written messages if the sender doesn't check in regularly. This ensures important messages
+              reach their intended recipients.
+            </div>
           </div>
+          <div class="hazard-stripe"></div>
           <div class="footer">
-            <p>EchoLock - Censorship-resistant dead man's switch</p>
-            <p>&copy; ${new Date().getFullYear()} EchoLock. All rights reserved.</p>
-            <p>This email was sent securely via Nostr protocol</p>
+            <p><span class="footer-accent">EchoLock</span> · Censorship-resistant dead man's switch</p>
+            <p>&copy; ${new Date().getFullYear()} EchoLock · Sent via Nostr protocol</p>
           </div>
         </div>
       </body>
