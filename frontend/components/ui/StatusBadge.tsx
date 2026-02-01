@@ -105,7 +105,10 @@ export default function StatusBadge({ status, expiresAt, checkInHours }: StatusB
   const config = getConfig()
 
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider border ${config.bg} ${config.text}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase border ${config.bg} ${config.text}`}
+      style={{ letterSpacing: '0.08em' }}
+    >
       {config.icon}
       {config.label}
     </span>

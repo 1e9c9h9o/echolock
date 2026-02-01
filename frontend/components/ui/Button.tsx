@@ -20,7 +20,8 @@ export default function Button({
 
   return (
     <button
-      className={`px-6 py-3 font-bold uppercase text-xs tracking-wider transition-all duration-150 font-mono ${variants[variant]} ${className}`}
+      className={`px-6 py-3 font-bold uppercase text-xs transition-all duration-100 font-mono ${variants[variant]} ${className}`}
+      style={{ letterSpacing: '0.06em' }}
       {...props}
     >
       {children}

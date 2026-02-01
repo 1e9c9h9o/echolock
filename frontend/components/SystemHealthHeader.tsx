@@ -117,10 +117,10 @@ export default function SystemHealthHeader({ switches }: SystemHealthHeaderProps
 
         {/* Status text */}
         <div className="flex-1">
-          <div className={`font-bold text-sm uppercase tracking-wider ${config.labelColor}`}>
+          <div className={`font-bold text-sm uppercase ${config.labelColor}`} style={{ letterSpacing: '0.06em' }}>
             {config.label}
           </div>
-          <div className="text-slate-500 text-xs font-mono mt-0.5">
+          <div className="text-slate-500 text-xs font-mono mt-0.5 opacity-80">
             {config.detail}
           </div>
         </div>

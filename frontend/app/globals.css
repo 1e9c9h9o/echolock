@@ -9,19 +9,26 @@
     @apply bg-blue text-black;
     font-family: 'IBM Plex Mono', monospace;
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'IBM Plex Sans', sans-serif;
     @apply font-bold;
-    line-height: 1.1;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
   }
+
+  h1 { letter-spacing: -0.03em; }
+  h2 { letter-spacing: -0.025em; }
 
   input, textarea, select {
     @apply border-2 border-black bg-white;
     font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0;
   }
 
   input:focus, textarea:focus, select:focus {
@@ -30,6 +37,11 @@
 
   a {
     @apply text-inherit no-underline;
+  }
+
+  /* Tighter uppercase text */
+  .uppercase {
+    letter-spacing: 0.08em;
   }
 }
 
@@ -57,7 +69,8 @@
 
   /* Button styles */
   .btn {
-    @apply inline-block px-6 py-3 font-mono text-xs font-bold uppercase tracking-wider bg-orange text-black border-none cursor-pointer transition-all duration-150;
+    @apply inline-block px-6 py-3 font-mono text-xs font-bold uppercase bg-orange text-black border-none cursor-pointer transition-all duration-100;
+    letter-spacing: 0.06em;
   }
 
   .btn:hover {
@@ -91,7 +104,8 @@
   }
 
   .diagram-header {
-    @apply bg-black text-white py-3 px-5 text-[10px] uppercase tracking-widest flex justify-between;
+    @apply bg-black text-white py-3 px-5 text-[10px] uppercase flex justify-between;
+    letter-spacing: 0.15em;
   }
 
   .diagram-body {
@@ -119,11 +133,12 @@
   }
 
   .diagram-label {
-    @apply font-bold uppercase text-[11px] tracking-wide mb-1;
+    @apply font-bold uppercase text-[11px] mb-1;
+    letter-spacing: 0.06em;
   }
 
   .diagram-text {
-    @apply text-[11px] opacity-70;
+    @apply text-[11px] opacity-60;
   }
 
   /* Spec items */
@@ -141,12 +156,14 @@
   }
 
   .spec-label {
-    @apply text-[9px] uppercase tracking-widest opacity-50 mb-2;
+    @apply text-[9px] uppercase opacity-40 mb-2;
+    letter-spacing: 0.12em;
   }
 
   .spec-value {
     font-family: 'IBM Plex Sans', sans-serif;
     @apply text-xl font-bold;
+    letter-spacing: -0.02em;
   }
 
   /* Tech items */
@@ -163,20 +180,23 @@
   }
 
   .tech-num {
-    @apply text-[10px] opacity-40 mb-4 tracking-wider;
+    @apply text-[10px] opacity-30 mb-4;
+    letter-spacing: 0.1em;
   }
 
   .tech-title {
     font-family: 'IBM Plex Sans', sans-serif;
     @apply text-lg font-bold mb-3;
+    letter-spacing: -0.02em;
   }
 
   .tech-desc {
-    @apply text-xs opacity-70 leading-relaxed mb-5;
+    @apply text-xs opacity-60 leading-relaxed mb-5;
   }
 
   .tech-spec {
-    @apply text-[10px] uppercase tracking-wider py-2 px-3 bg-blue inline-block;
+    @apply text-[10px] uppercase py-2 px-3 bg-blue inline-block;
+    letter-spacing: 0.08em;
   }
 
   /* Warning section */
@@ -186,11 +206,12 @@
 
   /* Footer */
   .footer-col h4 {
-    @apply text-[9px] uppercase tracking-widest mb-4 text-orange;
+    @apply text-[9px] uppercase mb-4 text-orange;
+    letter-spacing: 0.15em;
   }
 
   .footer-col a {
-    @apply text-[11px] opacity-60 transition-opacity duration-150;
+    @apply text-[11px] opacity-50 transition-opacity duration-100;
   }
 
   .footer-col a:hover {
