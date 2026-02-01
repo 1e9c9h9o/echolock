@@ -37,15 +37,22 @@ const router = express.Router();
 // Cookie configuration helper
 const getCookieConfig = (maxAge) => {
   const isProduction = process.env.NODE_ENV === 'production';
-  // For cross-origin requests (frontend on different port), we need sameSite: 'none'
-  // Chrome 89+ allows Secure cookies on localhost without HTTPS
-  return {
+  const cookieDomain = process.env.COOKIE_DOMAIN; // e.g., '.echolock.xyz' for subdomain sharing
+
+  const config = {
     httpOnly: true,
     secure: true, // Required for sameSite: 'none', works on localhost in modern browsers
     sameSite: 'none', // Required for cross-origin cookie sending
     maxAge,
     path: '/'
   };
+
+  // Add domain for subdomain cookie sharing in production
+  if (cookieDomain) {
+    config.domain = cookieDomain;
+  }
+
+  return config;
 };
 
 /**
