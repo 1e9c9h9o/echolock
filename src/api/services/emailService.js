@@ -19,7 +19,7 @@
 import { Resend } from 'resend';
 import crypto from 'crypto';
 import { logger } from '../utils/logger.js';
-import { query } from '../db/index.js';
+import { query } from '../db/connection.js';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';

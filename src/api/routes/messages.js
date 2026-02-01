@@ -6,7 +6,7 @@
  */
 
 import express from 'express';
-import { query } from '../db/index.js';
+import { query } from '../db/connection.js';
 import { logger } from '../utils/logger.js';
 
 const router = express.Router();
