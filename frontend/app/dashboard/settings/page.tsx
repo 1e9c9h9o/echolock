@@ -1,15 +1,63 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ArrowLeft, User, Lock, Trash2, Shield, Circle, Clock, Calendar, Key, Mail, Octagon } from 'lucide-react'
+import { ArrowLeft, User, Lock, Trash2, Shield, Circle, Clock, Calendar, Key, Mail, Octagon, Monitor, Users, Download, Upload, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import KeyBackup from '@/components/KeyBackup'
 import TwoFactorSettings from '@/components/TwoFactorSettings'
 import ProfileSettings from '@/components/ProfileSettings'
+import SessionManagement from '@/components/SessionManagement'
+import EmergencyContactManager from '@/components/EmergencyContactManager'
+import EmergencyControls from '@/components/EmergencyControls'
+import ExportWizard from '@/components/ExportWizard'
+import ImportWizard from '@/components/ImportWizard'
 import { useAuthStore, useSwitchStore } from '@/lib/store'
 import { userAPI, switchesAPI } from '@/lib/api'
 import { formatDistanceToNow } from 'date-fns'
+
+/**
+ * Data Management Section Component
+ * Handles export and import of account data
+ */
+function DataManagementSection() {
+  const [showExport, setShowExport] = useState(false)
+  const [showImport, setShowImport] = useState(false)
+
+  if (showExport) {
+    return <ExportWizard onClose={() => setShowExport(false)} />
+  }
+
+  if (showImport) {
+    return <ImportWizard onClose={() => setShowImport(false)} onImportComplete={() => setShowImport(false)} />
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-slate-500 mb-4">
+        Export your account data for backup or transfer to another device. Import a previous backup to restore your settings.
+      </p>
+      <div className="grid grid-cols-2 gap-4">
+        <button
+          onClick={() => setShowExport(true)}
+          className="p-4 border border-slate-200 hover:bg-slate-50 transition-colors text-left"
+        >
+          <Download className="h-6 w-6 text-slate-400 mb-2" strokeWidth={2} />
+          <h4 className="font-bold text-sm">Export Data</h4>
+          <p className="text-xs text-slate-500 mt-1">Download encrypted backup</p>
+        </button>
+        <button
+          onClick={() => setShowImport(true)}
+          className="p-4 border border-slate-200 hover:bg-slate-50 transition-colors text-left"
+        >
+          <Upload className="h-6 w-6 text-slate-400 mb-2" strokeWidth={2} />
+          <h4 className="font-bold text-sm">Import Data</h4>
+          <p className="text-xs text-slate-500 mt-1">Restore from backup file</p>
+        </button>
+      </div>
+    </div>
+  )
+}
 
 /**
  * High Performance HMI Settings/Profile Page
@@ -39,13 +87,8 @@ export default function SettingsPage() {
     loadSwitches()
   }, [setSwitches])
 
-  // Profile update state
-  const [newEmail, setNewEmail] = useState('')
-  const [profileError, setProfileError] = useState('')
-  const [profileSuccess, setProfileSuccess] = useState('')
-  const [profileLoading, setProfileLoading] = useState(false)
-
   // Password change state
+  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
@@ -63,33 +106,15 @@ export default function SettingsPage() {
     return email.substring(0, 2).toUpperCase()
   }
 
-  const handleProfileUpdate = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setProfileError('')
-    setProfileSuccess('')
-
-    if (!newEmail || newEmail === user?.email) {
-      setProfileError('Please enter a new email address')
-      return
-    }
-
-    setProfileLoading(true)
-
-    try {
-      await userAPI.updateProfile({ email: newEmail })
-      setProfileSuccess('Email updated')
-      setNewEmail('')
-    } catch (err: any) {
-      setProfileError(err.response?.data?.message || 'Failed to update email')
-    } finally {
-      setProfileLoading(false)
-    }
-  }
-
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
     setPasswordError('')
     setPasswordSuccess('')
+
+    if (!currentPassword) {
+      setPasswordError('Please enter your current password')
+      return
+    }
 
     if (newPassword.length < 8) {
       setPasswordError('Password must be at least 8 characters')
@@ -104,8 +129,9 @@ export default function SettingsPage() {
     setPasswordLoading(true)
 
     try {
-      await userAPI.updateProfile({ password: newPassword })
+      await userAPI.updatePassword(currentPassword, newPassword)
       setPasswordSuccess('Password updated')
+      setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
     } catch (err: any) {
@@ -283,62 +309,53 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Account Settings */}
-      <div className="max-w-2xl mx-auto space-y-6">
-        {/* Change Email */}
+      {/* Active Sessions */}
+      <div className="max-w-2xl mx-auto mb-6">
         <div className="bg-white border border-slate-200">
           <div className="p-4 border-b border-slate-100">
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-              <Mail className="h-4 w-4 text-slate-400" strokeWidth={2} />
-              Email Address
+              <Monitor className="h-4 w-4 text-slate-400" strokeWidth={2} />
+              Active Sessions
             </h2>
           </div>
           <div className="p-4">
-            <p className="text-sm text-slate-500 font-mono mb-4">
-              Current: {displayUser.email}
-            </p>
-
-            <form onSubmit={handleProfileUpdate} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                  New Email
-                </label>
-                <input
-                  type="email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  placeholder="newemail@example.com"
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white font-mono text-sm transition-colors"
-                />
-              </div>
-
-              {profileError && (
-                <div className="bg-red-50 border border-red-200 p-3">
-                  <p className="text-sm text-red-700 font-mono">{profileError}</p>
-                </div>
-              )}
-
-              {profileSuccess && (
-                <div className="bg-emerald-50 border border-emerald-200 p-3">
-                  <p className="text-sm text-emerald-700 font-mono">{profileSuccess}</p>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={profileLoading || !newEmail}
-                className={`px-4 py-2 font-bold text-xs uppercase tracking-wider transition-colors ${
-                  profileLoading || !newEmail
-                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                    : 'bg-slate-100 border border-slate-200 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {profileLoading ? 'Updating...' : 'Update Email'}
-              </button>
-            </form>
+            <SessionManagement />
           </div>
         </div>
+      </div>
 
+      {/* Emergency Contacts */}
+      <div className="max-w-2xl mx-auto mb-6">
+        <div className="bg-white border border-slate-200">
+          <div className="p-4 border-b border-slate-100">
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+              <Users className="h-4 w-4 text-slate-400" strokeWidth={2} />
+              Emergency Contacts
+            </h2>
+          </div>
+          <div className="p-4">
+            <EmergencyContactManager />
+          </div>
+        </div>
+      </div>
+
+      {/* Data Management */}
+      <div className="max-w-2xl mx-auto mb-6">
+        <div className="bg-white border border-slate-200">
+          <div className="p-4 border-b border-slate-100">
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+              <Download className="h-4 w-4 text-slate-400" strokeWidth={2} />
+              Data Management
+            </h2>
+          </div>
+          <div className="p-4">
+            <DataManagementSection />
+          </div>
+        </div>
+      </div>
+
+      {/* Account Settings */}
+      <div className="max-w-2xl mx-auto space-y-6">
         {/* Change Password */}
         <div className="bg-white border border-slate-200">
           <div className="p-4 border-b border-slate-100">
@@ -349,6 +366,19 @@ export default function SettingsPage() {
           </div>
           <div className="p-4">
             <form onSubmit={handlePasswordChange} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                  Current Password
+                </label>
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400 focus:bg-white font-mono text-sm transition-colors"
+                />
+              </div>
+
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
                   New Password
@@ -364,7 +394,7 @@ export default function SettingsPage() {
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
-                  Confirm Password
+                  Confirm New Password
                 </label>
                 <input
                   type="password"
@@ -399,6 +429,22 @@ export default function SettingsPage() {
                 {passwordLoading ? 'Updating...' : 'Update Password'}
               </button>
             </form>
+          </div>
+        </div>
+
+        {/* Emergency Controls */}
+        <div className="bg-white border border-slate-200">
+          <div className="p-4 border-b border-slate-100">
+            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4 text-slate-400" strokeWidth={2} />
+              Emergency Controls
+            </h2>
+          </div>
+          <div className="p-4">
+            <EmergencyControls onPauseComplete={() => {
+              // Refresh switches after emergency pause
+              switchesAPI.getAll().then(setSwitches).catch(() => {})
+            }} />
           </div>
         </div>
 
