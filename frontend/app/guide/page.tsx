@@ -483,7 +483,7 @@ export default function GuidePage() {
                     </>
                   ) : (
                     <>
-                      <li>Go to <a href="/recover" className="text-orange hover:underline">echolock.xyz/recover</a></li>
+                      <li>Go to <a href="/recovery-tool.html" className="text-orange hover:underline">echolock.xyz/recovery-tool</a></li>
                       <li>Enter your Nostr private key (decryption happens in your browser—never sent anywhere)</li>
                       <li>Enter the switch ID (provided by the sender, or found in notification)</li>
                       <li>Click "Recover"</li>

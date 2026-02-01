@@ -818,7 +818,7 @@ export default function DocsPage() {
           </div>
           <div className="mt-12 pt-6 border-t border-white/10 text-[10px] opacity-40 flex justify-between flex-wrap gap-4 tracking-wider">
             <span>ECHOLOCK v1.0</span>
-            <span>Network: Bitcoin Mainnet</span>
+            <span>Network: Bitcoin Testnet</span>
             <span>AGPL-3.0</span>
           </div>
         </div>

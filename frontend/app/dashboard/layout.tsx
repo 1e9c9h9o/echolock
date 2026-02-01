@@ -7,8 +7,6 @@ import { Home, Plus, Settings, LogOut, Menu, X } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
 import { authAPI } from '@/lib/api'
 import TwoFactorPrompt from '@/components/TwoFactorPrompt'
-import WelcomeModal from '@/components/WelcomeModal'
-import OnboardingChecklist from '@/components/OnboardingChecklist'
 
 function LogoMark({ className = '' }: { className?: string }) {
   return (
@@ -164,14 +162,10 @@ export default function DashboardLayout({
         <main className="flex-1 overflow-auto bg-blue-light">
           <div className="max-w-6xl mx-auto p-6 lg:p-8">
             <TwoFactorPrompt />
-            <OnboardingChecklist className="mb-6" />
             {children}
           </div>
         </main>
       </div>
-
-      {/* Onboarding modal for first-time users */}
-      <WelcomeModal />
     </div>
   )
 }

@@ -192,6 +192,17 @@ class GuardianDaemon {
         clearTimeout(timeout);
         console.log(`  ✓ Connected to ${url}`);
         this.relayConnections.set(url, ws);
+
+        // Send keepalive ping every 30 seconds to prevent relay from closing connection
+        const pingInterval = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.ping();
+          } else {
+            clearInterval(pingInterval);
+          }
+        }, 30000);
+        ws._pingInterval = pingInterval;
+
         resolve(ws);
       });
 
@@ -200,11 +211,14 @@ class GuardianDaemon {
       });
 
       ws.on('close', () => {
+        // Clear ping interval if set
+        if (ws._pingInterval) {
+          clearInterval(ws._pingInterval);
+        }
         this.relayConnections.delete(url);
-        // Reconnect after delay
+        // Reconnect after delay (silently - no spam)
         if (this.running) {
-          console.log(`  ⟳ Reconnecting to ${url} in 5s...`);
-          setTimeout(() => this.connectToRelay(url).catch(() => {}), 5000);
+          setTimeout(() => this.connectToRelay(url).catch(() => {}), 30000);
         }
       });
 

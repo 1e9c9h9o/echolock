@@ -28,7 +28,7 @@ const SECRET_EXAMPLES = [
   { label: 'Bitcoin Wallet', value: 'Coinbase recovery phrase:\nabandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about' },
 ]
 
-const DEMO_INTERVAL_SECONDS = 60
+const DEMO_INTERVAL_SECONDS = 30
 
 function LogoMark({ className = '' }: { className?: string }) {
   return (
@@ -906,14 +906,25 @@ export default function PublicDemoPage() {
               </div>
             </div>
 
-            {/* Key takeaway */}
+            {/* Key takeaway - This is the money shot for Jack */}
             <div className="bg-black text-white p-6 border-4 border-orange">
-              <h3 className="font-bold text-orange mb-2">
-                How It Worked
+              <h3 className="font-bold text-orange mb-3 text-lg">
+                {isEli5 ? "The Magic: No Company Required" : "No Trusted Third Party"}
               </h3>
-              <p className="text-sm text-white/80">
-                Your contacts monitored for your check-ins and released their pieces when the timer expired. This process runs on a public network, independently of EchoLock's servers.
-              </p>
+              <div className="space-y-3 text-sm">
+                <p className="text-white/90">
+                  {isEli5
+                    ? "Everything just happened on Nostr - a public network that nobody owns. Your contacts watched for check-ins and released their pieces automatically."
+                    : "This entire process ran on Nostr relays. Guardians monitored heartbeats independently. Shares were released to Nostr. Recipients reconstructed locally."}
+                </p>
+                <div className="border-t border-white/20 pt-3 mt-3">
+                  <p className="text-orange font-bold">
+                    {isEli5
+                      ? "If EchoLock disappeared tomorrow, this would still work exactly the same."
+                      : "EchoLock is eliminable. The protocol works identically without us."}
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4">

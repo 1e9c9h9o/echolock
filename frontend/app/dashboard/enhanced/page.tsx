@@ -64,13 +64,11 @@ export default function EnhancedDashboardPage() {
   }, [loadSwitches])
 
   // WebSocket real-time updates
-  useWebSocket('switch_update', (data: unknown) => {
-    console.log('Switch updated:', data)
+  useWebSocket('switch_update', () => {
     loadSwitches()
   })
 
   useWebSocket('switch_triggered', (data: { title: string; id: string }) => {
-    console.log('Switch triggered:', data)
     notificationService.showSwitchTriggered(data.title, data.id)
     loadSwitches()
   })
