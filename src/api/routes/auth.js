@@ -543,6 +543,65 @@ router.post('/verify-email', async (req, res) => {
 });
 
 /**
+ * POST /api/auth/resend-verification
+ * Resend email verification link
+ */
+router.post('/resend-verification', validateEmail, async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    // Find user (always return success to prevent email enumeration)
+    const result = await query(
+      'SELECT id, email, email_verified FROM users WHERE email = $1',
+      [email.toLowerCase()]
+    );
+
+    if (result.rows.length > 0) {
+      const user = result.rows[0];
+
+      // Only resend if not already verified
+      if (!user.email_verified) {
+        // Generate new verification token
+        const verificationToken = generateToken();
+
+        // Update token in database
+        await query(
+          'UPDATE users SET verification_token = $1 WHERE id = $2',
+          [verificationToken, user.id]
+        );
+
+        // Send verification email
+        try {
+          await sendVerificationEmail(email, verificationToken);
+        } catch (emailError) {
+          logger.error('Failed to send verification email:', emailError);
+        }
+
+        // Log event
+        await query(
+          `INSERT INTO audit_log (user_id, event_type, ip_address, user_agent)
+           VALUES ($1, $2, $3, $4)`,
+          [user.id, 'VERIFICATION_EMAIL_RESENT', req.ip, req.get('user-agent')]
+        );
+
+        logger.info('Verification email resent', { userId: user.id });
+      }
+    }
+
+    // Always return success (prevent email enumeration)
+    res.json({
+      message: 'If an unverified account exists with that email, a verification link has been sent'
+    });
+  } catch (error) {
+    logger.error('Resend verification error:', error);
+    res.status(500).json({
+      error: 'Request failed',
+      message: 'An error occurred processing your request'
+    });
+  }
+});
+
+/**
  * POST /api/auth/forgot-password
  * Request password reset email
  */

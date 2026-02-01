@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Home, Plus, Settings, LogOut, Menu, X } from 'lucide-react'
+import { Home, Plus, Settings, LogOut, Menu, X, AlertTriangle, Mail } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
 import { authAPI } from '@/lib/api'
+import Button from '@/components/ui/Button'
 import TwoFactorPrompt from '@/components/TwoFactorPrompt'
 
 function LogoMark({ className = '' }: { className?: string }) {
@@ -27,6 +28,8 @@ export default function DashboardLayout({
   const { user, isAuthenticated, setUser, logout } = useAuthStore()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isVerifying, setIsVerifying] = useState(true)
+  const [resendingVerification, setResendingVerification] = useState(false)
+  const [verificationSent, setVerificationSent] = useState(false)
 
   useEffect(() => {
     // Verify session on page load
@@ -61,6 +64,19 @@ export default function DashboardLayout({
       router.push('/')
     } catch (error) {
       console.error('Logout error:', error)
+    }
+  }
+
+  const handleResendVerification = async () => {
+    if (!user?.email) return
+    setResendingVerification(true)
+    try {
+      await authAPI.resendVerification(user.email)
+      setVerificationSent(true)
+    } catch (error) {
+      console.error('Failed to resend verification:', error)
+    } finally {
+      setResendingVerification(false)
     }
   }
 
@@ -162,6 +178,37 @@ export default function DashboardLayout({
         <main className="flex-1 overflow-auto bg-blue-light">
           <div className="max-w-6xl mx-auto p-6 lg:p-8">
             <TwoFactorPrompt />
+
+            {/* Email Verification Banner */}
+            {user && !user.email_verified && (
+              <div className="mb-6 bg-yellow border-4 border-black p-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-black flex items-center justify-center flex-shrink-0">
+                    <Mail className="h-5 w-5 text-yellow" strokeWidth={2} />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-bold text-sm uppercase tracking-wider mb-1">Verify Your Email</h3>
+                    <p className="text-sm mb-3">
+                      Please verify your email address to create switches. Check your inbox for the verification link.
+                    </p>
+                    {verificationSent ? (
+                      <p className="text-sm font-bold text-black/70">
+                        ✓ Verification email sent to {user.email}
+                      </p>
+                    ) : (
+                      <button
+                        onClick={handleResendVerification}
+                        disabled={resendingVerification}
+                        className="px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-wider hover:bg-black/80 disabled:opacity-50 transition-colors"
+                      >
+                        {resendingVerification ? 'Sending...' : 'Resend Verification Email'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {children}
           </div>
         </main>

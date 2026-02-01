@@ -149,6 +149,11 @@ export const authAPI = {
     return response.data
   },
 
+  resendVerification: async (email: string) => {
+    const response = await api.post('/auth/resend-verification', { email })
+    return response.data
+  },
+
   // Verify current session and get user info
   // Returns user if session is valid, null if not authenticated
   getMe: async () => {
