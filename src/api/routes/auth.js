@@ -797,14 +797,18 @@ router.post('/logout', authenticateToken, async (req, res) => {
 
     logger.info('User logged out', { userId: req.user.id });
 
-    // Clear httpOnly cookies
-    const isProduction = process.env.NODE_ENV === 'production';
+    // Clear httpOnly cookies (must match how they were set)
+    const cookieDomain = process.env.COOKIE_DOMAIN;
     const cookieOptions = {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'strict' : 'lax',
+      secure: true,
+      sameSite: 'none',
       path: '/'
     };
+
+    if (cookieDomain) {
+      cookieOptions.domain = cookieDomain;
+    }
 
     res.clearCookie('accessToken', cookieOptions);
     res.clearCookie('refreshToken', cookieOptions);

@@ -204,14 +204,22 @@ const csrfProtection = (req, res, next) => {
 // Generate CSRF token endpoint
 app.get('/api/csrf-token', (req, res) => {
   const token = crypto.randomBytes(32).toString('hex');
-  const isProduction = process.env.NODE_ENV === 'production';
+  const cookieDomain = process.env.COOKIE_DOMAIN;
 
-  res.cookie('csrf-token', token, {
+  const cookieConfig = {
     httpOnly: false, // Must be readable by JavaScript
-    secure: isProduction,
-    sameSite: isProduction ? 'strict' : 'lax',
-    maxAge: 3600000 // 1 hour
-  });
+    secure: true, // Required for sameSite: 'none'
+    sameSite: 'none', // Required for cross-origin (Vercel proxy to Railway)
+    maxAge: 3600000, // 1 hour
+    path: '/'
+  };
+
+  // Add domain for subdomain cookie sharing if configured
+  if (cookieDomain) {
+    cookieConfig.domain = cookieDomain;
+  }
+
+  res.cookie('csrf-token', token, cookieConfig);
 
   res.json({ csrfToken: token });
 });
