@@ -17,7 +17,9 @@
  */
 
 import { Resend } from 'resend';
+import crypto from 'crypto';
 import { logger } from '../utils/logger.js';
+import { query } from '../db/index.js';
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3001';
@@ -215,13 +217,53 @@ EchoLock - Censorship-resistant dead man's switch
 }
 
 /**
+ * Create a release token for a recipient to view their message online
+ * @param {Object} params - Token parameters
+ * @returns {Promise<string>} The generated token
+ */
+export async function createReleaseToken({
+  switchId,
+  recipientId,
+  recipientEmail,
+  messageContent,
+  senderName,
+  senderEmail,
+  switchTitle,
+  expiresInDays = 30
+}) {
+  const token = crypto.randomBytes(32).toString('hex');
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + expiresInDays);
+
+  try {
+    await query(
+      `INSERT INTO release_tokens
+        (switch_id, recipient_id, token, recipient_email, message_content,
+         sender_name, sender_email, switch_title, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [switchId, recipientId, token, recipientEmail, messageContent,
+       senderName, senderEmail, switchTitle, expiresAt]
+    );
+    logger.info('Created release token', { switchId, recipientEmail, token: token.substring(0, 8) + '...' });
+    return token;
+  } catch (error) {
+    logger.error('Failed to create release token:', error);
+    return null;
+  }
+}
+
+/**
  * Send dead man's switch release message
  * @param {string} email - Recipient email
  * @param {string} message - The secret message
  * @param {string} switchTitle - Title of the switch
  * @param {string} triggerReason - Why it was triggered
+ * @param {Object} options - Optional parameters
+ * @param {string} options.viewToken - Token for viewing message online
  */
-export async function sendSwitchReleaseEmail(email, message, switchTitle, triggerReason = 'Timer expired') {
+export async function sendSwitchReleaseEmail(email, message, switchTitle, triggerReason = 'Timer expired', options = {}) {
+  const { viewToken } = options;
+  const viewUrl = viewToken ? `${FRONTEND_URL}/message/${viewToken}` : null;
   const html = `
     <!DOCTYPE html>
     <html>
@@ -250,6 +292,20 @@ export async function sendSwitchReleaseEmail(email, message, switchTitle, trigge
               <h3>Message:</h3>
               <div style="white-space: pre-wrap; font-family: 'Courier New', monospace;">${message}</div>
             </div>
+
+            ${viewUrl ? `
+            <div style="text-align: center; margin: 20px 0; padding: 15px; background: #e8f5e9; border: 1px solid #4caf50;">
+              <p style="margin: 0 0 10px 0; font-size: 14px;">
+                <strong>View this message online:</strong>
+              </p>
+              <a href="${viewUrl}" style="display: inline-block; padding: 10px 20px; background: #4CAF50; color: white; text-decoration: none; border-radius: 4px;">
+                View Message
+              </a>
+              <p style="margin: 10px 0 0 0; font-size: 11px; color: #666;">
+                This link expires in 30 days
+              </p>
+            </div>
+            ` : ''}
 
             <p style="color: #666; font-size: 12px;">
               <strong>What is this?</strong> EchoLock is a dead man's switch service that automatically releases
@@ -280,7 +336,10 @@ This message was automatically released because the sender failed to check in be
 ${message}
 
 --- END MESSAGE ---
-
+${viewUrl ? `
+View this message online: ${viewUrl}
+(Link expires in 30 days)
+` : ''}
 What is this?
 EchoLock is a dead man's switch service that automatically releases pre-written messages if the sender doesn't check in regularly.
 
@@ -688,5 +747,6 @@ export default {
   sendTestDrillEmail,
   sendQuickCheckInLink,
   sendEmergencyAlertEmail,
-  sendEmergencyTestEmail
+  sendEmergencyTestEmail,
+  createReleaseToken
 };

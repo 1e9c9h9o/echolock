@@ -119,7 +119,7 @@ export default function HomePage() {
 
       {/* Specs */}
       <section className="bg-black text-white">
-        <div className="grid grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <div className="spec">
             <div className="spec-label">Keys</div>
             <div className="spec-value">User-Controlled</div>

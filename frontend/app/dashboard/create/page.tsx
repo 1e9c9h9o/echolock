@@ -199,7 +199,7 @@ export default function CreateSwitchPage() {
           <div className="p-4 space-y-3">
             {recipients.map((recipient, index) => (
               <div key={index} className="flex gap-3 items-start">
-                <div className="flex-1 grid grid-cols-2 gap-3">
+                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input
                     type="text"
                     value={recipient.name}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, Clock, AlertCircle, Users, Sparkles } from 'lucide-react'
+import { Plus, Clock, AlertCircle, Users, Sparkles, Shield, Heart, Briefcase, Play } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import Button from '@/components/ui/Button'
 import StatusBadge from '@/components/ui/StatusBadge'
@@ -118,29 +118,74 @@ export default function DashboardPage() {
       {/* Level 1: System Health Header */}
       <SystemHealthHeader switches={switches} />
 
-      {/* Empty state */}
+      {/* Empty state - welcoming first-time experience */}
       {switches.length === 0 && !error && (
-        <div className="bg-white border border-slate-200 p-12 text-center">
-          <div className="w-16 h-16 mx-auto mb-6 bg-slate-100 flex items-center justify-center">
-            <Plus className="h-8 w-8 text-slate-400" strokeWidth={1.5} />
-          </div>
-          <h3 className="text-xl font-bold text-slate-700 mb-2">
-            No Active Switches
-          </h3>
-          <p className="text-slate-500 font-mono text-sm mb-6 max-w-md mx-auto">
-            Create your first dead man's switch to begin monitoring.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link href="/dashboard/create">
-              <button className="px-6 py-3 bg-slate-800 text-white font-bold text-sm uppercase tracking-wider hover:bg-slate-700 transition-colors">
-                Create Switch
-              </button>
-            </Link>
-            <Link href="/dashboard/demo">
-              <button className="px-6 py-3 bg-slate-100 border border-slate-300 text-slate-600 font-bold text-sm uppercase tracking-wider hover:bg-slate-200 transition-colors">
-                Try Demo
-              </button>
-            </Link>
+        <div className="bg-white border border-slate-200 py-16 px-6">
+          <div className="max-w-lg mx-auto text-center">
+            {/* Icon */}
+            <div className="w-16 h-16 mx-auto mb-6 bg-slate-100 flex items-center justify-center">
+              <Shield className="h-8 w-8 text-slate-400" strokeWidth={1.5} />
+            </div>
+
+            {/* Welcome message */}
+            <h2 className="text-xl font-bold text-slate-800 mb-2">
+              Welcome to EchoLock
+            </h2>
+            <p className="text-slate-500 mb-8">
+              Create your first dead man's switch to protect important information
+              and ensure it reaches the right people at the right time.
+            </p>
+
+            {/* Purpose-driven options */}
+            <div className="grid gap-3 mb-8 text-left">
+              <Link href="/dashboard/create">
+                <div className="p-4 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group">
+                  <div className="flex items-start gap-3">
+                    <Heart className="h-5 w-5 text-slate-400 mt-0.5 group-hover:text-slate-600" strokeWidth={1.5} />
+                    <div>
+                      <h3 className="font-bold text-sm text-slate-700">Protect Your Family</h3>
+                      <p className="text-xs text-slate-500 mt-1">Share passwords, accounts, or final wishes</p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+              <Link href="/dashboard/create">
+                <div className="p-4 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group">
+                  <div className="flex items-start gap-3">
+                    <Briefcase className="h-5 w-5 text-slate-400 mt-0.5 group-hover:text-slate-600" strokeWidth={1.5} />
+                    <div>
+                      <h3 className="font-bold text-sm text-slate-700">Business Continuity</h3>
+                      <p className="text-xs text-slate-500 mt-1">Ensure critical access is never lost</p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+              <Link href="/dashboard/demo">
+                <div className="p-4 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group">
+                  <div className="flex items-start gap-3">
+                    <Play className="h-5 w-5 text-slate-400 mt-0.5 group-hover:text-slate-600" strokeWidth={1.5} />
+                    <div>
+                      <h3 className="font-bold text-sm text-slate-700">Just Exploring</h3>
+                      <p className="text-xs text-slate-500 mt-1">Try the demo first to see how it works</p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link href="/dashboard/create">
+                <button className="w-full sm:w-auto px-6 py-3 bg-slate-800 text-white font-bold text-sm uppercase tracking-wider hover:bg-slate-700 transition-colors">
+                  Create Switch
+                </button>
+              </Link>
+              <Link href="/dashboard/demo">
+                <button className="w-full sm:w-auto px-6 py-3 bg-slate-100 border border-slate-300 text-slate-600 font-bold text-sm uppercase tracking-wider hover:bg-slate-200 transition-colors">
+                  Try Demo
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
       )}

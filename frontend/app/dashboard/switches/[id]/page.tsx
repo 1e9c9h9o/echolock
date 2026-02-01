@@ -444,14 +444,14 @@ export default function SwitchDetailPage() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
                     <h3 className="text-sm font-medium text-slate-700">Delete Switch</h3>
                     <p className="text-xs text-slate-500">Permanently delete all data</p>
                   </div>
                   <button
                     onClick={handleDelete}
-                    className="px-4 py-2 bg-red-50 border border-red-200 text-red-600 font-bold text-xs uppercase tracking-wider hover:bg-red-100 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-red-50 border border-red-200 text-red-600 font-bold text-xs uppercase tracking-wider hover:bg-red-100 transition-colors flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start"
                   >
                     <Trash2 className="h-3 w-3" strokeWidth={2} />
                     Delete

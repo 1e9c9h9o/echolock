@@ -65,6 +65,7 @@ import healthCheckRoutes from './routes/healthCheck.js';
 import emergencyContactsRoutes, { acknowledgeAlertRoute } from './routes/emergencyContacts.js';
 import backupRoutes from './routes/backup.js';
 import legalRoutes from './routes/legal.js';
+import messagesRoutes from './routes/messages.js';
 // Removed: trackingRoutes - email tracking pixels are privacy-hostile
 
 // Import auth middleware for cleanup
@@ -338,6 +339,7 @@ app.use('/api/switches', cascadeRoutes);  // Mounts as /api/switches/:switchId/c
 app.use('/api/switches', healthCheckRoutes);  // Mounts as /api/switches/:switchId/health-check
 app.use('/api/emergency-contacts', emergencyContactsRoutes);
 app.use('/api/acknowledge-alert', acknowledgeAlertRoute);  // Public route for alert acknowledgment
+app.use('/api/messages', messagesRoutes);  // Public route for recipient message viewing
 app.use('/api/account', backupRoutes);
 app.use('/api/legal', legalRoutes);
 // Removed: /api/track - email tracking pixels are privacy-hostile
