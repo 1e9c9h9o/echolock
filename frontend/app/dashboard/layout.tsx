@@ -30,6 +30,7 @@ export default function DashboardLayout({
   const [isVerifying, setIsVerifying] = useState(true)
   const [resendingVerification, setResendingVerification] = useState(false)
   const [verificationSent, setVerificationSent] = useState(false)
+  const [verificationError, setVerificationError] = useState<string | null>(null)
 
   useEffect(() => {
     // Verify session on page load
@@ -70,11 +71,19 @@ export default function DashboardLayout({
   const handleResendVerification = async () => {
     if (!user?.email) return
     setResendingVerification(true)
+    setVerificationError(null)
     try {
-      await authAPI.resendVerification(user.email)
-      setVerificationSent(true)
-    } catch (error) {
+      const response = await authAPI.resendVerification(user.email)
+      if (response.sent) {
+        setVerificationSent(true)
+      } else if (response.error) {
+        setVerificationError(response.error)
+      } else {
+        setVerificationSent(true)
+      }
+    } catch (error: any) {
       console.error('Failed to resend verification:', error)
+      setVerificationError(error.response?.data?.error || error.message || 'Failed to send email')
     } finally {
       setResendingVerification(false)
     }
@@ -195,6 +204,19 @@ export default function DashboardLayout({
                       <p className="text-sm font-bold text-black/70">
                         ✓ Verification email sent to {user.email}
                       </p>
+                    ) : verificationError ? (
+                      <div>
+                        <p className="text-sm text-red-700 mb-2">
+                          Error: {verificationError}
+                        </p>
+                        <button
+                          onClick={handleResendVerification}
+                          disabled={resendingVerification}
+                          className="px-4 py-2 bg-black text-white text-xs font-bold uppercase tracking-wider hover:bg-black/80 disabled:opacity-50 transition-colors"
+                        >
+                          Try Again
+                        </button>
+                      </div>
                     ) : (
                       <button
                         onClick={handleResendVerification}

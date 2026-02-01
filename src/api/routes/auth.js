@@ -571,10 +571,14 @@ router.post('/resend-verification', validateEmail, async (req, res) => {
         );
 
         // Send verification email
+        let emailResult = null;
+        let emailError = null;
         try {
-          await sendVerificationEmail(email, verificationToken);
-        } catch (emailError) {
-          logger.error('Failed to send verification email:', emailError);
+          emailResult = await sendVerificationEmail(email, verificationToken);
+          logger.info('Verification email sent', { userId: user.id, result: emailResult });
+        } catch (err) {
+          emailError = err.message;
+          logger.error('Failed to send verification email:', err);
         }
 
         // Log event
@@ -585,12 +589,27 @@ router.post('/resend-verification', validateEmail, async (req, res) => {
         );
 
         logger.info('Verification email resent', { userId: user.id });
+
+        // Return detailed response
+        return res.json({
+          message: emailError
+            ? 'Email service error - please try again later'
+            : 'Verification email sent',
+          sent: !emailError,
+          ...(emailError && process.env.NODE_ENV !== 'production' && { error: emailError })
+        });
+      } else {
+        return res.json({
+          message: 'Email is already verified',
+          sent: false
+        });
       }
     }
 
-    // Always return success (prevent email enumeration)
+    // User not found - still return generic success to prevent enumeration
     res.json({
-      message: 'If an unverified account exists with that email, a verification link has been sent'
+      message: 'If an unverified account exists with that email, a verification link has been sent',
+      sent: true
     });
   } catch (error) {
     logger.error('Resend verification error:', error);
