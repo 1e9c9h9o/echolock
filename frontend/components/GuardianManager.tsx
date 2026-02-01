@@ -43,6 +43,9 @@ interface GuardianManagerProps {
   guardians: Guardian[];
   onGuardiansChange: (guardians: Guardian[]) => void;
   thresholdNeeded?: number; // K in K-of-N
+  totalShares?: number; // N in K-of-N
+  onThresholdChange?: (threshold: number, total: number) => void;
+  readOnly?: boolean; // When true, threshold cannot be changed
 }
 
 export default function GuardianManager({
@@ -50,6 +53,9 @@ export default function GuardianManager({
   guardians,
   onGuardiansChange,
   thresholdNeeded = 3,
+  totalShares = 5,
+  onThresholdChange,
+  readOnly = false,
 }: GuardianManagerProps) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newGuardianNpub, setNewGuardianNpub] = useState('');
@@ -235,14 +241,29 @@ export default function GuardianManager({
           <div>
             <h3 className="font-bold text-lg">Guardian Network</h3>
             <p className="text-sm text-gray-600">
-              {thresholdNeeded} of {guardians.length || 5} guardians needed to release
+              {thresholdNeeded}-of-{totalShares} Shamir threshold
             </p>
           </div>
+        </div>
+        {/* Threshold indicator */}
+        <div className={`flex items-center gap-2 px-3 py-1 text-sm font-medium ${
+          activeGuardians.length >= thresholdNeeded
+            ? 'bg-green-100 text-green-700'
+            : activeGuardians.length >= Math.ceil(thresholdNeeded * 0.66)
+            ? 'bg-yellow-100 text-yellow-700'
+            : 'bg-red-100 text-red-700'
+        }`}>
+          {activeGuardians.length >= thresholdNeeded ? (
+            <Check className="w-4 h-4" />
+          ) : (
+            <AlertTriangle className="w-4 h-4" />
+          )}
+          {activeGuardians.length}/{thresholdNeeded} required
         </div>
       </div>
 
       {/* Guardian Status Summary */}
-      <div className="grid grid-cols-3 gap-3 mb-4 p-3 bg-gray-50 border-2 border-gray-200">
+      <div className="grid grid-cols-4 gap-3 mb-4 p-3 bg-gray-50 border-2 border-gray-200">
         <div className="text-center">
           <p className="text-2xl font-bold text-green-600">{activeGuardians.length}</p>
           <p className="text-xs text-gray-500">Active</p>
@@ -252,8 +273,12 @@ export default function GuardianManager({
           <p className="text-xs text-gray-500">Pending</p>
         </div>
         <div className="text-center">
-          <p className="text-2xl font-bold">{guardians.length}</p>
-          <p className="text-xs text-gray-500">Total</p>
+          <p className="text-2xl font-bold">{guardians.length}/{totalShares}</p>
+          <p className="text-xs text-gray-500">Assigned</p>
+        </div>
+        <div className="text-center border-l-2 border-gray-200">
+          <p className="text-2xl font-bold text-purple-600">{thresholdNeeded}</p>
+          <p className="text-xs text-gray-500">Threshold</p>
         </div>
       </div>
 

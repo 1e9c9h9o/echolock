@@ -41,7 +41,9 @@ router.get('/:switchId', async (req, res) => {
         s.client_side_encryption,
         s.expires_at,
         s.last_check_in,
-        s.created_at
+        s.created_at,
+        s.shamir_total_shares,
+        s.shamir_threshold
        FROM switches s
        WHERE s.id = $1 AND s.user_id = $2`,
       [switchId, userId]
@@ -79,17 +81,21 @@ router.get('/:switchId', async (req, res) => {
     const fragmentMetadata = sw.fragment_metadata || {};
     const guardians = fragmentMetadata.guardians || [];
     const acknowledgedGuardians = guardians.filter(g => g.acknowledged).length;
-    const requiredGuardians = 3;
+    // Use dynamic threshold from switch config, default to 3 for backwards compatibility
+    const requiredGuardians = sw.shamir_threshold || 3;
+    const totalSharesExpected = sw.shamir_total_shares || 5;
 
     checks.guardianAcknowledgments = {
       status: acknowledgedGuardians >= requiredGuardians ? 'pass'
-        : acknowledgedGuardians >= 2 ? 'warning' : 'fail',
+        : acknowledgedGuardians >= Math.ceil(requiredGuardians / 2) ? 'warning' : 'fail',
       acknowledged: acknowledgedGuardians,
       total: guardians.length,
       required: requiredGuardians,
+      totalSharesExpected,
+      thresholdConfig: `${requiredGuardians}-of-${totalSharesExpected}`,
       message: acknowledgedGuardians >= requiredGuardians
-        ? `${acknowledgedGuardians}/${guardians.length} guardians acknowledged`
-        : `Only ${acknowledgedGuardians} guardians acknowledged (${requiredGuardians} required)`
+        ? `${acknowledgedGuardians}/${guardians.length} guardians acknowledged (${requiredGuardians} required for ${requiredGuardians}-of-${totalSharesExpected} threshold)`
+        : `Only ${acknowledgedGuardians} guardians acknowledged (${requiredGuardians} required for recovery)`
     };
 
     if (checks.guardianAcknowledgments.status === 'fail') overallStatus = 'critical';
@@ -189,6 +195,11 @@ router.get('/:switchId', async (req, res) => {
       data: {
         switchId,
         overall: overallStatus,
+        thresholdConfig: {
+          totalShares: totalSharesExpected,
+          threshold: requiredGuardians,
+          description: `${requiredGuardians}-of-${totalSharesExpected}`
+        },
         checks,
         proofDocument,
         timestamp: new Date().toISOString()

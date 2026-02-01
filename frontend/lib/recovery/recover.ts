@@ -24,22 +24,27 @@ import { decrypt as nip44Decrypt } from '../guardian/nip44';
 import { deserializeShare, combine } from '../crypto/shamir';
 import { decrypt as aesDecrypt, importKey, fromHex } from '../crypto/aes';
 
-const THRESHOLD = 3; // Minimum shares needed
+const DEFAULT_THRESHOLD = 3; // Minimum shares needed (default for 3-of-5)
 
 /**
  * Start a recovery session for a switch
+ * @param switchId - ID of the switch to recover
+ * @param userNpub - Nostr pubkey of the switch creator
+ * @param recipientNpub - Nostr pubkey of the recipient
+ * @param threshold - Number of shares required (defaults to 3 for legacy switches)
  */
 export function createRecoverySession(
   switchId: string,
   userNpub: string,
-  recipientNpub: string
+  recipientNpub: string,
+  threshold: number = DEFAULT_THRESHOLD
 ): RecoverySession {
   return {
     switchId,
     userNpub,
     recipientNpub,
     shares: [],
-    threshold: THRESHOLD,
+    threshold,
     status: 'collecting',
   };
 }
@@ -142,18 +147,21 @@ export async function decryptShares(
 
 /**
  * Reconstruct the encryption key from shares
+ * @param shares - Decrypted shares from guardians
+ * @param threshold - Number of shares required (defaults to 3 for legacy switches)
  */
 export function reconstructKey(
-  shares: ReleasedShare[]
+  shares: ReleasedShare[],
+  threshold: number = DEFAULT_THRESHOLD
 ): Uint8Array {
-  if (shares.length < THRESHOLD) {
-    throw new Error(`Need ${THRESHOLD} shares, only have ${shares.length}`);
+  if (shares.length < threshold) {
+    throw new Error(`Need ${threshold} shares, only have ${shares.length}`);
   }
 
   // Convert decrypted shares to Shamir format
   const shamirShares = shares
     .filter((s) => s.decryptedShare)
-    .slice(0, THRESHOLD) // Only need threshold shares
+    .slice(0, threshold) // Only need threshold shares
     .map((s) => deserializeShare(s.decryptedShare!));
 
   // Reconstruct the secret (encryption key)
@@ -217,15 +225,22 @@ export async function decryptMessage(
 
 /**
  * Complete recovery process
+ * @param switchId - ID of the switch to recover
+ * @param userNpub - Nostr pubkey of the switch creator
+ * @param recipientNpub - Nostr pubkey of the recipient
+ * @param recipientPrivateKey - Recipient's Nostr private key
+ * @param relays - Nostr relay URLs to query
+ * @param threshold - Number of shares required (defaults to 3, pass the switch's threshold for variable thresholds)
  */
 export async function recoverMessage(
   switchId: string,
   userNpub: string,
   recipientNpub: string,
   recipientPrivateKey: string,
-  relays?: string[]
+  relays?: string[],
+  threshold: number = DEFAULT_THRESHOLD
 ): Promise<RecoveryResult> {
-  const session = createRecoverySession(switchId, userNpub, recipientNpub);
+  const session = createRecoverySession(switchId, userNpub, recipientNpub, threshold);
 
   try {
     // Step 1: Collect released shares
@@ -233,11 +248,11 @@ export async function recoverMessage(
     const shares = await collectReleasedShares(session, relays);
     console.log(`Found ${shares.length} shares`);
 
-    if (shares.length < THRESHOLD) {
+    if (shares.length < threshold) {
       return {
         success: false,
         switchId,
-        error: `Not enough shares released. Need ${THRESHOLD}, found ${shares.length}`,
+        error: `Not enough shares released. Need ${threshold}, found ${shares.length}`,
         sharesUsed: shares.length,
         timestamp: Date.now(),
       };
@@ -249,11 +264,11 @@ export async function recoverMessage(
     const validShares = decryptedShares.filter((s) => s.decryptedShare);
     console.log(`Decrypted ${validShares.length} shares`);
 
-    if (validShares.length < THRESHOLD) {
+    if (validShares.length < threshold) {
       return {
         success: false,
         switchId,
-        error: `Could not decrypt enough shares. Need ${THRESHOLD}, decrypted ${validShares.length}`,
+        error: `Could not decrypt enough shares. Need ${threshold}, decrypted ${validShares.length}`,
         sharesUsed: validShares.length,
         timestamp: Date.now(),
       };
@@ -261,7 +276,7 @@ export async function recoverMessage(
 
     // Step 3: Reconstruct encryption key
     console.log('Reconstructing encryption key...');
-    const encryptionKey = reconstructKey(validShares);
+    const encryptionKey = reconstructKey(validShares, threshold);
 
     // Step 4: Fetch encrypted message
     console.log('Fetching encrypted message...');
@@ -349,22 +364,29 @@ async function queryRelay(
 
 /**
  * Check recovery status for a switch
+ * @param switchId - ID of the switch
+ * @param recipientNpub - Nostr pubkey of the recipient
+ * @param relays - Nostr relay URLs to query
+ * @param threshold - Number of shares required (defaults to 3)
  */
 export async function checkRecoveryStatus(
   switchId: string,
   recipientNpub: string,
-  relays?: string[]
+  relays?: string[],
+  threshold: number = DEFAULT_THRESHOLD
 ): Promise<{
   sharesReleased: number;
+  threshold: number;
   canRecover: boolean;
   guardians: string[];
 }> {
-  const session = createRecoverySession(switchId, '', recipientNpub);
+  const session = createRecoverySession(switchId, '', recipientNpub, threshold);
   const shares = await collectReleasedShares(session, relays);
 
   return {
     sharesReleased: shares.length,
-    canRecover: shares.length >= THRESHOLD,
+    threshold,
+    canRecover: shares.length >= threshold,
     guardians: shares.map((s) => s.guardianNpub),
   };
 }

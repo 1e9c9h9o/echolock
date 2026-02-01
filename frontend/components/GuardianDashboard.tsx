@@ -24,6 +24,10 @@ import {
   Wifi,
   WifiOff,
   Eye,
+  ChevronDown,
+  ChevronUp,
+  Bell,
+  Play,
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -35,12 +39,21 @@ import {
   HEALTH_THRESHOLDS,
 } from '@/lib/guardian/health';
 import { DEFAULT_RELAYS } from '@/lib/nostr/types';
+import GuardianTimeline from './GuardianTimeline';
+import GuardianAlertSettings from './GuardianAlertSettings';
+import DryRunSimulator from './DryRunSimulator';
+import type { SwitchConfig } from '@/lib/simulation/dryRun';
 
 interface GuardianDashboardProps {
   switchId: string;
   guardians: Guardian[];
   thresholdNeeded?: number;
+  totalShares?: number;
   onRefresh?: () => void;
+  switchConfig?: SwitchConfig; // For dry run simulation
+  showTimeline?: boolean;
+  showAlertSettings?: boolean;
+  showSimulator?: boolean;
 }
 
 interface NetworkHealth {
@@ -57,13 +70,31 @@ export default function GuardianDashboard({
   switchId,
   guardians,
   thresholdNeeded = 3,
+  totalShares = 5,
   onRefresh,
+  switchConfig,
+  showTimeline = true,
+  showAlertSettings = true,
+  showSimulator = true,
 }: GuardianDashboardProps) {
   const [networkHealth, setNetworkHealth] = useState<NetworkHealth | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['monitor']));
+
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(section)) {
+        next.delete(section);
+      } else {
+        next.add(section);
+      }
+      return next;
+    });
+  };
 
   const checkHealth = useCallback(async () => {
     if (guardians.length === 0) return;
@@ -155,6 +186,7 @@ export default function GuardianDashboard({
   };
 
   return (
+    <>
     <Card>
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
@@ -381,6 +413,98 @@ export default function GuardianDashboard({
           </div>
         </div>
       </div>
+
+      {/* Threshold Configuration Display */}
+      <div className="mt-4 p-3 bg-purple-50 border border-purple-200 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Shield className="w-4 h-4 text-purple-600" />
+          <span className="text-sm font-medium text-purple-800">
+            Shamir Threshold: {thresholdNeeded}-of-{totalShares}
+          </span>
+        </div>
+        <span className="text-xs text-purple-600">
+          {thresholdNeeded} guardians required to recover
+        </span>
+      </div>
     </Card>
+
+    {/* Expandable Sections */}
+    <div className="space-y-4 mt-6">
+      {/* Timeline Section */}
+      {showTimeline && (
+        <div className="border-2 border-gray-200">
+          <button
+            onClick={() => toggleSection('timeline')}
+            className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Activity className="w-5 h-5 text-gray-500" />
+              <span className="font-semibold text-gray-800">Activity Timeline</span>
+            </div>
+            {expandedSections.has('timeline') ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+          {expandedSections.has('timeline') && (
+            <div className="p-4 border-t border-gray-200">
+              <GuardianTimeline switchId={switchId} />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Alert Settings Section */}
+      {showAlertSettings && (
+        <div className="border-2 border-gray-200">
+          <button
+            onClick={() => toggleSection('alerts')}
+            className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-gray-500" />
+              <span className="font-semibold text-gray-800">Alert Settings</span>
+            </div>
+            {expandedSections.has('alerts') ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+          {expandedSections.has('alerts') && (
+            <div className="p-4 border-t border-gray-200">
+              <GuardianAlertSettings />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Dry Run Simulator Section */}
+      {showSimulator && switchConfig && (
+        <div className="border-2 border-gray-200">
+          <button
+            onClick={() => toggleSection('simulator')}
+            className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Play className="w-5 h-5 text-gray-500" />
+              <span className="font-semibold text-gray-800">Dry Run Simulator</span>
+            </div>
+            {expandedSections.has('simulator') ? (
+              <ChevronUp className="w-5 h-5 text-gray-400" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-400" />
+            )}
+          </button>
+          {expandedSections.has('simulator') && (
+            <div className="p-4 border-t border-gray-200">
+              <DryRunSimulator switchConfig={switchConfig} />
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+    </>
   );
 }

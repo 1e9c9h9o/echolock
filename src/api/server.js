@@ -66,6 +66,7 @@ import emergencyContactsRoutes, { acknowledgeAlertRoute } from './routes/emergen
 import backupRoutes from './routes/backup.js';
 import legalRoutes from './routes/legal.js';
 import messagesRoutes from './routes/messages.js';
+import guardianHealthRoutes from './routes/guardianHealth.js';
 // Removed: trackingRoutes - email tracking pixels are privacy-hostile
 
 // Import auth middleware for cleanup
@@ -78,6 +79,9 @@ import { startReminderMonitor } from './jobs/reminderMonitor.js';
 
 // Import Bitcoin funding monitor (background job for detecting commitment funding)
 import { startBitcoinFundingMonitor } from './jobs/bitcoinFundingMonitor.js';
+
+// Import Guardian health monitor (background job for tracking guardian availability)
+import { startGuardianHealthMonitor } from './jobs/guardianHealthMonitor.js';
 
 // Import WebSocket service
 import websocketService from './services/websocketService.js';
@@ -350,6 +354,8 @@ app.use('/api/acknowledge-alert', acknowledgeAlertRoute);  // Public route for a
 app.use('/api/messages', messagesRoutes);  // Public route for recipient message viewing
 app.use('/api/account', backupRoutes);
 app.use('/api/legal', legalRoutes);
+app.use('/api/switches', guardianHealthRoutes);  // Mounts as /api/switches/:switchId/guardians/*
+app.use('/api', guardianHealthRoutes);  // Mounts as /api/guardian-alert-settings
 // Removed: /api/track - email tracking pixels are privacy-hostile
 
 // ============================================================================
@@ -429,6 +435,11 @@ async function startServer() {
         logger.info('Bitcoin funding monitor started - checking for commitment funding every 2 minutes');
         app.locals.bitcoinJob = bitcoinJob;
       }
+
+      // Start Guardian health monitor
+      logger.info('Starting guardian health monitor...');
+      startGuardianHealthMonitor();
+      logger.info('Guardian health monitor started - checking guardian availability every 15 minutes');
     } else {
       logger.warn('Reminder monitor not started - database not available');
     }

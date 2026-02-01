@@ -105,7 +105,9 @@ router.post('/encrypted', requireEmailVerified, async (req, res) => {
       encryptedMessage,
       shares,
       nostrPublicKey,
-      clientSideEncryption
+      clientSideEncryption,
+      shamirTotalShares = 5,
+      shamirThreshold = 3
     } = req.body;
 
     // Validate required fields
@@ -144,6 +146,43 @@ router.post('/encrypted', requireEmailVerified, async (req, res) => {
       });
     }
 
+    // Validate Shamir threshold parameters
+    if (shamirThreshold < 2) {
+      return res.status(400).json({
+        error: 'Invalid threshold',
+        message: 'Threshold must be at least 2'
+      });
+    }
+
+    if (shamirTotalShares < shamirThreshold) {
+      return res.status(400).json({
+        error: 'Invalid threshold',
+        message: 'Total shares must be at least equal to threshold'
+      });
+    }
+
+    if (shamirTotalShares > 15) {
+      return res.status(400).json({
+        error: 'Invalid threshold',
+        message: 'Maximum 15 shares supported'
+      });
+    }
+
+    if (shamirThreshold * 2 < shamirTotalShares) {
+      return res.status(400).json({
+        error: 'Invalid threshold',
+        message: 'Threshold must be at least half of total shares for security'
+      });
+    }
+
+    // Validate shares array matches total shares
+    if (shares.length !== shamirTotalShares) {
+      return res.status(400).json({
+        error: 'Invalid shares',
+        message: `Expected ${shamirTotalShares} shares but received ${shares.length}`
+      });
+    }
+
     // Import services for client-encrypted switches
     const { createClientEncryptedSwitch } = await import('../services/switchService.js');
 
@@ -153,7 +192,9 @@ router.post('/encrypted', requireEmailVerified, async (req, res) => {
       recipients,
       encryptedMessage,
       shares,
-      nostrPublicKey
+      nostrPublicKey,
+      shamirTotalShares,
+      shamirThreshold
     });
 
     // Send WebSocket notification

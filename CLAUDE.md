@@ -468,6 +468,57 @@ POST /api/switches/:id/bitcoin-commitment/verify (manual verification)
 
 ---
 
+## v2.1 Features (February 2026)
+
+### Feature 1: Flexible M-of-N Thresholds
+- [x] Database: Migration 010 adds `shamir_total_shares` and `shamir_threshold` columns
+- [x] Backend: `/api/switches` accepts `shamirTotalShares` and `shamirThreshold` params
+- [x] Frontend: `ThresholdSelector.tsx` - Preset cards (2-of-3, 3-of-5, 4-of-7, 5-of-9) + custom slider
+- [x] Frontend: `frontend/lib/crypto/index.ts` - `THRESHOLD_PRESETS`, `validateThreshold()`
+- [x] Recovery tool: Updated to accept configurable threshold parameter
+- [x] Presets: Simple (2-of-3), Balanced (3-of-5), High (4-of-7), Enterprise (5-of-9)
+
+### Feature 2: Guardian Health Monitoring
+- [x] Database: Migration 009 adds `guardian_health_history`, `guardian_alert_settings`, `guardian_alerts_sent`
+- [x] Backend: `src/api/routes/guardianHealth.js` - CRUD for health, history, alerts
+- [x] Backend: `src/api/jobs/guardianHealthMonitor.js` - Cron job (every 15 minutes)
+- [x] Frontend: `GuardianTimeline.tsx` - Visual timeline with 24h/3d/7d ranges
+- [x] Frontend: `GuardianAlertSettings.tsx` - User preferences for health alerts
+- [x] Frontend: `GuardianDashboard.tsx` - Integrated timeline and alert components
+
+### Feature 3: Dry Run Simulator
+- [x] Frontend: `DryRunSimulator.tsx` - Step-by-step simulation UI
+- [x] Frontend: `frontend/lib/simulation/dryRun.ts` - Complete simulation engine
+- [x] Simulates: Config validation, guardian health, share generation, key reconstruction
+- [x] Provides: Confidence score, estimated recovery time, warnings/errors
+- [x] No actual data released during simulation
+
+### Key Files:
+- `frontend/components/ThresholdSelector.tsx` - Threshold configuration UI
+- `frontend/components/GuardianTimeline.tsx` - Health history visualization
+- `frontend/components/GuardianAlertSettings.tsx` - Alert preferences
+- `frontend/components/DryRunSimulator.tsx` - Simulation interface
+- `frontend/lib/simulation/dryRun.ts` - Simulation engine
+- `frontend/lib/crypto/index.ts` - Threshold presets and validation
+- `frontend/lib/recovery/recover.ts` - Variable threshold support
+
+### New Database Tables (Migration 009)
+```sql
+- guardian_health_history (id, switch_id, guardian_npub, status, last_heartbeat_at, relay_count, recorded_at)
+- guardian_alert_settings (id, user_id, alert_on_warning, alert_on_critical, alert_hours_before_critical, email_alerts, webhook_url)
+- guardian_alerts_sent (id, user_id, switch_id, guardian_npub, alert_type, sent_at)
+```
+
+### New Database Columns (Migration 010)
+```sql
+ALTER TABLE switches ADD COLUMN shamir_total_shares INTEGER DEFAULT 5;
+ALTER TABLE switches ADD COLUMN shamir_threshold INTEGER DEFAULT 3;
+ALTER TABLE cascade_messages ADD COLUMN shamir_total_shares INTEGER DEFAULT 5;
+ALTER TABLE cascade_messages ADD COLUMN shamir_threshold INTEGER DEFAULT 3;
+```
+
+---
+
 ## Technical Specifications
 
 ### Cryptographic Constants
@@ -483,9 +534,12 @@ const PBKDF2_ITERATIONS = 600000; // OWASP 2023
 const PBKDF2_HASH = 'SHA-256';
 const SALT_SIZE = 32;
 
-// Shamir Secret Sharing
-const TOTAL_SHARES = 5;
-const THRESHOLD = 3;
+// Shamir Secret Sharing (configurable per-switch in v2.1+)
+const DEFAULT_TOTAL_SHARES = 5;
+const DEFAULT_THRESHOLD = 3;
+// Presets: 2-of-3, 3-of-5, 4-of-7, 5-of-9
+const MIN_THRESHOLD = 2;
+const MAX_SHARES = 15;
 
 // Nostr
 const HEARTBEAT_KIND = 30078;

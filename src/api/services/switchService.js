@@ -299,7 +299,10 @@ export async function getSwitch(switchId, userId) {
       createdAt: sw.created_at,
       checkInCount: sw.check_in_count || 0,
       recipients: recipientsResult.rows,
-      distribution: sw.fragment_metadata
+      distribution: sw.fragment_metadata,
+      shamirTotalShares: sw.shamir_total_shares || 5,
+      shamirThreshold: sw.shamir_threshold || 3,
+      clientSideEncryption: sw.client_side_encryption || false
     };
   } catch (error) {
     logger.error('Failed to get switch:', error);
@@ -601,7 +604,9 @@ export async function createClientEncryptedSwitch(userId, data) {
     recipients,
     encryptedMessage,
     shares,
-    nostrPublicKey
+    nostrPublicKey,
+    shamirTotalShares = 5,
+    shamirThreshold = 3
   } = data;
 
   // Validate recipient emails
@@ -619,6 +624,7 @@ export async function createClientEncryptedSwitch(userId, data) {
       checkInHours,
       recipientCount: recipients.length,
       shareCount: shares.length,
+      shamirConfig: `${shamirThreshold}-of-${shamirTotalShares}`,
       clientSideEncryption: true
     });
 
@@ -641,9 +647,11 @@ export async function createClientEncryptedSwitch(userId, data) {
           nostr_public_key,
           fragment_metadata,
           encryption_key_version,
-          client_side_encryption
+          client_side_encryption,
+          shamir_total_shares,
+          shamir_threshold
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
         ) RETURNING id, created_at, expires_at`,
         [
           switchId,
@@ -658,9 +666,11 @@ export async function createClientEncryptedSwitch(userId, data) {
           encryptedMessage.iv,
           encryptedMessage.authTag,
           nostrPublicKey,
-          JSON.stringify({ shares, clientSideEncryption: true }),
+          JSON.stringify({ shares, clientSideEncryption: true, shamirTotalShares, shamirThreshold }),
           1,  // encryption_key_version
-          true  // client_side_encryption flag
+          true,  // client_side_encryption flag
+          shamirTotalShares,
+          shamirThreshold
         ]
       );
 
@@ -730,7 +740,9 @@ export async function createClientEncryptedSwitch(userId, data) {
       expiresAt: switchData.expires_at,
       status: 'ARMED',
       recipientCount: recipients.length,
-      clientSideEncryption: true
+      clientSideEncryption: true,
+      shamirTotalShares,
+      shamirThreshold
     };
   } catch (error) {
     logger.error('Failed to create client-encrypted switch:', error);

@@ -91,6 +91,78 @@ import {
 import { generateNostrKeypair, isValidPrivateKey, isValidPublicKey } from './nostr';
 
 /**
+ * Shamir threshold configuration
+ */
+export interface ThresholdConfig {
+  totalShares: number; // N - total number of shares
+  threshold: number;   // M - shares required to reconstruct
+}
+
+/**
+ * Default threshold configuration (3-of-5)
+ */
+export const DEFAULT_THRESHOLD: ThresholdConfig = {
+  totalShares: 5,
+  threshold: 3,
+};
+
+/**
+ * Preset threshold configurations
+ */
+export const THRESHOLD_PRESETS: Record<string, ThresholdConfig & { name: string; description: string; useCases: string[] }> = {
+  simple: {
+    name: 'Simple (2-of-3)',
+    description: 'Basic protection for personal use',
+    totalShares: 3,
+    threshold: 2,
+    useCases: ['Personal notes', 'Low-risk information'],
+  },
+  balanced: {
+    name: 'Balanced (3-of-5)',
+    description: 'Recommended for most users',
+    totalShares: 5,
+    threshold: 3,
+    useCases: ['Account passwords', 'Personal documents', 'Family messages'],
+  },
+  high: {
+    name: 'High Security (4-of-7)',
+    description: 'Enhanced security with more redundancy',
+    totalShares: 7,
+    threshold: 4,
+    useCases: ['Financial information', 'Business secrets'],
+  },
+  enterprise: {
+    name: 'Enterprise (5-of-9)',
+    description: 'Maximum security for critical data',
+    totalShares: 9,
+    threshold: 5,
+    useCases: ['Corporate secrets', 'Legal documents', 'Crypto keys'],
+  },
+};
+
+/**
+ * Validate threshold configuration
+ */
+export function validateThreshold(config: ThresholdConfig): { valid: boolean; error?: string } {
+  const { totalShares, threshold } = config;
+
+  if (threshold < 2) {
+    return { valid: false, error: 'Threshold must be at least 2' };
+  }
+  if (totalShares < threshold) {
+    return { valid: false, error: 'Total shares must be at least equal to threshold' };
+  }
+  if (totalShares > 15) {
+    return { valid: false, error: 'Maximum 15 shares supported' };
+  }
+  if (threshold * 2 < totalShares) {
+    return { valid: false, error: 'Threshold must be at least half of total shares for security' };
+  }
+
+  return { valid: true };
+}
+
+/**
  * Complete switch encryption payload
  * This is what gets stored locally and partially sent to the server
  */
@@ -111,6 +183,9 @@ export interface EncryptedSwitch {
     data: string; // hex
     hmac: string; // hex
   }>;
+
+  // Threshold configuration
+  thresholdConfig: ThresholdConfig;
 
   // Authentication key for shares (stored locally only)
   authKey: string; // hex
@@ -151,6 +226,10 @@ export interface ServerPayload {
     hmac: string;
   }>;
 
+  // Shamir threshold configuration
+  shamirTotalShares: number;
+  shamirThreshold: number;
+
   // PUBLIC key only
   nostrPublicKey: string;
 
@@ -166,12 +245,22 @@ export interface ServerPayload {
  *
  * @param message - The secret message to protect
  * @param password - User's password (for encrypting stored keys)
+ * @param thresholdConfig - Optional Shamir threshold configuration (defaults to 3-of-5)
  * @returns EncryptedSwitch object with all crypto material
  */
 export async function createEncryptedSwitch(
   message: string,
-  password: string
+  password: string,
+  thresholdConfig: ThresholdConfig = DEFAULT_THRESHOLD
 ): Promise<EncryptedSwitch> {
+  // Validate threshold configuration
+  const validation = validateThreshold(thresholdConfig);
+  if (!validation.valid) {
+    throw new Error(`Invalid threshold configuration: ${validation.error}`);
+  }
+
+  const { totalShares, threshold } = thresholdConfig;
+
   // 1. Generate unique switch ID
   const switchIdBytes = randomBytes(16);
   const switchId = toHex(switchIdBytes);
@@ -188,8 +277,8 @@ export async function createEncryptedSwitch(
   // 5. Generate authentication key for shares
   const authKeyBytes = await generateAuthKey();
 
-  // 6. Split encryption key into 5 shares (3 required to reconstruct)
-  const shares = shamirSplit(keyBytes, 5, 3);
+  // 6. Split encryption key into N shares (M required to reconstruct)
+  const shares = shamirSplit(keyBytes, totalShares, threshold);
 
   // 7. Compute HMAC for each share
   const authenticatedShares = await Promise.all(
@@ -220,6 +309,7 @@ export async function createEncryptedSwitch(
       authTag: toBase64(authTag),
     },
     shares: authenticatedShares,
+    thresholdConfig,
     authKey: toHex(authKeyBytes),
     nostr: {
       privateKey: nostrKeypair.privateKey,
@@ -248,6 +338,8 @@ export function prepareServerPayload(
     recipients,
     encryptedMessage: encryptedSwitch.encryptedMessage,
     shares: encryptedSwitch.shares,
+    shamirTotalShares: encryptedSwitch.thresholdConfig.totalShares,
+    shamirThreshold: encryptedSwitch.thresholdConfig.threshold,
     nostrPublicKey: encryptedSwitch.nostr.publicKey,
     clientSideEncryption: true,
   };
