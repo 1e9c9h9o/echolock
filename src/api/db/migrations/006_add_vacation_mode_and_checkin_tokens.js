@@ -19,7 +19,7 @@ export async function up(client) {
   await client.query(`
     CREATE TABLE IF NOT EXISTS checkin_tokens (
       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-      switch_id VARCHAR(64) NOT NULL REFERENCES switches(id) ON DELETE CASCADE,
+      switch_id UUID NOT NULL REFERENCES switches(id) ON DELETE CASCADE,
       user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       token VARCHAR(64) NOT NULL UNIQUE,
       expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -34,7 +34,7 @@ export async function up(client) {
   await client.query(`
     CREATE INDEX IF NOT EXISTS idx_checkin_tokens_token
     ON checkin_tokens (token)
-    WHERE used = FALSE AND expires_at > NOW()
+    WHERE used = FALSE
   `);
 
   // Index for cleanup

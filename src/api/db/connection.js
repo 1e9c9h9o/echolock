@@ -47,6 +47,9 @@ const config = {
 // Create connection pool
 const pool = new Pool(config);
 
+// Export pool for migrations that need direct access
+export { pool };
+
 // Handle pool errors
 pool.on('error', (err, client) => {
   logger.error('Unexpected database pool error:', err);
