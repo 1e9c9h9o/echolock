@@ -236,7 +236,7 @@ export const switchesAPI = {
   },
 
   checkIn: async (id: string) => {
-    const response = await api.post(`/switches/${id}/check-in`)
+    const response = await api.post(`/switches/${id}/checkin`)
     return response.data
   },
 

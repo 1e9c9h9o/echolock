@@ -421,6 +421,57 @@ router.post('/:id/checkin', async (req: AuthenticatedRequest, res: Response) => 
   }
 });
 
+// Alias route for check-in (with hyphen) for backward compatibility
+router.post('/:id/check-in', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const userId = req.user!.id;
+    const switchId = req.params.id;
+
+    if (checkRateLimit(userId, `checkin_${switchId}`, 10, 3600000)) {
+      return res.status(429).json({
+        error: 'Rate limit exceeded',
+        message: 'Too many check-ins. Please wait before trying again.'
+      });
+    }
+
+    const result = await checkIn(switchId, userId, req);
+
+    websocketService.notifyCheckIn(userId, {
+      id: result.switchId,
+      title: '',
+      expires_at: result.newExpiresAt,
+      check_in_count: result.checkInCount
+    });
+
+    res.json({
+      message: 'Check-in successful',
+      data: result
+    });
+  } catch (err) {
+    const error = err as Error;
+    logger.error('Check-in error:', error);
+
+    if (error.message === 'Switch not found') {
+      return res.status(404).json({
+        error: 'Switch not found',
+        message: 'Switch does not exist or you do not have access'
+      });
+    }
+
+    if (error.message.includes('Cannot check in')) {
+      return res.status(400).json({
+        error: 'Check-in not allowed',
+        message: error.message
+      });
+    }
+
+    res.status(500).json({
+      error: 'Server error',
+      message: 'Check-in failed'
+    });
+  }
+});
+
 /**
  * PATCH /api/switches/:id
  * Update switch settings (title, status, etc.)
