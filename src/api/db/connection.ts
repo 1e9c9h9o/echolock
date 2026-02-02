@@ -6,6 +6,10 @@
  * Uses node-postgres (pg) with connection pooling for performance
  * Includes error handling and graceful shutdown
  *
+ * Supports two configuration methods:
+ * 1. DATABASE_URL - Connection string (Railway, Heroku, etc.)
+ * 2. Individual DB_* variables - For manual configuration
+ *
  * Best Practices:
  * - Connection pooling for performance
  * - Parameterized queries to prevent SQL injection
@@ -18,45 +22,86 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import pg from 'pg';
-import type { PoolClient, QueryResult, QueryResultRow } from 'pg';
+import type { PoolClient, QueryResult, QueryResultRow, PoolConfig } from 'pg';
 import { logger } from '../utils/logger.js';
 
 const { Pool } = pg;
 
-// Database configuration type
-interface DbConfig {
-  host: string;
-  port: number;
-  database: string;
-  user: string;
-  password: string;
-  max: number;
-  idleTimeoutMillis: number;
-  connectionTimeoutMillis: number;
-  ssl: { rejectUnauthorized: boolean } | false;
+/**
+ * Parse DATABASE_URL into individual components
+ * Supports: postgresql://user:password@host:port/database?sslmode=require
+ */
+function parseDatabaseUrl(url: string): PoolConfig {
+  const parsed = new URL(url);
+
+  return {
+    host: parsed.hostname,
+    port: parseInt(parsed.port || '5432'),
+    database: parsed.pathname.slice(1), // Remove leading /
+    user: parsed.username,
+    password: decodeURIComponent(parsed.password),
+  };
 }
 
-// Database configuration from environment variables
-const config: DbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'echolock',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '',
+/**
+ * Get SSL configuration based on environment
+ */
+function getSslConfig(): { rejectUnauthorized: boolean } | false {
+  // In development, no SSL by default
+  if (process.env.NODE_ENV !== 'production') {
+    return process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false;
+  }
 
-  // Connection pool settings
-  max: parseInt(process.env.DB_POOL_MAX || '20'), // Maximum connections
-  idleTimeoutMillis: 30000, // Close idle connections after 30s
-  connectionTimeoutMillis: 10000, // Timeout if connection takes >10s
-
-  // SSL configuration (required for production)
-  // SECURITY: Default to strict SSL verification, allow override via env var for platforms
-  // that use self-signed certificates (e.g., Railway, some Heroku configs)
-  ssl: process.env.NODE_ENV === 'production' ? {
-    // Set DB_SSL_REJECT_UNAUTHORIZED=false only for platforms with self-signed certs
+  // In production, SSL is required
+  // Railway and similar platforms use self-signed certs, so we allow that
+  return {
     rejectUnauthorized: process.env.DB_SSL_REJECT_UNAUTHORIZED !== 'false'
-  } : false
-};
+  };
+}
+
+/**
+ * Build database configuration
+ * Prioritizes DATABASE_URL if available (Railway, Heroku, etc.)
+ * Falls back to individual DB_* variables
+ */
+function buildConfig(): PoolConfig {
+  const baseConfig: PoolConfig = {
+    // Connection pool settings
+    max: parseInt(process.env.DB_POOL_MAX || '20'),
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 10000,
+    ssl: getSslConfig(),
+  };
+
+  // Prefer DATABASE_URL if available (Railway, Heroku, Render, etc.)
+  if (process.env.DATABASE_URL) {
+    logger.info('Using DATABASE_URL for database connection');
+    const urlConfig = parseDatabaseUrl(process.env.DATABASE_URL);
+    return { ...baseConfig, ...urlConfig };
+  }
+
+  // Fall back to individual environment variables
+  logger.info('Using individual DB_* variables for database connection');
+  return {
+    ...baseConfig,
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '5432'),
+    database: process.env.DB_NAME || 'echolock',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || '',
+  };
+}
+
+// Build and log configuration (without sensitive data)
+const config = buildConfig();
+logger.debug('Database configuration', {
+  host: config.host,
+  port: config.port,
+  database: config.database,
+  user: config.user,
+  ssl: !!config.ssl,
+  max: config.max,
+});
 
 // Create connection pool
 const pool = new Pool(config);

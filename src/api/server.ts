@@ -30,18 +30,17 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Initialize Sentry BEFORE other imports for best stack traces
-import * as Sentry from '@sentry/node';
+import {
+  initSentry,
+  setupSentryRequestHandler,
+  setupSentryErrorHandler,
+  sentryUserMiddleware,
+  flushSentry,
+  captureException
+} from './utils/sentry.js';
 
-if (process.env.SENTRY_DSN) {
-  Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    environment: process.env.NODE_ENV || 'development',
-    tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-    // Don't send PII
-    sendDefaultPii: false,
-  });
-  console.log('Sentry initialized for error monitoring');
-}
+// Initialize Sentry early for best stack traces
+initSentry();
 
 import express, { Request, Response, NextFunction, ErrorRequestHandler, CookieOptions } from 'express';
 import helmet from 'helmet';
@@ -111,6 +110,9 @@ const __dirname = path.dirname(__filename);
 // ============================================================================
 // MIDDLEWARE
 // ============================================================================
+
+// Sentry request handler - MUST be first middleware for best error tracking
+setupSentryRequestHandler(app);
 
 // Trust proxy - required for Railway, Heroku, etc.
 // This allows Express to trust X-Forwarded-* headers from the reverse proxy
@@ -387,17 +389,23 @@ app.use((req: Request, res: Response) => {
 });
 
 // Sentry error handler - must be before other error handlers
-if (process.env.SENTRY_DSN) {
-  Sentry.setupExpressErrorHandler(app);
-}
+// This captures errors and sends them to Sentry
+setupSentryErrorHandler(app);
 
-// Global error handler
+// Global error handler (runs after Sentry captures the error)
 const errorHandler: ErrorRequestHandler = (err: Error & { status?: number }, req: Request, res: Response, _next: NextFunction) => {
   logger.error('Unhandled error:', {
     error: err.message,
     stack: err.stack,
     path: req.path,
     method: req.method
+  });
+
+  // Capture to Sentry (in case it wasn't caught by the handler)
+  captureException(err, {
+    path: req.path,
+    method: req.method,
+    query: req.query,
   });
 
   // Don't expose internal errors in production
@@ -496,7 +504,7 @@ async function startServer(): Promise<void> {
 }
 
 // Graceful shutdown helper
-function gracefulShutdown(signal: string): void {
+async function gracefulShutdown(signal: string): Promise<void> {
   logger.info(`${signal} received, shutting down gracefully...`);
 
   // Stop reminder monitor if running
@@ -511,6 +519,9 @@ function gracefulShutdown(signal: string): void {
 
   // Shutdown WebSocket server
   websocketService.shutdown();
+
+  // Flush Sentry events before shutdown
+  await flushSentry();
 
   // Close HTTP server
   if (appLocals.httpServer) {
@@ -527,13 +538,19 @@ process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (error: Error) => {
+process.on('uncaughtException', async (error: Error) => {
   logger.error('Uncaught exception:', error);
+  captureException(error, { type: 'uncaughtException' });
+  await flushSentry();
   process.exit(1);
 });
 
-process.on('unhandledRejection', (reason: unknown, promise: Promise<unknown>) => {
+process.on('unhandledRejection', async (reason: unknown, promise: Promise<unknown>) => {
   logger.error('Unhandled rejection at:', promise, 'reason:', reason);
+  if (reason instanceof Error) {
+    captureException(reason, { type: 'unhandledRejection' });
+  }
+  await flushSentry();
   process.exit(1);
 });
 
