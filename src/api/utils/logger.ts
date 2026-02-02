@@ -21,10 +21,7 @@
 
 import winston from 'winston';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import type { Request, Response } from 'express';
 
 // Determine environment
 const isProduction = process.env.NODE_ENV === 'production';
@@ -51,7 +48,7 @@ const productionFormat = winston.format.combine(
 );
 
 // Create transports array
-const transports = [];
+const transports: winston.transport[] = [];
 
 // Console transport (always enabled)
 transports.push(
@@ -99,11 +96,8 @@ export const logger = winston.createLogger({
 /**
  * Redact sensitive data from logs
  * Call this before logging objects that might contain sensitive data
- *
- * @param {Object} obj - Object to redact
- * @returns {Object} Redacted object
  */
-export function redactSensitive(obj) {
+export function redactSensitive<T>(obj: T): T {
   const sensitiveKeys = [
     'password',
     'passwordHash',
@@ -120,7 +114,7 @@ export function redactSensitive(obj) {
     return obj;
   }
 
-  const redacted = { ...obj };
+  const redacted = { ...obj } as Record<string, unknown>;
 
   for (const key of Object.keys(redacted)) {
     const lowerKey = key.toLowerCase();
@@ -136,30 +130,34 @@ export function redactSensitive(obj) {
     }
   }
 
-  return redacted;
+  return redacted as T;
+}
+
+// Extended Request type to include user property
+interface AuthenticatedRequest extends Request {
+  user?: {
+    id: string;
+    [key: string]: unknown;
+  };
 }
 
 /**
  * Log an API request
- * @param {Object} req - Express request object
  */
-export function logRequest(req) {
+export function logRequest(req: AuthenticatedRequest): void {
   logger.info('API Request', {
     method: req.method,
     path: req.path,
     ip: req.ip,
     userAgent: req.get('user-agent'),
-    userId: req.user?.id // If authenticated
+    userId: req.user?.id
   });
 }
 
 /**
  * Log an API response
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {number} duration - Request duration in ms
  */
-export function logResponse(req, res, duration) {
+export function logResponse(req: AuthenticatedRequest, res: Response, duration: number): void {
   logger.info('API Response', {
     method: req.method,
     path: req.path,
@@ -171,10 +169,8 @@ export function logResponse(req, res, duration) {
 
 /**
  * Log a security event
- * @param {string} eventType - Type of security event
- * @param {Object} details - Event details
  */
-export function logSecurityEvent(eventType, details) {
+export function logSecurityEvent(eventType: string, details: Record<string, unknown>): void {
   logger.warn('Security Event', {
     eventType,
     ...redactSensitive(details)

@@ -14,9 +14,9 @@
  * @see https://en.wikipedia.org/wiki/Verifiable_secret_sharing
  */
 
-import { secp256k1 } from '@noble/curves/secp256k1';
-import { sha256 } from '@noble/hashes/sha2';
-import { bytesToHex, hexToBytes, randomBytes } from '@noble/hashes/utils';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { bytesToHex, hexToBytes, randomBytes } from '@noble/hashes/utils.js';
 
 // GF(256) field operations
 // Using the same irreducible polynomial as the server library: x^8 + x^4 + x^3 + x + 1 (0x11B)

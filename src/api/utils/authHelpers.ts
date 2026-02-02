@@ -8,8 +8,26 @@
  * - Challenge token generation for 2FA flow
  */
 
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { logger } from './logger.js';
+
+/**
+ * Challenge token payload
+ */
+interface ChallengeTokenPayload {
+  userId: string;
+  type: string;
+  iat: number;
+}
+
+/**
+ * Challenge token verification result
+ */
+export interface ChallengeTokenResult {
+  valid: boolean;
+  userId?: string;
+  error?: string;
+}
 
 /**
  * Test account email patterns that bypass 2FA
@@ -23,7 +41,7 @@ import { logger } from './logger.js';
  * - e2e+anything@echolock.xyz
  * - qa+anything@localhost
  */
-const TEST_ACCOUNT_PATTERNS = [
+const TEST_ACCOUNT_PATTERNS: RegExp[] = [
   /^test\+.*@echolock\.xyz$/i,     // test+anything@echolock.xyz
   /^dev\+.*@echolock\.xyz$/i,      // dev+anything@echolock.xyz
   /^e2e\+.*@echolock\.xyz$/i,      // e2e+anything@echolock.xyz
@@ -32,11 +50,8 @@ const TEST_ACCOUNT_PATTERNS = [
 
 /**
  * Check if an email is a test account that should bypass 2FA
- *
- * @param {string} email - Email address to check
- * @returns {boolean} True if this is a test account in non-production environment
  */
-export function isTestAccount(email) {
+export function isTestAccount(email: string | null | undefined): boolean {
   // NEVER allow test account bypass in production
   if (process.env.NODE_ENV === 'production') {
     return false;
@@ -73,12 +88,8 @@ const CHALLENGE_TOKEN_CONFIG = {
  *
  * This token is issued after successful password verification
  * and must be presented with the TOTP code to complete login.
- *
- * @param {string} userId - User's ID
- * @param {string} email - User's email (for logging)
- * @returns {string} JWT challenge token
  */
-export function generateChallengeToken(userId, email) {
+export function generateChallengeToken(userId: string, email: string): string {
   const secret = process.env.JWT_SECRET;
 
   if (!secret) {
@@ -92,11 +103,13 @@ export function generateChallengeToken(userId, email) {
     iat: Math.floor(Date.now() / 1000),
   };
 
-  const token = jwt.sign(payload, secret, {
-    expiresIn: CHALLENGE_TOKEN_CONFIG.expiresIn,
+  const options: SignOptions = {
+    expiresIn: CHALLENGE_TOKEN_CONFIG.expiresIn as jwt.SignOptions['expiresIn'],
     issuer: CHALLENGE_TOKEN_CONFIG.issuer,
     audience: CHALLENGE_TOKEN_CONFIG.audience,
-  });
+  };
+
+  const token = jwt.sign(payload, secret, options);
 
   logger.debug('Generated 2FA challenge token', { userId, email });
 
@@ -105,11 +118,8 @@ export function generateChallengeToken(userId, email) {
 
 /**
  * Verify a challenge token
- *
- * @param {string} token - Challenge token to verify
- * @returns {{valid: boolean, userId?: string, error?: string}} Verification result
  */
-export function verifyChallengeToken(token) {
+export function verifyChallengeToken(token: string | null | undefined): ChallengeTokenResult {
   const secret = process.env.JWT_SECRET;
 
   if (!secret) {
@@ -124,7 +134,7 @@ export function verifyChallengeToken(token) {
     const decoded = jwt.verify(token, secret, {
       issuer: CHALLENGE_TOKEN_CONFIG.issuer,
       audience: CHALLENGE_TOKEN_CONFIG.audience,
-    });
+    }) as ChallengeTokenPayload;
 
     // Verify this is a challenge token
     if (decoded.type !== '2fa-challenge') {
@@ -135,7 +145,8 @@ export function verifyChallengeToken(token) {
       valid: true,
       userId: decoded.userId,
     };
-  } catch (error) {
+  } catch (err) {
+    const error = err as Error & { name: string };
     if (error.name === 'TokenExpiredError') {
       return { valid: false, error: 'Challenge token expired' };
     }

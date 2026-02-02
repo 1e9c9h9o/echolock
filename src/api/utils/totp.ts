@@ -18,7 +18,7 @@ import crypto from 'crypto';
 // TOTP Configuration
 const TOTP_CONFIG = {
   issuer: 'EchoLock',
-  algorithm: 'SHA1',
+  algorithm: 'SHA1' as const,
   digits: 6,
   period: 30, // 30 seconds
   window: 1,  // Allow 1 period before/after for clock drift
@@ -29,10 +29,25 @@ const BACKUP_CODE_LENGTH = 8;
 const BACKUP_CODE_COUNT = 10;
 
 /**
- * Generate a new TOTP secret
- * @returns {string} Base32-encoded secret
+ * Hashed backup code structure
  */
-export function generateSecret() {
+export interface HashedBackupCode {
+  hash: string;
+  used: boolean;
+}
+
+/**
+ * Backup code verification result
+ */
+export interface BackupCodeVerificationResult {
+  valid: boolean;
+  index: number;
+}
+
+/**
+ * Generate a new TOTP secret
+ */
+export function generateSecret(): string {
   // Generate 20 bytes (160 bits) of random data
   const secret = new Secret({ size: 20 });
   return secret.base32;
@@ -40,11 +55,8 @@ export function generateSecret() {
 
 /**
  * Generate the otpauth:// URI for QR code display
- * @param {string} secret - Base32-encoded secret
- * @param {string} email - User's email (account label)
- * @returns {string} otpauth:// URI
  */
-export function generateQRCodeUri(secret, email) {
+export function generateQRCodeUri(secret: string, email: string): string {
   const totp = new TOTP({
     issuer: TOTP_CONFIG.issuer,
     label: email,
@@ -59,11 +71,8 @@ export function generateQRCodeUri(secret, email) {
 
 /**
  * Verify a TOTP code
- * @param {string} secret - Base32-encoded secret
- * @param {string} code - 6-digit code from user
- * @returns {boolean} Whether the code is valid
  */
-export function verifyTOTP(secret, code) {
+export function verifyTOTP(secret: string, code: string | number): boolean {
   // Normalize code - remove spaces and ensure string
   const normalizedCode = String(code).replace(/\s/g, '');
 
@@ -89,11 +98,9 @@ export function verifyTOTP(secret, code) {
 
 /**
  * Generate backup codes
- * @param {number} count - Number of codes to generate (default: 10)
- * @returns {string[]} Array of backup codes (plaintext - hash before storing!)
  */
-export function generateBackupCodes(count = BACKUP_CODE_COUNT) {
-  const codes = [];
+export function generateBackupCodes(count: number = BACKUP_CODE_COUNT): string[] {
+  const codes: string[] = [];
 
   for (let i = 0; i < count; i++) {
     // Generate random alphanumeric code (uppercase for readability)
@@ -112,10 +119,8 @@ export function generateBackupCodes(count = BACKUP_CODE_COUNT) {
 
 /**
  * Hash a backup code for secure storage
- * @param {string} code - Plaintext backup code
- * @returns {string} SHA-256 hash (hex)
  */
-export function hashBackupCode(code) {
+export function hashBackupCode(code: string): string {
   // Normalize: uppercase and remove spaces/dashes
   const normalized = code.toUpperCase().replace(/[\s-]/g, '');
   return crypto.createHash('sha256').update(normalized).digest('hex');
@@ -123,10 +128,8 @@ export function hashBackupCode(code) {
 
 /**
  * Hash multiple backup codes
- * @param {string[]} codes - Array of plaintext codes
- * @returns {Array<{hash: string, used: boolean}>} Array of hashed codes with used flag
  */
-export function hashBackupCodes(codes) {
+export function hashBackupCodes(codes: string[]): HashedBackupCode[] {
   return codes.map(code => ({
     hash: hashBackupCode(code),
     used: false,
@@ -135,11 +138,11 @@ export function hashBackupCodes(codes) {
 
 /**
  * Verify a backup code against stored hashes
- * @param {string} code - Plaintext backup code from user
- * @param {Array<{hash: string, used: boolean}>} hashedCodes - Stored hashed codes
- * @returns {{valid: boolean, index: number}} Validation result and index of matching code
  */
-export function verifyBackupCode(code, hashedCodes) {
+export function verifyBackupCode(
+  code: string,
+  hashedCodes: HashedBackupCode[] | null | undefined
+): BackupCodeVerificationResult {
   if (!hashedCodes || !Array.isArray(hashedCodes)) {
     return { valid: false, index: -1 };
   }
@@ -168,10 +171,8 @@ export function verifyBackupCode(code, hashedCodes) {
 
 /**
  * Format backup codes for display (add dashes for readability)
- * @param {string[]} codes - Array of backup codes
- * @returns {string[]} Formatted codes with dashes
  */
-export function formatBackupCodesForDisplay(codes) {
+export function formatBackupCodesForDisplay(codes: string[]): string[] {
   return codes.map(code => {
     // Add dash in middle: ABCD1234 -> ABCD-1234
     if (code.length === 8) {
@@ -183,10 +184,8 @@ export function formatBackupCodesForDisplay(codes) {
 
 /**
  * Get the current TOTP code (for testing purposes only)
- * @param {string} secret - Base32-encoded secret
- * @returns {string} Current 6-digit TOTP code
  */
-export function getCurrentTOTP(secret) {
+export function getCurrentTOTP(secret: string): string {
   const totp = new TOTP({
     issuer: TOTP_CONFIG.issuer,
     algorithm: TOTP_CONFIG.algorithm,

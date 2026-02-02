@@ -8,23 +8,34 @@
  * - Service-level encryption (for storing sensitive data in DB)
  * - Per-user key derivation (key isolation)
  * - Token generation
- *
- * SECURITY NOTES:
- * - Service master key must be securely stored (environment variable)
- * - Never log or expose the master key
- * - Per-user keys provide isolation: compromise of one user doesn't affect others
- * - Key versioning enables rotation without data loss
- *
- * KEY HIERARCHY:
- *   SERVICE_MASTER_KEY (env var - 256-bit)
- *     └─> HKDF(userId, version) → UserMasterKey (unique per user)
- *         └─> encrypts: nostr_private_key, auth_key, etc.
  */
 
 import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import { logger } from './logger.js';
-import { PBKDF2_ITERATIONS } from '../../crypto/keyDerivation.js';
+
+// PBKDF2 iteration count (OWASP 2023 recommendation for SHA-256)
+// Matches the value in src/crypto/keyDerivation.js
+const PBKDF2_ITERATIONS = 600000;
+
+// ============================================================================
+// TYPES
+// ============================================================================
+
+export interface EncryptedData {
+  ciphertext: string;
+  iv: string;
+  authTag: string;
+}
+
+export interface EncryptedDataWithVersion extends EncryptedData {
+  keyVersion: number;
+}
+
+export interface MasterKeyResult {
+  key: string;
+  salt: string;
+}
 
 // ============================================================================
 // CONSTANTS
@@ -38,13 +49,11 @@ const DOMAIN_USER_KEY = 'ECHOLOCK-USER-KEY-v1';
 const DOMAIN_SWITCH_DATA = 'ECHOLOCK-SWITCH-DATA-v1';
 
 // Service master key for encrypting sensitive data in database
-// CRITICAL: This must be set as environment variable and NEVER committed to git
 const SERVICE_MASTER_KEY = process.env.SERVICE_MASTER_KEY;
 const NODE_ENV = process.env.NODE_ENV;
 const IS_PRODUCTION = NODE_ENV === 'production';
 
 // SECURITY: Do not log key-related information in production
-// Only log presence/absence for startup diagnostics
 if (IS_PRODUCTION && !SERVICE_MASTER_KEY) {
   console.error('FATAL: SERVICE_MASTER_KEY not set in production');
 }
@@ -71,11 +80,8 @@ if (!SERVICE_MASTER_KEY) {
 
 /**
  * HKDF-Extract: Extract a pseudorandom key from input keying material
- * @param {Buffer} salt - Optional salt (if null, uses zero-filled buffer)
- * @param {Buffer} ikm - Input keying material
- * @returns {Buffer} Pseudorandom key (PRK)
  */
-function hkdfExtract(salt, ikm) {
+function hkdfExtract(salt: Buffer | null, ikm: Buffer): Buffer {
   const actualSalt = salt || Buffer.alloc(32, 0);
   return crypto.createHmac(HKDF_HASH, actualSalt)
     .update(ikm)
@@ -84,12 +90,8 @@ function hkdfExtract(salt, ikm) {
 
 /**
  * HKDF-Expand: Expand PRK to desired length with context info
- * @param {Buffer} prk - Pseudorandom key from HKDF-Extract
- * @param {Buffer|string} info - Context and application-specific info
- * @param {number} length - Desired output length (default: 32)
- * @returns {Buffer} Output keying material
  */
-function hkdfExpand(prk, info, length = HKDF_KEY_LENGTH) {
+function hkdfExpand(prk: Buffer, info: Buffer | string, length: number = HKDF_KEY_LENGTH): Buffer {
   const infoBuffer = Buffer.isBuffer(info) ? info : Buffer.from(info);
   const hashLen = 32; // SHA-256 output length
   const n = Math.ceil(length / hashLen);
@@ -110,18 +112,13 @@ function hkdfExpand(prk, info, length = HKDF_KEY_LENGTH) {
     okm = Buffer.concat([okm, t]);
   }
 
-  return okm.slice(0, length);
+  return okm.subarray(0, length);
 }
 
 /**
  * Full HKDF: Extract-then-Expand
- * @param {Buffer} ikm - Input keying material
- * @param {Buffer|string} info - Context info
- * @param {Buffer} [salt] - Optional salt
- * @param {number} [length] - Output length (default: 32)
- * @returns {Buffer} Derived key
  */
-function hkdf(ikm, info, salt = null, length = HKDF_KEY_LENGTH) {
+function hkdf(ikm: Buffer, info: Buffer | string, salt: Buffer | null = null, length: number = HKDF_KEY_LENGTH): Buffer {
   const prk = hkdfExtract(salt, ikm);
   return hkdfExpand(prk, info, length);
 }
@@ -132,17 +129,8 @@ function hkdf(ikm, info, salt = null, length = HKDF_KEY_LENGTH) {
 
 /**
  * Derive a user-specific encryption key from the service master key
- *
- * SECURITY: This provides key isolation per user:
- * - Compromise of one user's derived key doesn't expose SERVICE_MASTER_KEY
- * - Compromise of SERVICE_MASTER_KEY affects all users (still requires DB access)
- * - Each user has a cryptographically independent key
- *
- * @param {string} userId - User UUID (must be valid UUID format)
- * @param {number} [keyVersion=1] - Key version for rotation support
- * @returns {Buffer} 32-byte user-specific encryption key
  */
-export function deriveUserKey(userId, keyVersion = 1) {
+export function deriveUserKey(userId: string, keyVersion: number = 1): Buffer {
   if (!userId || typeof userId !== 'string') {
     throw new Error('userId must be a non-empty string');
   }
@@ -165,13 +153,8 @@ export function deriveUserKey(userId, keyVersion = 1) {
 
 /**
  * Derive a switch-specific key from user key
- * Provides additional isolation: each switch has its own derived key
- *
- * @param {Buffer} userKey - User-specific key from deriveUserKey
- * @param {string} switchId - Switch UUID
- * @returns {Buffer} 32-byte switch-specific key
  */
-export function deriveSwitchKey(userKey, switchId) {
+export function deriveSwitchKey(userKey: Buffer, switchId: string): Buffer {
   if (!userKey || userKey.length !== 32) {
     throw new Error('userKey must be a 32-byte Buffer');
   }
@@ -186,14 +169,8 @@ export function deriveSwitchKey(userKey, switchId) {
 
 /**
  * Encrypt data using a user-specific derived key
- * Use this instead of encryptWithServiceKey for per-user isolation
- *
- * @param {Buffer|string} data - Data to encrypt
- * @param {string} userId - User UUID for key derivation
- * @param {number} [keyVersion=1] - Key version (store this with ciphertext)
- * @returns {Object} { ciphertext, iv, authTag, keyVersion } all as base64 strings
  */
-export function encryptForUser(data, userId, keyVersion = 1) {
+export function encryptForUser(data: Buffer | string, userId: string, keyVersion: number = 1): EncryptedDataWithVersion {
   // Derive user-specific key
   const userKey = deriveUserKey(userId, keyVersion);
 
@@ -230,15 +207,14 @@ export function encryptForUser(data, userId, keyVersion = 1) {
 
 /**
  * Decrypt data that was encrypted with a user-specific key
- *
- * @param {string} ciphertext - Base64 encoded ciphertext
- * @param {string} iv - Base64 encoded IV
- * @param {string} authTag - Base64 encoded auth tag
- * @param {string} userId - User UUID for key derivation
- * @param {number} [keyVersion=1] - Key version used during encryption
- * @returns {Buffer} Decrypted data
  */
-export function decryptForUser(ciphertext, iv, authTag, userId, keyVersion = 1) {
+export function decryptForUser(
+  ciphertext: string,
+  iv: string,
+  authTag: string,
+  userId: string,
+  keyVersion: number = 1
+): Buffer {
   // Derive user-specific key
   const userKey = deriveUserKey(userId, keyVersion);
 
@@ -268,35 +244,23 @@ export function decryptForUser(ciphertext, iv, authTag, userId, keyVersion = 1) 
 
 /**
  * Hash a password using bcrypt
- * Bcrypt is slow by design to prevent brute force attacks
- *
- * @param {string} password - Plain text password
- * @returns {Promise<string>} Bcrypt hash
  */
-export async function hashPassword(password) {
+export async function hashPassword(password: string): Promise<string> {
   const saltRounds = 12; // Higher = more secure but slower
   return await bcrypt.hash(password, saltRounds);
 }
 
 /**
  * Verify a password against a bcrypt hash
- *
- * @param {string} password - Plain text password
- * @param {string} hash - Bcrypt hash
- * @returns {Promise<boolean>} True if password matches
  */
-export async function verifyPassword(password, hash) {
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
   return await bcrypt.compare(password, hash);
 }
 
 /**
  * Encrypt data using AES-256-GCM with service master key
- * Used for storing sensitive data in database (Nostr keys, HMAC keys, etc.)
- *
- * @param {Buffer|string} data - Data to encrypt
- * @returns {Object} { ciphertext, iv, authTag } all as base64 strings
  */
-export function encryptWithServiceKey(data) {
+export function encryptWithServiceKey(data: Buffer | string): EncryptedData {
   // Generate random IV (never reuse!)
   const iv = crypto.randomBytes(12);
 
@@ -325,21 +289,49 @@ export function encryptWithServiceKey(data) {
 /**
  * Decrypt data encrypted with service master key
  *
- * @param {string} ciphertext - Base64 encoded ciphertext
- * @param {string} iv - Base64 encoded IV
- * @param {string} authTag - Base64 encoded auth tag
- * @returns {Buffer} Decrypted data
+ * Can be called with:
+ * - A single EncryptedData object or JSON string
+ * - Three separate arguments (ciphertext, iv, authTag)
  */
-export function decryptWithServiceKey(ciphertext, iv, authTag) {
+export function decryptWithServiceKey(
+  ciphertextOrData: string | EncryptedData,
+  iv?: string,
+  authTag?: string
+): Buffer {
+  let ciphertext: string;
+  let ivStr: string;
+  let authTagStr: string;
+
+  // If only one argument provided, assume it's a combined JSON string or EncryptedData object
+  if (iv === undefined || authTag === undefined) {
+    let data: EncryptedData;
+    if (typeof ciphertextOrData === 'string') {
+      try {
+        data = JSON.parse(ciphertextOrData) as EncryptedData;
+      } catch {
+        throw new Error('decryptWithServiceKey: Single argument must be a valid JSON string with ciphertext, iv, and authTag');
+      }
+    } else {
+      data = ciphertextOrData;
+    }
+    ciphertext = data.ciphertext;
+    ivStr = data.iv;
+    authTagStr = data.authTag;
+  } else {
+    ciphertext = ciphertextOrData as string;
+    ivStr = iv;
+    authTagStr = authTag;
+  }
+
   // Create decipher
   const decipher = crypto.createDecipheriv(
     'aes-256-gcm',
     MASTER_KEY,
-    Buffer.from(iv, 'base64')
+    Buffer.from(ivStr, 'base64')
   );
 
   // Set authentication tag
-  decipher.setAuthTag(Buffer.from(authTag, 'base64'));
+  decipher.setAuthTag(Buffer.from(authTagStr, 'base64'));
 
   // Decrypt
   const decrypted = Buffer.concat([
@@ -352,23 +344,15 @@ export function decryptWithServiceKey(ciphertext, iv, authTag) {
 
 /**
  * Generate a secure random token
- * Used for email verification, password reset, etc.
- *
- * @param {number} length - Token length in bytes (default: 32)
- * @returns {string} Hex-encoded token
  */
-export function generateToken(length = 32) {
+export function generateToken(length: number = 32): string {
   return crypto.randomBytes(length).toString('hex');
 }
 
 /**
  * Generate a cryptographically secure random string
- * Useful for API keys, session IDs, etc.
- *
- * @param {number} length - String length (default: 32)
- * @returns {string} URL-safe base64 string
  */
-export function generateSecureString(length = 32) {
+export function generateSecureString(length: number = 32): string {
   return crypto.randomBytes(length)
     .toString('base64')
     .replace(/\+/g, '-')
@@ -378,12 +362,8 @@ export function generateSecureString(length = 32) {
 
 /**
  * Hash a token for storage
- * Store hashed version in database, compare with user-provided token
- *
- * @param {string} token - Token to hash
- * @returns {string} SHA-256 hash (hex)
  */
-export function hashToken(token) {
+export function hashToken(token: string): string {
   return crypto.createHash('sha256')
     .update(token)
     .digest('hex');
@@ -391,13 +371,8 @@ export function hashToken(token) {
 
 /**
  * Timing-safe string comparison
- * Prevents timing attacks when comparing secrets
- *
- * @param {string} a - First string
- * @param {string} b - Second string
- * @returns {boolean} True if equal
  */
-export function timingSafeEqual(a, b) {
+export function timingSafeEqual(a: string, b: string): boolean {
   if (a.length !== b.length) {
     return false;
   }
@@ -410,13 +385,8 @@ export function timingSafeEqual(a, b) {
 
 /**
  * Generate a master key from a passphrase (for initial setup)
- * DO NOT USE THIS IN PRODUCTION - use proper key management
- *
- * @param {string} passphrase - Passphrase
- * @param {string} salt - Salt (hex)
- * @returns {string} 32-byte key (hex)
  */
-export function generateMasterKeyFromPassphrase(passphrase, salt = null) {
+export function generateMasterKeyFromPassphrase(passphrase: string, salt: string | null = null): MasterKeyResult {
   const keySalt = salt ? Buffer.from(salt, 'hex') : crypto.randomBytes(16);
   const key = crypto.pbkdf2Sync(passphrase, keySalt, PBKDF2_ITERATIONS, 32, 'sha256');
 

@@ -10,9 +10,39 @@
 import { logger } from './logger.js';
 
 /**
+ * Retry configuration interface
+ */
+export interface RetryConfig {
+  maxRetries: number;
+  initialDelayMs: number;
+  maxDelayMs: number;
+  backoffMultiplier: number;
+  jitterMs: number;
+  retryableErrors?: string[];
+}
+
+/**
+ * Error with optional code and status properties
+ */
+interface RetryableError extends Error {
+  code?: string;
+  status?: number;
+}
+
+/**
+ * Options for withRetry function
+ */
+export interface WithRetryOptions {
+  operationName?: string;
+  config?: Partial<RetryConfig>;
+  onRetry?: ((error: RetryableError, attempt: number, delay: number) => Promise<void> | void) | null;
+  shouldRetry?: ((error: RetryableError, attempt: number) => boolean) | null;
+}
+
+/**
  * Default retry configuration
  */
-export const DEFAULT_RETRY_CONFIG = {
+export const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,
   initialDelayMs: 1000,    // 1 second
   maxDelayMs: 30000,       // 30 seconds
@@ -30,12 +60,11 @@ export const DEFAULT_RETRY_CONFIG = {
 
 /**
  * Check if an error is retryable
- *
- * @param {Error} error - The error to check
- * @param {string[]} retryableErrors - List of retryable error codes
- * @returns {boolean} Whether the error is retryable
  */
-export function isRetryableError(error, retryableErrors = DEFAULT_RETRY_CONFIG.retryableErrors) {
+export function isRetryableError(
+  error: RetryableError,
+  retryableErrors: string[] = DEFAULT_RETRY_CONFIG.retryableErrors ?? []
+): boolean {
   // Network errors
   if (error.code && retryableErrors.includes(error.code)) {
     return true;
@@ -47,7 +76,7 @@ export function isRetryableError(error, retryableErrors = DEFAULT_RETRY_CONFIG.r
   }
 
   // HTTP 5xx errors (server errors)
-  if (error.status >= 500 && error.status < 600) {
+  if (error.status !== undefined && error.status >= 500 && error.status < 600) {
     return true;
   }
 
@@ -61,13 +90,17 @@ export function isRetryableError(error, retryableErrors = DEFAULT_RETRY_CONFIG.r
 
 /**
  * Calculate delay for next retry with exponential backoff and jitter
- *
- * @param {number} attempt - Current attempt number (0-based)
- * @param {Object} config - Retry configuration
- * @returns {number} Delay in milliseconds
  */
-export function calculateRetryDelay(attempt, config = DEFAULT_RETRY_CONFIG) {
-  const { initialDelayMs, maxDelayMs, backoffMultiplier, jitterMs } = config;
+export function calculateRetryDelay(
+  attempt: number,
+  config: Partial<RetryConfig> = DEFAULT_RETRY_CONFIG
+): number {
+  const {
+    initialDelayMs = DEFAULT_RETRY_CONFIG.initialDelayMs,
+    maxDelayMs = DEFAULT_RETRY_CONFIG.maxDelayMs,
+    backoffMultiplier = DEFAULT_RETRY_CONFIG.backoffMultiplier,
+    jitterMs = DEFAULT_RETRY_CONFIG.jitterMs
+  } = config;
 
   // Exponential backoff: delay = initialDelay * (multiplier ^ attempt)
   const exponentialDelay = initialDelayMs * Math.pow(backoffMultiplier, attempt);
@@ -83,26 +116,18 @@ export function calculateRetryDelay(attempt, config = DEFAULT_RETRY_CONFIG) {
 
 /**
  * Sleep for a specified duration
- *
- * @param {number} ms - Milliseconds to sleep
- * @returns {Promise<void>}
  */
-function sleep(ms) {
+function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
  * Execute a function with retry logic
- *
- * @param {Function} fn - Async function to execute
- * @param {Object} options - Retry options
- * @param {string} options.operationName - Name for logging
- * @param {Object} options.config - Override retry configuration
- * @param {Function} options.onRetry - Callback called before each retry
- * @param {Function} options.shouldRetry - Custom function to determine if should retry
- * @returns {Promise<*>} Result of the function
  */
-export async function withRetry(fn, options = {}) {
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  options: WithRetryOptions = {}
+): Promise<T> {
   const {
     operationName = 'operation',
     config = DEFAULT_RETRY_CONFIG,
@@ -110,21 +135,23 @@ export async function withRetry(fn, options = {}) {
     shouldRetry = null
   } = options;
 
-  const { maxRetries, retryableErrors } = { ...DEFAULT_RETRY_CONFIG, ...config };
+  const mergedConfig = { ...DEFAULT_RETRY_CONFIG, ...config };
+  const { maxRetries, retryableErrors } = mergedConfig;
 
-  let lastError = null;
+  let lastError: RetryableError | null = null;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const result = await fn();
       return result;
-    } catch (error) {
+    } catch (err) {
+      const error = err as RetryableError;
       lastError = error;
 
       // Check if we should retry
       const shouldRetryError = shouldRetry
         ? shouldRetry(error, attempt)
-        : isRetryableError(error, retryableErrors);
+        : isRetryableError(error, retryableErrors ?? []);
 
       if (!shouldRetryError || attempt >= maxRetries) {
         logger.error(`${operationName} failed after ${attempt + 1} attempts:`, {
@@ -158,13 +185,12 @@ export async function withRetry(fn, options = {}) {
 
 /**
  * Create a retry wrapper for a specific operation
- *
- * @param {string} operationName - Name for logging
- * @param {Object} config - Retry configuration
- * @returns {Function} Wrapper function
  */
-export function createRetryWrapper(operationName, config = {}) {
-  return function retryWrapper(fn) {
+export function createRetryWrapper(
+  operationName: string,
+  config: Partial<RetryConfig> = {}
+): <T>(fn: () => Promise<T>) => Promise<T> {
+  return function retryWrapper<T>(fn: () => Promise<T>): Promise<T> {
     return withRetry(fn, { operationName, config });
   };
 }
@@ -172,7 +198,7 @@ export function createRetryWrapper(operationName, config = {}) {
 /**
  * Retry configuration presets for different scenarios
  */
-export const RETRY_PRESETS = {
+export const RETRY_PRESETS: Record<string, RetryConfig> = {
   // Critical operations (check-ins) - more retries, longer delays
   critical: {
     maxRetries: 5,

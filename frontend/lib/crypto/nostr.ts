@@ -12,9 +12,8 @@
  * @see CLAUDE.md - Phase 1: User-Controlled Keys
  */
 
-import { secp256k1 } from '@noble/curves/secp256k1';
-import { schnorr } from '@noble/curves/secp256k1';
-import { randomBytes as nobleRandomBytes, bytesToHex, hexToBytes } from '@noble/hashes/utils';
+import { secp256k1, schnorr } from '@noble/curves/secp256k1.js';
+import { randomBytes as nobleRandomBytes, bytesToHex, hexToBytes } from '@noble/hashes/utils.js';
 
 // Re-export for compatibility
 export { bytesToHex as toHex, hexToBytes as fromHex };
@@ -38,7 +37,7 @@ export async function generateNostrKeypair(): Promise<{
   publicKey: string; // 32 bytes hex (npub, x-only)
 }> {
   // Generate private key with proper entropy
-  const privateKeyBytes = secp256k1.utils.randomPrivateKey();
+  const privateKeyBytes = secp256k1.utils.randomSecretKey();
   const privateKey = bytesToHex(privateKeyBytes);
 
   // Derive x-only public key (Schnorr/BIP-340 format for Nostr)
@@ -126,7 +125,7 @@ export function computeSharedSecret(
  * Lift an x-only public key to a full point
  * Per BIP-340, the y-coordinate with even parity is chosen
  */
-function liftX(xOnlyPubkey: Uint8Array): typeof secp256k1.ProjectivePoint.BASE {
+function liftX(xOnlyPubkey: Uint8Array): typeof secp256k1.Point.BASE {
   // secp256k1 parameters
   const p = BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F');
   const x = bytesToBigInt(xOnlyPubkey);
@@ -146,7 +145,7 @@ function liftX(xOnlyPubkey: Uint8Array): typeof secp256k1.ProjectivePoint.BASE {
   const yFinal = y % 2n === 0n ? y : p - y;
 
   // Create the point
-  return new secp256k1.ProjectivePoint(x, yFinal, 1n);
+  return new secp256k1.Point(x, yFinal, 1n);
 }
 
 /**
@@ -193,12 +192,7 @@ function bigIntToBytes(n: bigint, length: number): Uint8Array {
  */
 export function isValidPrivateKey(privateKey: string): boolean {
   if (!/^[0-9a-f]{64}$/i.test(privateKey)) return false;
-  try {
-    secp256k1.utils.normPrivateKeyToScalar(hexToBytes(privateKey));
-    return true;
-  } catch {
-    return false;
-  }
+  return secp256k1.utils.isValidSecretKey(hexToBytes(privateKey));
 }
 
 /**

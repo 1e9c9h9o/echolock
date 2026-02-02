@@ -12,12 +12,12 @@
  * @see https://github.com/nostr-protocol/nips/blob/master/44.md
  */
 
-import { chacha20poly1305 } from '@noble/ciphers/chacha';
-import { secp256k1 } from '@noble/curves/secp256k1';
-import { hkdf } from '@noble/hashes/hkdf';
-import { sha256 } from '@noble/hashes/sha2';
-import { hmac } from '@noble/hashes/hmac';
-import { randomBytes, bytesToHex, hexToBytes } from '@noble/hashes/utils';
+import { chacha20poly1305 } from '@noble/ciphers/chacha.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { hkdf } from '@noble/hashes/hkdf.js';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { hmac } from '@noble/hashes/hmac.js';
+import { randomBytes, bytesToHex, hexToBytes } from '@noble/hashes/utils.js';
 
 // NIP-44 constants
 const VERSION = 2;
@@ -165,7 +165,7 @@ function getSharedSecret(privateKeyHex: string, publicKeyHex: string): Uint8Arra
  * Per NIP-44: conversationKey = HKDF(sharedSecret, salt=0x00*32, info="nip44-v2", L=32)
  */
 function getConversationKey(sharedSecret: Uint8Array): Uint8Array {
-  return hkdf(sha256, sharedSecret, new Uint8Array(32), 'nip44-v2', 32);
+  return hkdf(sha256, sharedSecret, new Uint8Array(32), new TextEncoder().encode('nip44-v2'), 32);
 }
 
 /**
@@ -183,7 +183,7 @@ function getMessageKeys(
   chachaNonce: Uint8Array;
   hmacKey: Uint8Array;
 } {
-  const keys = hkdf(sha256, conversationKey, nonce, 'nip44-v2', 76);
+  const keys = hkdf(sha256, conversationKey, nonce, new TextEncoder().encode('nip44-v2'), 76);
 
   return {
     chachaKey: keys.slice(0, 32),
@@ -252,7 +252,7 @@ function unpadPlaintext(padded: Uint8Array): Uint8Array {
  * Lift x-only public key to full secp256k1 point
  * Per BIP-340, the y-coordinate with even parity is chosen
  */
-function liftX(xOnlyPubkey: Uint8Array): typeof secp256k1.ProjectivePoint.BASE {
+function liftX(xOnlyPubkey: Uint8Array): typeof secp256k1.Point.BASE {
   const p = BigInt('0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F');
   const x = bytesToBigInt(xOnlyPubkey);
 
@@ -270,7 +270,7 @@ function liftX(xOnlyPubkey: Uint8Array): typeof secp256k1.ProjectivePoint.BASE {
   // Choose even y (BIP-340)
   const yFinal = y % 2n === 0n ? y : p - y;
 
-  return new secp256k1.ProjectivePoint(x, yFinal, 1n);
+  return new secp256k1.Point(x, yFinal, 1n);
 }
 
 /**
