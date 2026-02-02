@@ -105,28 +105,39 @@ export const authAPI = {
     const response = await api.post('/auth/login', { email, password })
     const data = response.data.data
 
+    // Transform user to frontend format
+    const transformUser = (u: any) => u ? {
+      ...u,
+      email_verified: u.emailVerified ?? u.email_verified ?? false,
+    } : null
+
     // Check if 2FA is required
     if (data.requiresTwoFactor) {
       return {
         requiresTwoFactor: true,
         challengeToken: data.challengeToken,
-        user: data.user,
+        user: transformUser(data.user),
       }
     }
 
     // Tokens are now stored in httpOnly cookies by the server
     // Fetch new CSRF token after login
     await fetchCsrfToken()
-    return { user: data.user, requiresTwoFactor: false }
+    return { user: transformUser(data.user), requiresTwoFactor: false }
   },
 
   // Complete login with 2FA verification
   verify2FA: async (challengeToken: string, code: string) => {
     const response = await api.post('/auth/2fa/verify', { challengeToken, code })
     const { user } = response.data.data
+    // Transform user to frontend format
+    const transformedUser = user ? {
+      ...user,
+      email_verified: user.emailVerified ?? user.email_verified ?? false,
+    } : null
     // Fetch new CSRF token after successful 2FA
     await fetchCsrfToken()
-    return { user, usedBackupCode: response.data.data.usedBackupCode }
+    return { user: transformedUser, usedBackupCode: response.data.data.usedBackupCode }
   },
 
   logout: async () => {
@@ -161,7 +172,15 @@ export const authAPI = {
   getMe: async () => {
     try {
       const response = await api.get('/users/me')
-      return response.data.data.user || response.data.user || null
+      const user = response.data.data.user || response.data.user || null
+      if (user) {
+        // Transform API response (camelCase) to frontend format (snake_case for email_verified)
+        return {
+          ...user,
+          email_verified: user.emailVerified ?? user.email_verified ?? false,
+        }
+      }
+      return null
     } catch (error) {
       // 401 means not authenticated, which is expected
       return null
