@@ -73,9 +73,11 @@ import guardianHealthRoutes from './routes/guardianHealth.js';
 import { stopRateLimitCleanup } from './middleware/auth.js';
 
 // Import reminder monitor (background job for check-in reminders)
-// NOTE: timerMonitor has been removed - the Guardian Network now handles
-// switch expiration detection and release. See CLAUDE.md for architecture.
 import { startReminderMonitor } from './jobs/reminderMonitor.js';
+
+// Import timer monitor (background job for switch expiration and email release)
+// This provides convenient email notifications while Guardian Network serves as backup
+import { startTimerMonitor } from './jobs/timerMonitor.js';
 
 // Import Bitcoin funding monitor (background job for detecting commitment funding)
 import { startBitcoinFundingMonitor } from './jobs/bitcoinFundingMonitor.js';
@@ -419,11 +421,15 @@ async function startServer() {
       logger.warn('Server will start anyway - configure DATABASE_URL and restart');
     }
 
-    // Start reminder monitor (cron job for check-in reminders)
-    // NOTE: Timer monitor has been removed - the Guardian Network now handles
-    // switch expiration detection and message release autonomously via Nostr.
-    // Only start if database is healthy
+    // Start background monitors (only if database is healthy)
     if (dbHealthy) {
+      // Timer monitor: checks for expired switches and sends release emails
+      logger.info('Starting timer monitor...');
+      const timerJob = startTimerMonitor();
+      logger.info('Timer monitor started - checking for expired switches every 5 minutes');
+      app.locals.timerJob = timerJob;
+
+      // Reminder monitor: sends check-in reminders before expiration
       logger.info('Starting reminder monitor...');
       const reminderJob = startReminderMonitor();
       logger.info('Reminder monitor started - checking for upcoming expirations every hour');
@@ -480,6 +486,12 @@ async function startServer() {
 // Graceful shutdown helper
 function gracefulShutdown(signal) {
   logger.info(`${signal} received, shutting down gracefully...`);
+
+  // Stop timer monitor if running
+  if (app.locals.timerJob) {
+    app.locals.timerJob.stop();
+    logger.info('Timer monitor stopped');
+  }
 
   // Stop reminder monitor if running
   if (app.locals.reminderJob) {

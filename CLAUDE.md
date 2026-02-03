@@ -8,21 +8,32 @@ This is the bar. If EchoLock the company vanishes tomorrow, every user's dead ma
 
 ---
 
-## Current Reality (v1.0 - Decentralized) ✅
+## Current Reality (v1.0 - Hybrid Architecture) ✅
 
-**Status:** The system now achieves the stated goals. EchoLock is eliminable.
+**Status:** The system achieves the stated goals with a user-friendly layer on top.
+
+### Two-Layer Release System
+
+| Layer | Purpose | How It Works |
+|-------|---------|--------------|
+| **Layer 1: Server (Convenience)** | Email notifications for regular users | Timer monitor checks every 5 min, sends emails automatically |
+| **Layer 2: Guardian Network (Resilience)** | Works without EchoLock | Guardians publish shares to Nostr, recipients use recovery tool |
+
+### Component Status
 
 | Component | Implementation | Server Required? |
 |-----------|---------------|------------------|
-| Timer | Guardian Network watches Nostr heartbeats | No |
+| Timer | Server monitor + Guardian Network | No (guardians work independently) |
 | Storage | Encrypted on Nostr relays (kind 30081) | No |
-| Release | Guardians publish Shamir shares to Nostr | No |
+| Release | Server emails + Guardian Nostr shares | No (either path works) |
 | Keys | User-generated, stored locally (IndexedDB) | No |
 | Survival | Works without EchoLock servers | **Fully autonomous** |
 
+**Normal operation:** Server sends emails automatically when switches expire (best UX).
+
 **If the server goes down:** Messages still release via Guardian Network. Recipients recover using the standalone browser tool.
 
-The mission is achieved.
+The mission is achieved with great UX.
 
 ---
 

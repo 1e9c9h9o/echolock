@@ -1,33 +1,31 @@
 'use strict';
 
 /**
- * Timer Monitor - DEPRECATED
+ * Timer Monitor - Convenience Layer for Email Notifications
  *
  * =============================================================================
- * THIS MODULE IS DEPRECATED AND NO LONGER USED
+ * HYBRID ARCHITECTURE: Server Email + Guardian Network Backup
  * =============================================================================
  *
- * The server-side timer monitor has been replaced by the Guardian Network,
- * which provides fully decentralized switch expiration detection and message
- * release via the Nostr protocol.
+ * This module provides automatic email notifications when switches expire.
+ * It runs alongside the Guardian Network, creating a two-layer system:
  *
- * WHY DEPRECATED:
- * - Centralized dependency: Required EchoLock server to release messages
- * - Single point of failure: Server downtime = messages not released
- * - Against project goals: See CLAUDE.md "The North Star" principles
+ * LAYER 1 - Server (this module):
+ * - Sends emails automatically when switches expire
+ * - Great UX for regular users who expect email notifications
+ * - Requires EchoLock server to be running
  *
- * REPLACEMENT:
- * - Guardian daemons watch for heartbeats on Nostr independently
- * - When heartbeats stop, guardians publish their Shamir shares to Nostr
- * - Recipients reconstruct messages using the browser-based recovery tool
- * - No server involvement required
+ * LAYER 2 - Guardian Network (decentralized backup):
+ * - Guardians watch Nostr for missed heartbeats independently
+ * - Publishes Shamir shares to Nostr when timer expires
+ * - Recipients can recover via browser-based recovery tool
+ * - Works even if EchoLock server is down
  *
- * This file is kept for reference only. It is not imported or executed.
- * See: guardian-daemon/index.js for the decentralized replacement.
+ * WHY BOTH?
+ * - Regular users get convenient email notifications (good UX)
+ * - System still works if server goes down (resilience)
+ * - Achieves "eliminable company" goal while being user-friendly
  *
- * =============================================================================
- *
- * ORIGINAL DESCRIPTION (historical reference):
  * Runs every 5 minutes to check for:
  * - Switches that have passed their expiry time
  * - Retrieves fragments from Nostr
