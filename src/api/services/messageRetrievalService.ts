@@ -8,7 +8,7 @@
  */
 
 import { logger } from '../utils/logger.js';
-import { decryptWithServiceKey } from '../utils/crypto.js';
+import { decryptForUser } from '../utils/crypto.js';
 import { decrypt } from '../../crypto/encryption.js';
 import { combineAuthenticatedShares } from '../../crypto/secretSharing.js';
 import { PBKDF2_ITERATIONS, zeroize } from '../../crypto/keyDerivation.js';
@@ -22,6 +22,8 @@ import { SimplePool } from 'nostr-tools';
  */
 interface SwitchData {
   id: string;
+  user_id: string;
+  encryption_key_version?: number;
   nostr_private_key_encrypted: string | null;
   relay_urls: string | string[];
   nostr_public_key: string | null;
@@ -233,6 +235,7 @@ export async function retrieveAndReconstructMessage(switchData: SwitchData): Pro
 
 /**
  * Decrypt Nostr private key from database storage
+ * Uses per-user key derivation for security isolation
  */
 function decryptNostrPrivateKey(switchData: SwitchData): string | null {
   try {
@@ -246,7 +249,15 @@ function decryptNostrPrivateKey(switchData: SwitchData): string | null {
       throw new Error('Invalid encrypted Nostr private key format');
     }
 
-    const decrypted = decryptWithServiceKey(parts[0], parts[1], parts[2]);
+    // Use per-user key derivation (matches how switches encrypt data)
+    const keyVersion = switchData.encryption_key_version || 1;
+    const decrypted = decryptForUser(
+      parts[0],
+      parts[1],
+      parts[2],
+      switchData.user_id,
+      keyVersion
+    );
 
     return decrypted.toString('hex');
   } catch (error) {
@@ -258,6 +269,7 @@ function decryptNostrPrivateKey(switchData: SwitchData): string | null {
 
 /**
  * Decrypt auth key from database storage
+ * Uses per-user key derivation for security isolation
  */
 function decryptAuthKey(switchData: SwitchData): string | null {
   try {
@@ -271,7 +283,15 @@ function decryptAuthKey(switchData: SwitchData): string | null {
       throw new Error('Invalid encrypted auth key format');
     }
 
-    const decrypted = decryptWithServiceKey(parts[0], parts[1], parts[2]);
+    // Use per-user key derivation (matches how switches encrypt data)
+    const keyVersion = switchData.encryption_key_version || 1;
+    const decrypted = decryptForUser(
+      parts[0],
+      parts[1],
+      parts[2],
+      switchData.user_id,
+      keyVersion
+    );
 
     return decrypted.toString('hex');
   } catch (error) {
