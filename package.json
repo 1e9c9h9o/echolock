@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "node src/cli/index.js",
-    "api": "node src/api/server.js",
+    "api": "tsx src/api/server.ts",
     "api:dev": "node --watch src/api/server.js",
     "api:dev:ts": "tsx watch src/api/server.ts",
     "api:build": "tsc -p src/api/tsconfig.json",
