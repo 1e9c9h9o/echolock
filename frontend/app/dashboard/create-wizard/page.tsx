@@ -123,10 +123,19 @@ export default function CreateWizardPage() {
       showToast('Switch created with client-side encryption', 'success')
     } catch (error: any) {
       console.error('Switch creation error:', error)
-      showToast(
-        error.response?.data?.message || error.message || 'Failed to create switch',
-        'error'
-      )
+
+      // Check if it's a timeout error
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        showToast(
+          'Request timed out, but your switch may have been created. Please check your dashboard.',
+          'warning'
+        )
+      } else {
+        showToast(
+          error.response?.data?.message || error.message || 'Failed to create switch',
+          'error'
+        )
+      }
     } finally {
       setLoading(false)
       setCryptoProgress('')

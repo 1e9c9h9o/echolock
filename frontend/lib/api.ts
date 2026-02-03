@@ -14,6 +14,8 @@ const api = axios.create({
   },
   // Enable sending cookies with requests (for httpOnly token cookies)
   withCredentials: true,
+  // Timeout: 30 seconds (Vercel proxy timeout limit)
+  timeout: 30000,
 })
 
 // Fetch CSRF token on initialization
