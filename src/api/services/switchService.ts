@@ -874,36 +874,14 @@ export async function createClientEncryptedSwitch(
       return sw;
     });
 
-    // Distribute shares to Nostr relays
-    // Note: We distribute encrypted shares but server cannot decrypt them
-    try {
-      const { publishFragment, filterHealthyRelays } = await import('../../nostr/multiRelayClient.js');
-
-      const healthyRelays = await filterHealthyRelays() as string[];
-
-      // Publish each share to Nostr
-      for (const share of shares) {
-        await publishFragment(
-          switchId,
-          share.index,
-          share.data,
-          healthyRelays.slice(0, 7)  // Use up to 7 relays
-        );
-      }
-
-      logger.info('Shares distributed to Nostr', {
-        switchId,
-        shareCount: shares.length,
-        relayCount: Math.min(healthyRelays.length, 7)
-      });
-    } catch (nostrError) {
-      // Log but don't fail - shares are stored in DB as backup
-      const err = nostrError as Error;
-      logger.warn('Nostr distribution partially failed', {
-        switchId,
-        error: err.message
-      });
-    }
+    // NOTE: Nostr distribution is temporarily disabled
+    // The publishFragment function signature changed and the call was incorrect.
+    // Shares are stored in the database and the server-side timer monitor handles releases.
+    // TODO: Fix Nostr publishing when Guardian Network is properly implemented.
+    logger.info('Nostr distribution skipped (server-side release enabled)', {
+      switchId,
+      shareCount: shares.length
+    });
 
     logger.info('Client-encrypted switch stored in database', {
       switchId: switchData.id,
