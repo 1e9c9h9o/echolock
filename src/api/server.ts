@@ -76,9 +76,12 @@ import guardianHealthRoutes from './routes/guardianHealth.js';
 import { stopRateLimitCleanup } from './middleware/auth.js';
 
 // Import reminder monitor (background job for check-in reminders)
-// NOTE: timerMonitor has been removed - the Guardian Network now handles
-// switch expiration detection and release. See CLAUDE.md for architecture.
 import { startReminderMonitor } from './jobs/reminderMonitor.js';
+
+// Import timer monitor (background job for detecting expired switches and releasing messages)
+// NOTE: Guardian Network is the long-term solution, but timer monitor provides
+// server-side fallback until Guardian Network is fully deployed and operational.
+import { startTimerMonitor } from './jobs/timerMonitor.js';
 
 // Import Bitcoin funding monitor (background job for detecting commitment funding)
 import { startBitcoinFundingMonitor } from './jobs/bitcoinFundingMonitor.js';
@@ -93,6 +96,7 @@ import websocketService from './services/websocketService.js';
  * Extended Express Application with locals
  */
 interface AppLocals {
+  timerJob?: ScheduledTask;
   reminderJob?: ScheduledTask;
   bitcoinJob?: ScheduledTask | null;
   httpServer?: http.Server;
@@ -445,10 +449,13 @@ async function startServer(): Promise<void> {
     }
 
     // Start reminder monitor (cron job for check-in reminders)
-    // NOTE: Timer monitor has been removed - the Guardian Network now handles
-    // switch expiration detection and message release autonomously via Nostr.
-    // Only start if database is healthy
+    // Only start background jobs if database is healthy
     if (dbHealthy) {
+      // Start timer monitor for expired switch detection and release
+      logger.info('Starting timer monitor...');
+      const timerJob = startTimerMonitor();
+      logger.info('Timer monitor started - checking for expired switches every 5 minutes');
+
       logger.info('Starting reminder monitor...');
       const reminderJob = startReminderMonitor();
       logger.info('Reminder monitor started - checking for upcoming expirations every hour');
