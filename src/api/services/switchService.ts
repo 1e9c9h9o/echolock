@@ -24,6 +24,17 @@ import type { Request } from 'express';
 // Increment when rotating keys
 const CURRENT_KEY_VERSION = 1;
 
+// Default Nostr relays for client-side encrypted switches
+const DEFAULT_RELAY_URLS = [
+  'wss://relay.damus.io',
+  'wss://relay.nostr.band',
+  'wss://nos.lol',
+  'wss://relay.snort.social',
+  'wss://relay.primal.net',
+  'wss://purplepag.es',
+  'wss://relay.nostr.info'
+];
+
 // Import your existing crypto code
 import { createSwitch as createSwitchCore } from '../../core/deadManSwitch.js';
 
@@ -821,13 +832,14 @@ export async function createClientEncryptedSwitch(
           last_check_in, expires_at,
           encrypted_message_ciphertext, encrypted_message_iv, encrypted_message_auth_tag,
           nostr_public_key,
+          relay_urls,
           fragment_metadata,
           encryption_key_version,
           client_side_encryption,
           shamir_total_shares,
           shamir_threshold
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
         ) RETURNING id, created_at, expires_at`,
         [
           switchId,
@@ -842,6 +854,7 @@ export async function createClientEncryptedSwitch(
           encryptedMessage.iv,
           encryptedMessage.authTag,
           nostrPublicKey,
+          JSON.stringify(DEFAULT_RELAY_URLS),  // Default relay URLs
           JSON.stringify({ shares, clientSideEncryption: true, shamirTotalShares, shamirThreshold }),
           1,  // encryption_key_version
           true,  // client_side_encryption flag
