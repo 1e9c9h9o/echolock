@@ -72,21 +72,56 @@ interface WizardStep2Props {
 
 export function Step2SetInterval({ checkInHours, onCheckInHoursChange, onNext, onBack }: WizardStep2Props) {
   const [customMode, setCustomMode] = useState(false)
+  const [customValue, setCustomValue] = useState('1')
+  const [customUnit, setCustomUnit] = useState<'minutes' | 'hours' | 'days'>('hours')
 
-  // Show test options for all users (can be restricted later)
   const presets = [
-    // Test options
-    { label: '5 Min', value: '0.083', description: '⚡ Testing only' },
+    { label: '5 Min', value: '0.0833', description: '⚡ Testing only' },
     { label: '15 Min', value: '0.25', description: '⚡ Testing only' },
     { label: '1 Hour', value: '1', description: 'Quick test' },
     { label: '24 Hours', value: '24', description: 'Daily check-in' },
-    { label: '72 Hours', value: '72', description: '3 days' },
-    { label: '168 Hours', value: '168', description: '1 week' },
+    { label: '3 Days', value: '72', description: 'Every 3 days' },
+    { label: '1 Week', value: '168', description: 'Weekly check-in' },
   ]
 
   const handlePreset = (value: string) => {
     onCheckInHoursChange(value)
     setCustomMode(false)
+  }
+
+  const handleCustomChange = (value: string, unit: 'minutes' | 'hours' | 'days') => {
+    setCustomValue(value)
+    setCustomUnit(unit)
+
+    const numValue = parseFloat(value) || 0
+    let hours: number
+
+    switch (unit) {
+      case 'minutes':
+        hours = numValue / 60
+        break
+      case 'days':
+        hours = numValue * 24
+        break
+      default:
+        hours = numValue
+    }
+
+    onCheckInHoursChange(hours.toString())
+  }
+
+  // Format the display of current selection
+  const formatInterval = (hours: string) => {
+    const h = parseFloat(hours) || 0
+    if (h < 1) {
+      const mins = Math.round(h * 60)
+      return `${mins} minute${mins !== 1 ? 's' : ''}`
+    } else if (h >= 24 && h % 24 === 0) {
+      const days = h / 24
+      return `${days} day${days !== 1 ? 's' : ''}`
+    } else {
+      return `${h} hour${h !== 1 ? 's' : ''}`
+    }
   }
 
   return (
@@ -98,7 +133,7 @@ export function Step2SetInterval({ checkInHours, onCheckInHoursChange, onNext, o
         </p>
 
         {/* Preset buttons */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           {presets.map((preset) => (
             <button
               key={preset.value}
@@ -130,25 +165,40 @@ export function Step2SetInterval({ checkInHours, onCheckInHoursChange, onNext, o
           </button>
 
           {customMode && (
-            <div className="mt-6">
-              <Input
-                label="Custom Interval (Hours)"
-                type="number"
-                value={checkInHours}
-                onChange={(e) => onCheckInHoursChange(e.target.value)}
-                min="0.083"
-                step="0.083"
-                max="2160"
-                helperText="Minimum: 5 minutes (0.083 hours), Maximum: 90 days"
-                required
-              />
+            <div className="mt-6 flex gap-4">
+              <div className="flex-1">
+                <label className="block text-sm font-bold uppercase tracking-wider mb-2">
+                  Amount
+                </label>
+                <input
+                  type="number"
+                  value={customValue}
+                  onChange={(e) => handleCustomChange(e.target.value, customUnit)}
+                  min="1"
+                  className="w-full px-4 py-3 border-2 border-black bg-white focus:outline-none focus:ring-2 focus:ring-blue text-base font-mono"
+                />
+              </div>
+              <div className="w-40">
+                <label className="block text-sm font-bold uppercase tracking-wider mb-2">
+                  Unit
+                </label>
+                <select
+                  value={customUnit}
+                  onChange={(e) => handleCustomChange(customValue, e.target.value as 'minutes' | 'hours' | 'days')}
+                  className="w-full px-4 py-3 border-2 border-black bg-white focus:outline-none focus:ring-2 focus:ring-blue text-base font-mono"
+                >
+                  <option value="minutes">Minutes</option>
+                  <option value="hours">Hours</option>
+                  <option value="days">Days</option>
+                </select>
+              </div>
             </div>
           )}
         </div>
 
         <div className="bg-cream p-4 border-2 border-black">
           <p className="font-mono text-sm">
-            <strong>Selected:</strong> You must check in at least once every {checkInHours} hours
+            <strong>Selected:</strong> Check in every {formatInterval(checkInHours)}
           </p>
         </div>
 
@@ -160,7 +210,7 @@ export function Step2SetInterval({ checkInHours, onCheckInHoursChange, onNext, o
           <Button
             variant="primary"
             onClick={onNext}
-            disabled={!checkInHours || parseFloat(checkInHours) < 0.083 || parseFloat(checkInHours) > 2160}
+            disabled={!checkInHours || parseFloat(checkInHours) < 0.0833 || parseFloat(checkInHours) > 2160}
           >
             Next Step
             <ArrowRight className="h-5 w-5 ml-2" strokeWidth={2} />
