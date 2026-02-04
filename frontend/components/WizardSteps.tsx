@@ -73,7 +73,17 @@ interface WizardStep2Props {
 export function Step2SetInterval({ checkInHours, onCheckInHoursChange, onNext, onBack }: WizardStep2Props) {
   const [customMode, setCustomMode] = useState(false)
 
+  // Check if we're in development/testing mode
+  const isDev = process.env.NODE_ENV === 'development' ||
+                (typeof window !== 'undefined' && window.location.hostname === 'localhost')
+
   const presets = [
+    // Test options (shown in dev or can be enabled)
+    ...(isDev ? [
+      { label: '5 Min', value: '0.083', description: '⚡ Testing only' },
+      { label: '15 Min', value: '0.25', description: '⚡ Testing only' },
+    ] : []),
+    { label: '1 Hour', value: '1', description: 'Quick test' },
     { label: '24 Hours', value: '24', description: 'Daily check-in' },
     { label: '72 Hours', value: '72', description: '3 days' },
     { label: '168 Hours', value: '168', description: '1 week' },
@@ -131,9 +141,10 @@ export function Step2SetInterval({ checkInHours, onCheckInHoursChange, onNext, o
                 type="number"
                 value={checkInHours}
                 onChange={(e) => onCheckInHoursChange(e.target.value)}
-                min="6"
+                min="0.083"
+                step="0.083"
                 max="2160"
-                helperText="Minimum: 6 hours, Maximum: 90 days (2160 hours)"
+                helperText="Minimum: 5 minutes (0.083 hours), Maximum: 90 days"
                 required
               />
             </div>
