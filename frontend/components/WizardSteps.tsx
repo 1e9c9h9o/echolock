@@ -165,7 +165,7 @@ export function Step2SetInterval({ checkInHours, onCheckInHoursChange, onNext, o
           <Button
             variant="primary"
             onClick={onNext}
-            disabled={!checkInHours || parseInt(checkInHours) < 6 || parseInt(checkInHours) > 2160}
+            disabled={!checkInHours || parseFloat(checkInHours) < 0.083 || parseFloat(checkInHours) > 2160}
           >
             Next Step
             <ArrowRight className="h-5 w-5 ml-2" strokeWidth={2} />
