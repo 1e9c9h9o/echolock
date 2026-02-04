@@ -95,7 +95,7 @@ export default function DashboardPage() {
                 Demo
               </button>
             </Link>
-            <Link href="/dashboard/create">
+            <Link href="/dashboard/create-wizard">
               <button className="px-4 py-2 bg-slate-800 border border-slate-800 text-white font-bold text-sm uppercase tracking-wider hover:bg-slate-700 transition-colors flex items-center gap-2">
                 <Plus className="h-4 w-4" strokeWidth={2} />
                 New Switch
@@ -138,7 +138,7 @@ export default function DashboardPage() {
 
             {/* Purpose-driven options */}
             <div className="grid gap-3 mb-8 text-left">
-              <Link href="/dashboard/create">
+              <Link href="/dashboard/create-wizard">
                 <div className="p-4 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group">
                   <div className="flex items-start gap-3">
                     <Heart className="h-5 w-5 text-slate-400 mt-0.5 group-hover:text-slate-600" strokeWidth={1.5} />
@@ -149,7 +149,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </Link>
-              <Link href="/dashboard/create">
+              <Link href="/dashboard/create-wizard">
                 <div className="p-4 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group">
                   <div className="flex items-start gap-3">
                     <Briefcase className="h-5 w-5 text-slate-400 mt-0.5 group-hover:text-slate-600" strokeWidth={1.5} />
@@ -175,7 +175,7 @@ export default function DashboardPage() {
 
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link href="/dashboard/create">
+              <Link href="/dashboard/create-wizard">
                 <button className="w-full sm:w-auto px-6 py-3 bg-slate-800 text-white font-bold text-sm uppercase tracking-wider hover:bg-slate-700 transition-colors">
                   Create Switch
                 </button>

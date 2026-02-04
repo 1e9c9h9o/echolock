@@ -165,7 +165,7 @@ export default function DashboardLayout({
             <NavLink href="/dashboard" icon={Home} onClick={() => setIsSidebarOpen(false)}>
               Dashboard
             </NavLink>
-            <NavLink href="/dashboard/create" icon={Plus} onClick={() => setIsSidebarOpen(false)}>
+            <NavLink href="/dashboard/create-wizard" icon={Plus} onClick={() => setIsSidebarOpen(false)}>
               Create Switch
             </NavLink>
             <NavLink href="/dashboard/settings" icon={Settings} onClick={() => setIsSidebarOpen(false)}>

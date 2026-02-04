@@ -364,7 +364,7 @@ export default function DemoPage() {
               <RotateCcw className="h-5 w-5 mr-2" strokeWidth={2} />
               Try Again
             </Button>
-            <Link href="/dashboard/create">
+            <Link href="/dashboard/create-wizard">
               <Button variant="secondary">Create Real Switch</Button>
             </Link>
           </div>
