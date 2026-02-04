@@ -106,7 +106,7 @@ export default function CreateWizardPage() {
       const serverPayload = prepareServerPayload(
         encryptedSwitch,
         switchTitle,
-        parseInt(checkInHours),
+        parseFloat(checkInHours),
         validRecipients
       )
 

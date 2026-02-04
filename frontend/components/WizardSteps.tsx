@@ -73,16 +73,11 @@ interface WizardStep2Props {
 export function Step2SetInterval({ checkInHours, onCheckInHoursChange, onNext, onBack }: WizardStep2Props) {
   const [customMode, setCustomMode] = useState(false)
 
-  // Check if we're in development/testing mode
-  const isDev = process.env.NODE_ENV === 'development' ||
-                (typeof window !== 'undefined' && window.location.hostname === 'localhost')
-
+  // Show test options for all users (can be restricted later)
   const presets = [
-    // Test options (shown in dev or can be enabled)
-    ...(isDev ? [
-      { label: '5 Min', value: '0.083', description: '⚡ Testing only' },
-      { label: '15 Min', value: '0.25', description: '⚡ Testing only' },
-    ] : []),
+    // Test options
+    { label: '5 Min', value: '0.083', description: '⚡ Testing only' },
+    { label: '15 Min', value: '0.25', description: '⚡ Testing only' },
     { label: '1 Hour', value: '1', description: 'Quick test' },
     { label: '24 Hours', value: '24', description: 'Daily check-in' },
     { label: '72 Hours', value: '72', description: '3 days' },
