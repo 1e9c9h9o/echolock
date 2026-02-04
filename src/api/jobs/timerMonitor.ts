@@ -69,6 +69,10 @@ interface SwitchRow {
   status?: string;
   nostr_public_key?: string;
   fragment_metadata?: unknown;
+  client_side_encryption?: boolean;
+  encrypted_message_ciphertext?: string;
+  encrypted_message_iv?: string;
+  encrypted_message_auth_tag?: string;
 }
 
 interface RecipientRow {
@@ -125,33 +129,51 @@ async function processExpiredSwitch(sw: SwitchRow): Promise<void> {
       return;
     }
 
-    // Step 2: Retrieve and reconstruct message from Nostr
-    logger.debug('Retrieving fragments from Nostr...', { switchId });
-
-    const releaseResult = await retrieveAndReconstructMessage(fullSwitchData);
-
-    if (!releaseResult.success || !releaseResult.message) {
-      throw new Error(`Message retrieval failed: ${releaseResult.error}`);
-    }
-
-    const message = releaseResult.message;
-
-    logger.info('Message reconstructed successfully', {
-      switchId,
-      sharesUsed: releaseResult.sharesUsed,
-      messageLength: message.length
-    });
-
-    // Step 2: Get recipients
+    // Step 2: Get recipients first (needed for both flows)
     const recipientsResult = await query<RecipientRow>(
       'SELECT id, email, name FROM recipients WHERE switch_id = $1',
       [switchId]
     );
-
     const recipients = recipientsResult.rows;
 
-    // Verify switch still exists (user may have been deleted during processing)
-    // This is a safety check for the race condition window between message retrieval and email sending
+    if (recipients.length === 0) {
+      logger.warn('No recipients for switch - release will complete but no emails sent', { switchId });
+    }
+
+    // Step 3: Handle release based on encryption type
+    let message: string | null = null;
+    const isClientSideEncrypted = fullSwitchData.client_side_encryption === true;
+
+    if (isClientSideEncrypted) {
+      // CLIENT-SIDE ENCRYPTION: Server cannot decrypt
+      // Send notification email with link to recovery tool
+      logger.info('Client-side encrypted switch - sending recovery notification', {
+        switchId,
+        recipientCount: recipients.length
+      });
+
+      // Message will be null - we'll send a different type of email
+      message = null;
+    } else {
+      // SERVER-SIDE ENCRYPTION (legacy): Try to decrypt
+      logger.debug('Retrieving fragments from Nostr...', { switchId });
+
+      const releaseResult = await retrieveAndReconstructMessage(fullSwitchData);
+
+      if (!releaseResult.success || !releaseResult.message) {
+        throw new Error(`Message retrieval failed: ${releaseResult.error}`);
+      }
+
+      message = releaseResult.message;
+
+      logger.info('Message reconstructed successfully', {
+        switchId,
+        sharesUsed: releaseResult.sharesUsed,
+        messageLength: message.length
+      });
+    }
+
+    // Verify switch still exists (moved here from later)
     const verifySwitch = await query<{ id: string; user_id: string }>(
       'SELECT id, user_id FROM switches WHERE id = $1',
       [switchId]
@@ -162,26 +184,50 @@ async function processExpiredSwitch(sw: SwitchRow): Promise<void> {
       return;
     }
 
-    if (recipients.length === 0) {
-      logger.warn('No recipients for switch - release will complete but no emails sent', { switchId });
-    }
-
-    // Step 3: Send emails to all recipients
+    // Step 5: Send emails to all recipients
     const emailResults: EmailResult[] = [];
+    const FRONTEND_URL = process.env.FRONTEND_URL || 'https://echolock.xyz';
 
     for (const recipient of recipients) {
       try {
         logger.debug('Sending release email', {
           switchId,
-          recipient: recipient.email
+          recipient: recipient.email,
+          isClientSideEncrypted
         });
 
-        await sendSwitchReleaseEmail(
-          recipient.email,
-          message!,
-          sw.title,
-          'Timer expired - no check-in received'
-        );
+        if (isClientSideEncrypted) {
+          // Client-side encrypted: send notification with recovery link
+          const recoveryUrl = `${FRONTEND_URL}/recover?switchId=${switchId}`;
+          const notificationMessage = `
+A dead man's switch has been triggered for you.
+
+Switch: ${sw.title}
+Triggered: ${new Date().toISOString()}
+
+This message was encrypted with client-side encryption. To view the message, you'll need to use the recovery tool with the decryption shares that were distributed to you.
+
+Recovery Link: ${recoveryUrl}
+
+If you don't have access to the decryption shares, contact the other recipients or guardians of this switch.
+          `.trim();
+
+          await sendSwitchReleaseEmail(
+            recipient.email,
+            notificationMessage,
+            sw.title,
+            'Timer expired - no check-in received',
+            { viewToken: undefined } // No direct view for client-side encrypted
+          );
+        } else {
+          // Server-side encrypted: send the actual decrypted message
+          await sendSwitchReleaseEmail(
+            recipient.email,
+            message!,
+            sw.title,
+            'Timer expired - no check-in received'
+          );
+        }
 
         // Log successful send
         await query(
