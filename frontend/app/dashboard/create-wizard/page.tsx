@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Plus, X, Shield, Key } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Plus, X, Shield, Key } from 'lucide-react'
 import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -11,6 +11,7 @@ import {
   Step1EnterSecret,
   Step2SetInterval,
   Step3SetPassword,
+  StepRecoveryPassword,
   Step4Confirmation,
   Step5Success,
 } from '@/components/WizardSteps'
@@ -19,6 +20,7 @@ import { showToast } from '@/components/ui/ToastContainer'
 import {
   createEncryptedSwitch,
   prepareServerPayload,
+  encryptWithRecoveryPassword,
 } from '@/lib/crypto'
 import { storeSwitch } from '@/lib/keystore'
 
@@ -32,7 +34,7 @@ export default function CreateWizardPage() {
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState(1)
-  const totalSteps = 6 // 5 wizard steps + 1 recipients step
+  const totalSteps = 7 // 6 wizard steps + 1 success step
 
   // Form data
   const [title, setTitle] = useState('')
@@ -40,6 +42,8 @@ export default function CreateWizardPage() {
   const [checkInHours, setCheckInHours] = useState('72')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [recoveryPassword, setRecoveryPassword] = useState('')
+  const [confirmRecoveryPassword, setConfirmRecoveryPassword] = useState('')
   const [recipients, setRecipients] = useState<Recipient[]>([{ email: '', name: '' }])
 
   // Loading state
@@ -101,13 +105,24 @@ export default function CreateWizardPage() {
       const switchTitle = title.trim() || `Switch created ${new Date().toLocaleDateString()}`
       await storeSwitch(encryptedSwitch, password.trim(), switchTitle)
 
-      // Step 3: Prepare server payload (NO private keys, NO encryption key)
+      // Step 3: Encrypt with recovery password for simple recipient access
+      let recoveryEncrypted = undefined
+      if (recoveryPassword.trim()) {
+        setCryptoProgress('Creating recovery encryption...')
+        recoveryEncrypted = await encryptWithRecoveryPassword(
+          message.trim(),
+          recoveryPassword.trim()
+        )
+      }
+
+      // Step 4: Prepare server payload (NO private keys, NO encryption key)
       setCryptoProgress('Preparing secure payload...')
       const serverPayload = prepareServerPayload(
         encryptedSwitch,
         switchTitle,
         parseFloat(checkInHours),
-        validRecipients
+        validRecipients,
+        recoveryEncrypted
       )
 
       // Step 4: Send to server for distribution
@@ -149,6 +164,8 @@ export default function CreateWizardPage() {
     setCheckInHours('72')
     setPassword('')
     setConfirmPassword('')
+    setRecoveryPassword('')
+    setConfirmRecoveryPassword('')
     setRecipients([{ email: '', name: '' }])
     setCreatedSwitch(null)
   }
@@ -189,7 +206,7 @@ export default function CreateWizardPage() {
           {/* Step labels */}
           <div className="flex justify-between mt-4 font-mono text-xs">
             <span className={currentStep >= 1 ? 'text-blue font-bold' : 'text-gray-500'}>
-              Secret
+              Message
             </span>
             <span className={currentStep >= 2 ? 'text-blue font-bold' : 'text-gray-500'}>
               Interval
@@ -198,10 +215,13 @@ export default function CreateWizardPage() {
               Password
             </span>
             <span className={currentStep >= 4 ? 'text-blue font-bold' : 'text-gray-500'}>
-              Title
+              Recipients
             </span>
             <span className={currentStep >= 5 ? 'text-blue font-bold' : 'text-gray-500'}>
-              Recipients
+              Recovery
+            </span>
+            <span className={currentStep >= 6 ? 'text-blue font-bold' : 'text-gray-500'}>
+              Confirm
             </span>
           </div>
         </div>
@@ -234,35 +254,8 @@ export default function CreateWizardPage() {
         />
       )}
 
-      {/* Step 4: Title (Optional) */}
-      {currentStep === 4 && (
-        <Card>
-          <h2 className="text-3xl font-bold mb-8">NAME YOUR SWITCH (OPTIONAL)</h2>
-          <div className="space-y-6">
-            <Input
-              label="Switch Title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g., My Personal Switch, Family Emergency Info"
-              helperText="Give this switch a memorable name (optional - auto-generated if blank)"
-            />
-
-            <div className="flex justify-between pt-4">
-              <Button variant="secondary" onClick={prevStep}>
-                <ArrowLeft className="h-5 w-5 mr-2" strokeWidth={2} />
-                Back
-              </Button>
-              <Button variant="primary" onClick={nextStep}>
-                Next Step
-                <Plus className="h-5 w-5 ml-2" strokeWidth={2} />
-              </Button>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Step 5: Recipients */}
-      {currentStep === 5 && !loading && (
+      {/* Step 4: Recipients */}
+      {currentStep === 4 && !loading && (
         <Card>
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold">ADD RECIPIENTS</h2>
@@ -310,6 +303,73 @@ export default function CreateWizardPage() {
                 <ArrowLeft className="h-5 w-5 mr-2" strokeWidth={2} />
                 Back
               </Button>
+              <Button variant="primary" onClick={nextStep}>
+                Next Step
+                <ArrowRight className="h-5 w-5 ml-2" strokeWidth={2} />
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Step 5: Recovery Password */}
+      {currentStep === 5 && (
+        <StepRecoveryPassword
+          recoveryPassword={recoveryPassword}
+          confirmRecoveryPassword={confirmRecoveryPassword}
+          onRecoveryPasswordChange={setRecoveryPassword}
+          onConfirmRecoveryPasswordChange={setConfirmRecoveryPassword}
+          onNext={nextStep}
+          onBack={prevStep}
+        />
+      )}
+
+      {/* Step 6: Title and Confirm */}
+      {currentStep === 6 && !loading && (
+        <Card>
+          <h2 className="text-3xl font-bold mb-8">FINAL DETAILS</h2>
+          <div className="space-y-6">
+            <Input
+              label="Switch Title (Optional)"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g., Family Emergency Info"
+              helperText="A name to help you identify this switch"
+            />
+
+            <div className="bg-cream p-6 border-2 border-black space-y-4">
+              <div>
+                <p className="font-mono text-sm font-bold text-gray-600">MESSAGE</p>
+                <p className="font-mono text-base mt-1">
+                  {message.substring(0, 100)}{message.length > 100 ? '...' : ''}
+                </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="font-mono text-sm font-bold text-gray-600">CHECK-IN</p>
+                  <p className="font-mono text-base mt-1">{checkInHours} hours</p>
+                </div>
+                <div>
+                  <p className="font-mono text-sm font-bold text-gray-600">RECIPIENTS</p>
+                  <p className="font-mono text-base mt-1">
+                    {recipients.filter(r => r.email && r.name).length} recipient(s)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-orange/20 p-4 border-2 border-orange">
+              <p className="font-mono text-sm">
+                <strong>Remember:</strong> Share the recovery password with your recipients!
+                They&apos;ll need it to read your message.
+              </p>
+            </div>
+
+            <div className="flex justify-between pt-4">
+              <Button variant="secondary" onClick={prevStep}>
+                <ArrowLeft className="h-5 w-5 mr-2" strokeWidth={2} />
+                Back
+              </Button>
               <Button variant="primary" onClick={handleSubmit}>
                 Create Switch
               </Button>
@@ -318,8 +378,8 @@ export default function CreateWizardPage() {
         </Card>
       )}
 
-      {/* Step 5: Loading state with crypto progress */}
-      {currentStep === 5 && loading && (
+      {/* Step 6: Loading state with crypto progress */}
+      {currentStep === 6 && loading && (
         <Card>
           <div className="text-center py-12">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-blue/10 rounded-full mb-6">
@@ -339,7 +399,7 @@ export default function CreateWizardPage() {
         </Card>
       )}
 
-      {/* Step 6: Success */}
+      {/* Step 7: Success */}
       {currentStep === totalSteps && createdSwitch && (
         <Step5Success
           switchId={createdSwitch.id}

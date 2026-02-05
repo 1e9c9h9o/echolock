@@ -66,6 +66,7 @@ import emergencyContactsRoutes, { acknowledgeAlertRoute } from './routes/emergen
 import backupRoutes from './routes/backup.js';
 import legalRoutes from './routes/legal.js';
 import messagesRoutes from './routes/messages.js';
+import recoverRoutes from './routes/recover.js';
 import guardianHealthRoutes from './routes/guardianHealth.js';
 // Removed: trackingRoutes - email tracking pixels are privacy-hostile
 
@@ -354,6 +355,7 @@ app.use('/api/switches', healthCheckRoutes);  // Mounts as /api/switches/:switch
 app.use('/api/emergency-contacts', emergencyContactsRoutes);
 app.use('/api/acknowledge-alert', acknowledgeAlertRoute);  // Public route for alert acknowledgment
 app.use('/api/messages', messagesRoutes);  // Public route for recipient message viewing
+app.use('/api/recover', recoverRoutes);  // Public route for password-based recovery
 app.use('/api/account', backupRoutes);
 app.use('/api/legal', legalRoutes);
 app.use('/api/switches', guardianHealthRoutes);  // Mounts as /api/switches/:switchId/guardians/*

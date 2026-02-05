@@ -235,6 +235,14 @@ export interface ServerPayload {
 
   // Flag indicating client-side encryption
   clientSideEncryption: true;
+
+  // Password-encrypted message for simple recovery (optional)
+  recoveryEncrypted?: {
+    ciphertext: string;
+    iv: string;
+    authTag: string;
+    salt: string;
+  };
 }
 
 /**
@@ -321,16 +329,70 @@ export async function createEncryptedSwitch(
 }
 
 /**
+ * Encrypt message with a recovery password
+ * This creates a simple password-protected version for easy recipient recovery
+ */
+export async function encryptWithRecoveryPassword(
+  message: string,
+  recoveryPassword: string
+): Promise<{ ciphertext: string; iv: string; authTag: string; salt: string }> {
+  // Generate salt for password derivation
+  const salt = randomBytes(32);
+
+  // Derive key from password
+  const key = await deriveKeyFromPassword(recoveryPassword, salt);
+
+  // Encrypt the message
+  const { ciphertext, iv, authTag } = await encrypt(message, key);
+
+  return {
+    ciphertext: toBase64(ciphertext),
+    iv: toBase64(iv),
+    authTag: toBase64(authTag),
+    salt: toHex(salt),
+  };
+}
+
+/**
+ * Decrypt message with recovery password
+ */
+export async function decryptWithRecoveryPassword(
+  encrypted: { ciphertext: string; iv: string; authTag: string; salt: string },
+  recoveryPassword: string
+): Promise<string> {
+  // Derive key from password using same salt
+  const salt = fromHex(encrypted.salt);
+  const key = await deriveKeyFromPassword(recoveryPassword, salt);
+
+  // Decrypt the message
+  const decrypted = await decrypt(
+    fromBase64(encrypted.ciphertext),
+    fromBase64(encrypted.iv),
+    fromBase64(encrypted.authTag),
+    key
+  );
+
+  return new TextDecoder().decode(decrypted);
+}
+
+/**
  * Prepare payload for server
  *
  * Extracts only the data that should be sent to the server.
  * Private keys and encryption key NEVER leave the client.
+ *
+ * @param encryptedSwitch - The encrypted switch data
+ * @param title - Switch title
+ * @param checkInHours - Check-in interval
+ * @param recipients - List of recipients
+ * @param recoveryEncrypted - Optional password-encrypted message for simple recovery
  */
 export function prepareServerPayload(
   encryptedSwitch: EncryptedSwitch,
   title: string,
   checkInHours: number,
-  recipients: Array<{ email: string; name: string }>
+  recipients: Array<{ email: string; name: string }>,
+  recoveryEncrypted?: { ciphertext: string; iv: string; authTag: string; salt: string }
 ): ServerPayload {
   return {
     title,
@@ -342,6 +404,7 @@ export function prepareServerPayload(
     shamirThreshold: encryptedSwitch.thresholdConfig.threshold,
     nostrPublicKey: encryptedSwitch.nostr.publicKey,
     clientSideEncryption: true,
+    recoveryEncrypted,
   };
 }
 

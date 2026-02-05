@@ -606,7 +606,8 @@ export async function createClientEncryptedSwitch(userId, data) {
     shares,
     nostrPublicKey,
     shamirTotalShares = 5,
-    shamirThreshold = 3
+    shamirThreshold = 3,
+    recoveryEncrypted
   } = data;
 
   // Validate recipient emails
@@ -649,9 +650,13 @@ export async function createClientEncryptedSwitch(userId, data) {
           encryption_key_version,
           client_side_encryption,
           shamir_total_shares,
-          shamir_threshold
+          shamir_threshold,
+          recovery_encrypted_ciphertext,
+          recovery_encrypted_iv,
+          recovery_encrypted_auth_tag,
+          recovery_encrypted_salt
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21
         ) RETURNING id, created_at, expires_at`,
         [
           switchId,
@@ -670,7 +675,11 @@ export async function createClientEncryptedSwitch(userId, data) {
           1,  // encryption_key_version
           true,  // client_side_encryption flag
           shamirTotalShares,
-          shamirThreshold
+          shamirThreshold,
+          recoveryEncrypted?.ciphertext || null,
+          recoveryEncrypted?.iv || null,
+          recoveryEncrypted?.authTag || null,
+          recoveryEncrypted?.salt || null
         ]
       );
 

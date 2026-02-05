@@ -205,11 +205,11 @@ A dead man's switch has been triggered for you.
 Switch: ${sw.title}
 Triggered: ${new Date().toISOString()}
 
-This message was encrypted with client-side encryption. To view the message, you'll need to use the recovery tool with the decryption shares that were distributed to you.
+To read this message, you'll need the recovery password that the sender shared with you.
 
 Recovery Link: ${recoveryUrl}
 
-If you don't have access to the decryption shares, contact the other recipients or guardians of this switch.
+Click the link above and enter the password to decrypt your message.
           `.trim();
 
           await sendSwitchReleaseEmail(

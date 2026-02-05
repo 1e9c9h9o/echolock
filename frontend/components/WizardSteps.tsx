@@ -271,12 +271,12 @@ export function Step3SetPassword({
 
   return (
     <Card>
-      <h2 className="text-3xl font-bold mb-8">SET ENCRYPTION PASSWORD</h2>
+      <h2 className="text-3xl font-bold mb-8">SET YOUR PASSWORD</h2>
       <div className="space-y-6">
         <div className="bg-blue text-cream p-4 border-2 border-black">
           <p className="font-mono text-sm">
-            <strong>Important:</strong> This password will be required to decrypt your secret if
-            it's released. Store it securely!
+            <strong>This is YOUR password</strong> to manage and access your switch settings.
+            Keep it private - don&apos;t share it with anyone.
           </p>
         </div>
 
@@ -379,6 +379,127 @@ export function Step3SetPassword({
           </Button>
           <Button variant="primary" onClick={onNext} disabled={!isValid}>
             Review & Confirm
+            <ArrowRight className="h-5 w-5 ml-2" strokeWidth={2} />
+          </Button>
+        </div>
+      </div>
+    </Card>
+  )
+}
+
+interface WizardStepRecoveryPasswordProps {
+  recoveryPassword: string
+  confirmRecoveryPassword: string
+  onRecoveryPasswordChange: (value: string) => void
+  onConfirmRecoveryPasswordChange: (value: string) => void
+  onNext: () => void
+  onBack: () => void
+}
+
+export function StepRecoveryPassword({
+  recoveryPassword,
+  confirmRecoveryPassword,
+  onRecoveryPasswordChange,
+  onConfirmRecoveryPasswordChange,
+  onNext,
+  onBack,
+}: WizardStepRecoveryPasswordProps) {
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  const passwordsMatch = recoveryPassword === confirmRecoveryPassword && recoveryPassword.length > 0
+  const isValid = recoveryPassword.length >= 6 && passwordsMatch
+
+  return (
+    <Card>
+      <h2 className="text-3xl font-bold mb-8">RECOVERY PASSWORD</h2>
+      <div className="space-y-6">
+        <div className="bg-orange text-black p-4 border-2 border-black">
+          <p className="font-mono text-sm">
+            <strong>Share this password with your recipients!</strong> They&apos;ll need it to
+            decrypt your message when the switch triggers. Give it to them in person, by phone,
+            or another secure method.
+          </p>
+        </div>
+
+        <div className="bg-cream p-4 border-2 border-black">
+          <p className="font-mono text-sm">
+            <strong>Tip:</strong> Use something memorable but not guessable. A random phrase works
+            well, like &ldquo;purple-elephant-dancing-42&rdquo; or &ldquo;coffee-mountain-sunset&rdquo;.
+          </p>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <label className="block text-sm font-bold uppercase tracking-wider font-sans">
+              Recovery Password
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="text-black/70 hover:text-orange transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" strokeWidth={2} />
+              ) : (
+                <Eye className="h-5 w-5" strokeWidth={2} />
+              )}
+            </button>
+          </div>
+          <input
+            type={showPassword ? 'text' : 'password'}
+            value={recoveryPassword}
+            onChange={(e) => onRecoveryPasswordChange(e.target.value)}
+            placeholder="Enter a password for your recipients"
+            className="w-full px-4 py-3 border-2 border-black bg-white focus:outline-none focus:ring-2 focus:ring-blue text-base font-mono"
+          />
+          <p className="mt-2 font-mono text-xs text-gray-600">
+            Minimum 6 characters
+          </p>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <label className="block text-sm font-bold uppercase tracking-wider font-sans">
+              Confirm Recovery Password
+            </label>
+            <button
+              type="button"
+              onClick={() => setShowConfirm(!showConfirm)}
+              className="text-black/70 hover:text-orange transition-colors"
+            >
+              {showConfirm ? (
+                <EyeOff className="h-5 w-5" strokeWidth={2} />
+              ) : (
+                <Eye className="h-5 w-5" strokeWidth={2} />
+              )}
+            </button>
+          </div>
+          <input
+            type={showConfirm ? 'text' : 'password'}
+            value={confirmRecoveryPassword}
+            onChange={(e) => onConfirmRecoveryPasswordChange(e.target.value)}
+            placeholder="Confirm password"
+            className="w-full px-4 py-3 border-2 border-black bg-white focus:outline-none focus:ring-2 focus:ring-blue text-base font-mono"
+          />
+          {confirmRecoveryPassword.length > 0 && (
+            <div className="mt-2">
+              {passwordsMatch ? (
+                <p className="text-green-700 font-mono text-sm">Passwords match</p>
+              ) : (
+                <p className="text-red-700 font-mono text-sm">Passwords don&apos;t match</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex justify-between pt-4">
+          <Button variant="secondary" onClick={onBack}>
+            <ArrowLeft className="h-5 w-5 mr-2" strokeWidth={2} />
+            Back
+          </Button>
+          <Button variant="primary" onClick={onNext} disabled={!isValid}>
+            Next Step
             <ArrowRight className="h-5 w-5 ml-2" strokeWidth={2} />
           </Button>
         </div>

@@ -107,7 +107,8 @@ router.post('/encrypted', requireEmailVerified, async (req, res) => {
       nostrPublicKey,
       clientSideEncryption,
       shamirTotalShares = 5,
-      shamirThreshold = 3
+      shamirThreshold = 3,
+      recoveryEncrypted
     } = req.body;
 
     // Validate required fields
@@ -194,7 +195,8 @@ router.post('/encrypted', requireEmailVerified, async (req, res) => {
       shares,
       nostrPublicKey,
       shamirTotalShares,
-      shamirThreshold
+      shamirThreshold,
+      recoveryEncrypted
     });
 
     // Send WebSocket notification
