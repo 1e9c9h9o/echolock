@@ -243,6 +243,9 @@ export interface ServerPayload {
     authTag: string;
     salt: string;
   };
+
+  // Bitcoin commitment option
+  bitcoinEnabled?: boolean;
 }
 
 /**
@@ -392,7 +395,8 @@ export function prepareServerPayload(
   title: string,
   checkInHours: number,
   recipients: Array<{ email: string; name: string }>,
-  recoveryEncrypted?: { ciphertext: string; iv: string; authTag: string; salt: string }
+  recoveryEncrypted?: { ciphertext: string; iv: string; authTag: string; salt: string },
+  bitcoinEnabled?: boolean
 ): ServerPayload {
   return {
     title,
@@ -405,6 +409,7 @@ export function prepareServerPayload(
     nostrPublicKey: encryptedSwitch.nostr.publicKey,
     clientSideEncryption: true,
     recoveryEncrypted,
+    bitcoinEnabled,
   };
 }
 

@@ -12,6 +12,7 @@ import {
   Step2SetInterval,
   Step3SetPassword,
   StepRecoveryPassword,
+  StepSecurityOptions,
   Step4Confirmation,
   Step5Success,
 } from '@/components/WizardSteps'
@@ -21,7 +22,15 @@ import {
   createEncryptedSwitch,
   prepareServerPayload,
   encryptWithRecoveryPassword,
+  type ThresholdConfig,
 } from '@/lib/crypto'
+
+// Threshold presets matching the security step
+const THRESHOLD_CONFIGS: Record<'simple' | 'balanced' | 'high', ThresholdConfig> = {
+  simple: { totalShares: 3, threshold: 2 },
+  balanced: { totalShares: 5, threshold: 3 },
+  high: { totalShares: 7, threshold: 4 },
+}
 import { storeSwitch } from '@/lib/keystore'
 
 interface Recipient {
@@ -34,7 +43,7 @@ export default function CreateWizardPage() {
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState(1)
-  const totalSteps = 7 // 6 wizard steps + 1 success step
+  const totalSteps = 8 // 7 wizard steps + 1 success step
 
   // Form data
   const [title, setTitle] = useState('')
@@ -45,6 +54,10 @@ export default function CreateWizardPage() {
   const [recoveryPassword, setRecoveryPassword] = useState('')
   const [confirmRecoveryPassword, setConfirmRecoveryPassword] = useState('')
   const [recipients, setRecipients] = useState<Recipient[]>([{ email: '', name: '' }])
+
+  // Security options
+  const [threshold, setThreshold] = useState<'simple' | 'balanced' | 'high'>('balanced')
+  const [bitcoinEnabled, setBitcoinEnabled] = useState(false)
 
   // Loading state
   const [loading, setLoading] = useState(false)
@@ -95,9 +108,11 @@ export default function CreateWizardPage() {
 
       // Step 1: Generate encryption key and encrypt message CLIENT-SIDE
       setCryptoProgress('Generating encryption keys...')
+      const thresholdConfig = THRESHOLD_CONFIGS[threshold]
       const encryptedSwitch = await createEncryptedSwitch(
         message.trim(),
-        password.trim()
+        password.trim(),
+        thresholdConfig
       )
 
       // Step 2: Store keys locally in IndexedDB (encrypted with password)
@@ -122,7 +137,8 @@ export default function CreateWizardPage() {
         switchTitle,
         parseFloat(checkInHours),
         validRecipients,
-        recoveryEncrypted
+        recoveryEncrypted,
+        bitcoinEnabled
       )
 
       // Step 4: Send to server for distribution
@@ -167,6 +183,8 @@ export default function CreateWizardPage() {
     setRecoveryPassword('')
     setConfirmRecoveryPassword('')
     setRecipients([{ email: '', name: '' }])
+    setThreshold('balanced')
+    setBitcoinEnabled(false)
     setCreatedSwitch(null)
   }
 
@@ -221,6 +239,9 @@ export default function CreateWizardPage() {
               Recovery
             </span>
             <span className={currentStep >= 6 ? 'text-blue font-bold' : 'text-gray-500'}>
+              Security
+            </span>
+            <span className={currentStep >= 7 ? 'text-blue font-bold' : 'text-gray-500'}>
               Confirm
             </span>
           </div>
@@ -324,8 +345,20 @@ export default function CreateWizardPage() {
         />
       )}
 
-      {/* Step 6: Title and Confirm */}
-      {currentStep === 6 && !loading && (
+      {/* Step 6: Security Options */}
+      {currentStep === 6 && (
+        <StepSecurityOptions
+          threshold={threshold}
+          onThresholdChange={setThreshold}
+          bitcoinEnabled={bitcoinEnabled}
+          onBitcoinChange={setBitcoinEnabled}
+          onNext={nextStep}
+          onBack={prevStep}
+        />
+      )}
+
+      {/* Step 7: Title and Confirm */}
+      {currentStep === 7 && !loading && (
         <Card>
           <h2 className="text-3xl font-bold mb-8">FINAL DETAILS</h2>
           <div className="space-y-6">
@@ -378,8 +411,8 @@ export default function CreateWizardPage() {
         </Card>
       )}
 
-      {/* Step 6: Loading state with crypto progress */}
-      {currentStep === 6 && loading && (
+      {/* Step 7: Loading state with crypto progress */}
+      {currentStep === 7 && loading && (
         <Card>
           <div className="text-center py-12">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-blue/10 rounded-full mb-6">
@@ -399,7 +432,7 @@ export default function CreateWizardPage() {
         </Card>
       )}
 
-      {/* Step 7: Success */}
+      {/* Step 8: Success */}
       {currentStep === totalSteps && createdSwitch && (
         <Step5Success
           switchId={createdSwitch.id}

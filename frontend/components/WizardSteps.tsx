@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, Info, Plus } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, Info, Plus, Shield, Users, Lock, Bitcoin } from 'lucide-react'
 import { useState } from 'react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -793,6 +793,197 @@ export function Step5Success({ switchId, nextCheckInAt, onDashboard, onCreateAno
           <Plus className="h-5 w-5 mr-2" strokeWidth={2} />
           Create Another
         </Button>
+      </div>
+    </Card>
+  )
+}
+
+/**
+ * Security Options Step
+ *
+ * Presents threshold, guardians, and Bitcoin options with clear explanations.
+ * Shows what each choice does without marketing language.
+ */
+interface WizardStepSecurityProps {
+  threshold: 'simple' | 'balanced' | 'high'
+  onThresholdChange: (value: 'simple' | 'balanced' | 'high') => void
+  bitcoinEnabled: boolean
+  onBitcoinChange: (enabled: boolean) => void
+  onNext: () => void
+  onBack: () => void
+}
+
+const THRESHOLD_OPTIONS = {
+  simple: {
+    label: '2 of 3',
+    name: 'Simpler',
+    pieces: 3,
+    needed: 2,
+    description: 'Your message is split into 3 pieces. Any 2 can unlock it.',
+  },
+  balanced: {
+    label: '3 of 5',
+    name: 'Balanced',
+    pieces: 5,
+    needed: 3,
+    description: 'Your message is split into 5 pieces. Any 3 can unlock it.',
+  },
+  high: {
+    label: '4 of 7',
+    name: 'Stronger',
+    pieces: 7,
+    needed: 4,
+    description: 'Your message is split into 7 pieces. Any 4 can unlock it.',
+  },
+}
+
+export function StepSecurityOptions({
+  threshold,
+  onThresholdChange,
+  bitcoinEnabled,
+  onBitcoinChange,
+  onNext,
+  onBack,
+}: WizardStepSecurityProps) {
+  return (
+    <Card>
+      <h2 className="text-3xl font-bold mb-8">SECURITY OPTIONS</h2>
+      <div className="space-y-8">
+
+        {/* Threshold Selection */}
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <Shield className="h-5 w-5" strokeWidth={2} />
+            <h3 className="font-bold text-lg">
+              <Explainer
+                detail="Your encryption key is split into pieces using a technique called Shamir's Secret Sharing. No single piece reveals anything. Only when enough pieces come together can the message be unlocked."
+                why="This protects against any single point of failure. Even if some guardians become unavailable, your message can still be recovered as long as enough pieces remain."
+              >
+                How Many Pieces?
+              </Explainer>
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {(Object.entries(THRESHOLD_OPTIONS) as [keyof typeof THRESHOLD_OPTIONS, typeof THRESHOLD_OPTIONS.simple][]).map(([key, option]) => (
+              <button
+                key={key}
+                onClick={() => onThresholdChange(key)}
+                className={`p-5 border-2 border-black text-left transition-all ${
+                  threshold === key
+                    ? 'bg-blue text-cream shadow-[4px_4px_0px_0px_rgba(33,33,33,1)]'
+                    : 'bg-white hover:shadow-[4px_4px_0px_0px_rgba(33,33,33,1)] hover:-translate-x-1 hover:-translate-y-1'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-2xl font-bold">{option.label}</span>
+                  {key === 'balanced' && (
+                    <span className={`text-xs px-2 py-0.5 border ${threshold === key ? 'border-cream' : 'border-black'}`}>
+                      Recommended
+                    </span>
+                  )}
+                </div>
+                <p className={`font-mono text-sm ${threshold === key ? 'text-cream/80' : 'text-gray-600'}`}>
+                  {option.description}
+                </p>
+              </button>
+            ))}
+          </div>
+
+          {/* Visual representation */}
+          <div className="mt-4 flex items-center justify-center gap-2 py-4 bg-cream border-2 border-black">
+            {Array.from({ length: THRESHOLD_OPTIONS[threshold].pieces }).map((_, i) => (
+              <div
+                key={i}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 border-black ${
+                  i < THRESHOLD_OPTIONS[threshold].needed
+                    ? 'bg-blue text-cream'
+                    : 'bg-white text-gray-400'
+                }`}
+              >
+                {i + 1}
+              </div>
+            ))}
+            <span className="ml-4 font-mono text-sm">
+              {THRESHOLD_OPTIONS[threshold].needed} needed
+            </span>
+          </div>
+        </div>
+
+        {/* Guardians Info */}
+        <div className="bg-cream p-5 border-2 border-black">
+          <div className="flex items-center gap-2 mb-3">
+            <Users className="h-5 w-5" strokeWidth={2} />
+            <h3 className="font-bold">
+              <Explainer
+                detail="Guardians are independent watchers who each hold one piece of your encryption key. They monitor whether you're checking in. When you stop, they release their pieces."
+                why="Using multiple independent guardians means no single person or company controls your message. Even if EchoLock disappears, your guardians still function."
+              >
+                Guardians
+              </Explainer>
+            </h3>
+          </div>
+          <p className="font-mono text-sm text-gray-700">
+            Your message pieces will be held by {THRESHOLD_OPTIONS[threshold].pieces} independent guardians.
+            Currently using EchoLock&apos;s default guardian network.
+          </p>
+          <p className="font-mono text-xs text-gray-500 mt-2">
+            Custom guardian selection coming soon.
+          </p>
+        </div>
+
+        {/* Bitcoin Toggle */}
+        <div className={`p-5 border-2 border-black transition-colors ${bitcoinEnabled ? 'bg-orange/10' : 'bg-white'}`}>
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-3">
+              <Bitcoin className={`h-6 w-6 mt-0.5 ${bitcoinEnabled ? 'text-orange' : 'text-gray-400'}`} strokeWidth={2} />
+              <div>
+                <h3 className="font-bold">
+                  <Explainer
+                    detail="A small Bitcoin transaction is created with a timelock matching your check-in deadline. This provides cryptographic proof of when your switch was set, recorded permanently on the blockchain."
+                    why="The Bitcoin blockchain can't be edited or deleted. Your switch settings become independently verifiable by anyone, forever. No company can deny or alter when your switch was created."
+                  >
+                    Bitcoin Proof
+                  </Explainer>
+                </h3>
+                <p className="font-mono text-sm text-gray-600 mt-1">
+                  {bitcoinEnabled
+                    ? 'Your switch timing will be permanently recorded on the Bitcoin blockchain.'
+                    : 'Add an immutable timestamp to the Bitcoin blockchain.'}
+                </p>
+                {bitcoinEnabled && (
+                  <p className="font-mono text-xs text-orange mt-2">
+                    Requires a small Bitcoin deposit (~$1-2) to activate.
+                  </p>
+                )}
+              </div>
+            </div>
+            <button
+              onClick={() => onBitcoinChange(!bitcoinEnabled)}
+              className={`w-14 h-8 rounded-full border-2 border-black transition-colors relative ${
+                bitcoinEnabled ? 'bg-orange' : 'bg-gray-200'
+              }`}
+            >
+              <div
+                className={`absolute top-1 w-5 h-5 bg-white border-2 border-black rounded-full transition-transform ${
+                  bitcoinEnabled ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex justify-between pt-4">
+          <Button variant="secondary" onClick={onBack}>
+            <ArrowLeft className="h-5 w-5 mr-2" strokeWidth={2} />
+            Back
+          </Button>
+          <Button variant="primary" onClick={onNext}>
+            Next Step
+            <ArrowRight className="h-5 w-5 ml-2" strokeWidth={2} />
+          </Button>
+        </div>
       </div>
     </Card>
   )
