@@ -5,7 +5,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { decryptWithRecoveryPassword } from '@/lib/crypto';
 import Explainer from '@/components/ui/Explainer';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 interface RecoveryInfo {
   switchId: string;
