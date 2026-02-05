@@ -200,16 +200,17 @@ async function processExpiredSwitch(sw: SwitchRow): Promise<void> {
           // Client-side encrypted: send notification with recovery link
           const recoveryUrl = `${FRONTEND_URL}/recover?switchId=${switchId}`;
           const notificationMessage = `
-A dead man's switch has been triggered for you.
+Someone left you a message.
 
-Switch: ${sw.title}
-Triggered: ${new Date().toISOString()}
+"${sw.title}"
 
-To read this message, you'll need the recovery password that the sender shared with you.
+They set up EchoLock to send this to you if they stopped checking in. That time has come.
 
-Recovery Link: ${recoveryUrl}
+To read their message, you'll need the password they shared with you.
 
-Click the link above and enter the password to decrypt your message.
+${recoveryUrl}
+
+Click the link and enter the password to read the message.
           `.trim();
 
           await sendSwitchReleaseEmail(

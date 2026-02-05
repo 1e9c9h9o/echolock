@@ -42,8 +42,8 @@ export function Step1EnterSecret({ message, onMessageChange, onNext }: WizardSte
           <div className="mt-3 flex items-start bg-blue text-cream p-4 border-2 border-black">
             <Info className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5" strokeWidth={2} />
             <p className="text-sm font-mono">
-              This message will be encrypted and split into fragments distributed across secure
-              relays. It will only be released if you fail to check in.
+              This message stays locked until you stop checking in. Only then will your
+              recipients be able to read it.
             </p>
           </div>
         </div>
@@ -575,13 +575,13 @@ export function Step4Confirmation({
 
           <div className="font-mono text-sm space-y-2">
             <p className={animationStep >= 0 ? 'text-blue font-bold' : 'text-gray-500'}>
-              ✓ Encrypting your message with AES-256
+              ✓ Securing your message
             </p>
             <p className={animationStep >= 1 ? 'text-blue font-bold' : 'text-gray-500'}>
-              ✓ Splitting encrypted data into fragments
+              ✓ Setting up your switch
             </p>
             <p className={animationStep >= 2 ? 'text-blue font-bold' : 'text-gray-500'}>
-              ✓ Distributing fragments to secure relays
+              ✓ Almost done...
             </p>
           </div>
         </div>
@@ -617,11 +617,10 @@ export function Step4Confirmation({
         <div className="bg-blue text-cream p-6 border-2 border-black">
           <p className="font-mono text-sm font-bold mb-4">WHAT HAPPENS NEXT:</p>
           <div className="space-y-2 font-mono text-sm">
-            <p>✓ Your message will be encrypted with military-grade encryption</p>
-            <p>✓ Encrypted data split into 3 fragments (2-of-3 threshold scheme)</p>
-            <p>✓ Fragments distributed across independent Nostr relays</p>
-            <p>✓ You'll need to check in every {checkInHours} hours</p>
-            <p>✓ If you miss a check-in, the secret will be released to recipients</p>
+            <p>✓ Your message will be securely locked</p>
+            <p>✓ You&apos;ll need to check in every {checkInHours} hours</p>
+            <p>✓ If you miss a check-in, your message will be sent to recipients</p>
+            <p>✓ No one can read it until then - not even us</p>
           </div>
         </div>
 
@@ -634,9 +633,8 @@ export function Step4Confirmation({
               className="w-5 h-5 border-2 border-black mt-0.5 mr-3 flex-shrink-0"
             />
             <span className="font-mono text-sm">
-              I understand that this switch will automatically trigger and release my secret if I
-              don't check in within {checkInHours} hours. This action cannot be undone once
-              triggered.
+              I understand that if I don&apos;t check in within {checkInHours} hours, my message
+              will be sent to my recipients. Once sent, it can&apos;t be unsent.
             </span>
           </label>
         </div>
@@ -679,9 +677,9 @@ export function Step5Success({ switchId, nextCheckInAt, onDashboard, onCreateAno
         <Check className="h-20 w-20 text-white" strokeWidth={3} />
       </div>
 
-      <h2 className="text-4xl font-bold mb-4">SWITCH CREATED</h2>
+      <h2 className="text-4xl font-bold mb-4">YOU&apos;RE ALL SET</h2>
       <p className="text-lg font-mono mb-8 max-w-2xl mx-auto">
-        Your dead man's switch is now active and monitoring for check-ins.
+        Your message is locked. Just remember to check in before the deadline.
       </p>
 
       <div className="max-w-2xl mx-auto space-y-6">
@@ -714,8 +712,8 @@ export function Step5Success({ switchId, nextCheckInAt, onDashboard, onCreateAno
 
         <div className="bg-yellow-100 p-6 border-2 border-black text-left">
           <p className="font-mono text-sm">
-            <strong>⚠️ Important:</strong> Don't forget to check in before the deadline! You can
-            set up reminders in your calendar or phone.
+            <strong>Don&apos;t forget to check in.</strong> Set a reminder on your phone or
+            calendar so you don&apos;t miss it.
           </p>
         </div>
       </div>
