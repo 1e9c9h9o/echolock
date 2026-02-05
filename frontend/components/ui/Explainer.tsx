@@ -84,23 +84,24 @@ export default function Explainer({ children, detail, why }: ExplainerProps) {
           ref={panelRef}
           className={`
             absolute left-0 z-50 w-72 sm:w-80
-            bg-cream border-2 border-black shadow-[4px_4px_0_rgba(0,0,0,0.2)]
+            bg-white border-3 border-black shadow-[6px_6px_0_rgba(0,0,0,0.3)]
             animate-in fade-in slide-in-from-top-2 duration-150
             ${position === 'above' ? 'bottom-full mb-2' : 'top-full mt-2'}
           `}
+          style={{ backgroundColor: 'white' }}
         >
           {/* The explanation */}
-          <div className="p-4">
-            <div className="text-sm leading-relaxed text-black/80">
+          <div className="p-4 bg-white">
+            <div className="text-sm leading-relaxed text-black">
               {detail}
             </div>
 
             {why && (
-              <div className="mt-3 pt-3 border-t border-black/10">
-                <div className="text-xs uppercase tracking-wider text-black/50 mb-1 font-bold">
+              <div className="mt-3 pt-3 border-t border-black/20">
+                <div className="text-xs uppercase tracking-wider text-black/60 mb-1 font-bold">
                   Why this matters
                 </div>
-                <div className="text-sm leading-relaxed text-black/70">
+                <div className="text-sm leading-relaxed text-black/80">
                   {why}
                 </div>
               </div>
@@ -108,7 +109,7 @@ export default function Explainer({ children, detail, why }: ExplainerProps) {
           </div>
 
           {/* Close hint */}
-          <div className="px-4 py-2 bg-black/5 border-t border-black/10 text-xs text-black/50 text-center">
+          <div className="px-4 py-2 bg-gray-100 border-t border-black/20 text-xs text-black/60 text-center">
             tap anywhere to close
           </div>
         </div>
