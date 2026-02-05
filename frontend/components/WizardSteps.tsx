@@ -5,6 +5,7 @@ import { useState } from 'react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
+import Explainer from '@/components/ui/Explainer'
 import LoadingMessage from '@/components/LoadingMessage'
 
 interface WizardStep1Props {
@@ -42,8 +43,14 @@ export function Step1EnterSecret({ message, onMessageChange, onNext }: WizardSte
           <div className="mt-3 flex items-start bg-blue text-cream p-4 border-2 border-black">
             <Info className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5" strokeWidth={2} />
             <p className="text-sm font-mono">
-              This message stays locked until you stop checking in. Only then will your
-              recipients be able to read it.
+              This message{' '}
+              <Explainer
+                detail="Your message is encrypted on your device and split into pieces that get stored across multiple independent servers. No single place has your complete message."
+                why="Even if someone hacks one server, they get nothing useful. Your message only comes together when it's time."
+              >
+                stays locked
+              </Explainer>
+              {' '}until you stop checking in. Only then will your recipients be able to read it.
             </p>
           </div>
         </div>
@@ -617,10 +624,31 @@ export function Step4Confirmation({
         <div className="bg-blue text-cream p-6 border-2 border-black">
           <p className="font-mono text-sm font-bold mb-4">WHAT HAPPENS NEXT:</p>
           <div className="space-y-2 font-mono text-sm">
-            <p>✓ Your message will be securely locked</p>
+            <p>✓ Your message will be{' '}
+              <Explainer
+                detail="Your message is encrypted with AES-256, then split into pieces using a technique called Shamir's Secret Sharing. Each piece goes to a different place."
+                why="If any single server goes down or gets hacked, your message stays safe. It takes multiple pieces to reconstruct it."
+              >
+                securely locked
+              </Explainer>
+            </p>
             <p>✓ You&apos;ll need to check in every {checkInHours} hours</p>
-            <p>✓ If you miss a check-in, your message will be sent to recipients</p>
-            <p>✓ No one can read it until then - not even us</p>
+            <p>✓ If you miss a check-in,{' '}
+              <Explainer
+                detail="Independent guardians watch for your check-ins. When you stop, they each release their piece. Your recipients collect the pieces and unlock your message."
+                why="This works even if EchoLock disappears. No single company controls whether your message gets delivered."
+              >
+                your message will be sent to recipients
+              </Explainer>
+            </p>
+            <p>✓{' '}
+              <Explainer
+                detail="We never see your message or your encryption keys. Everything is encrypted on your device before it leaves. We literally can't read it."
+                why="This is called end-to-end encryption. It means you don't have to trust us - the math protects you."
+              >
+                No one can read it until then - not even us
+              </Explainer>
+            </p>
           </div>
         </div>
 
