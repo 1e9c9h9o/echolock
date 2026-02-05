@@ -136,7 +136,14 @@ export function Step2SetInterval({ checkInHours, onCheckInHoursChange, onNext, o
       <h2 className="text-3xl font-bold mb-8">SET CHECK-IN INTERVAL</h2>
       <div className="space-y-6">
         <p className="font-mono text-base">
-          How often do you need to check in to keep your switch armed?
+          How often do you need to{' '}
+          <Explainer
+            detail="A check-in is just a quick tap to let the system know you're still around. You can do it from your phone, computer, or even your watch."
+            why="If you stop checking in, we assume something happened to you and your message gets delivered. That's the whole point."
+          >
+            check in
+          </Explainer>
+          {' '}to keep your switch active?
         </p>
 
         {/* Preset buttons */}
@@ -282,8 +289,14 @@ export function Step3SetPassword({
       <div className="space-y-6">
         <div className="bg-blue text-cream p-4 border-2 border-black">
           <p className="font-mono text-sm">
-            <strong>This is YOUR password</strong> to manage and access your switch settings.
-            Keep it private - don&apos;t share it with anyone.
+            <strong>This is YOUR password</strong> to{' '}
+            <Explainer
+              detail="This password unlocks your encryption keys which are stored safely on this device. Without it, you can't manage your switch or see your own message."
+              why="We don't store your password anywhere. If you forget it, we can't help you recover it - that's what makes it secure."
+            >
+              manage your switch
+            </Explainer>
+            . Keep it private - don&apos;t share it with anyone.
           </p>
         </div>
 
@@ -423,9 +436,21 @@ export function StepRecoveryPassword({
       <div className="space-y-6">
         <div className="bg-orange text-black p-4 border-2 border-black">
           <p className="font-mono text-sm">
-            <strong>Share this password with your recipients!</strong> They&apos;ll need it to
-            decrypt your message when the switch triggers. Give it to them in person, by phone,
-            or another secure method.
+            <strong>Share this password with your recipients!</strong> They&apos;ll need it to{' '}
+            <Explainer
+              detail="When your switch triggers, your recipients get a link. They enter this password and their browser decrypts the message right there. The password never goes to any server."
+              why="This way, even if someone intercepts the email, they can't read your message without the password you gave in person."
+            >
+              unlock your message
+            </Explainer>
+            {' '}when the time comes. Give it to them{' '}
+            <Explainer
+              detail="In person is best. A phone call works too. Even a separate text message is okay. Just don't put the password in the same email as the recovery link."
+              why="If someone gets access to their email, they'd have both the link AND the password. Keeping them separate adds a layer of protection."
+            >
+              in person or by phone
+            </Explainer>
+            .
           </p>
         </div>
 
@@ -713,7 +738,14 @@ export function Step5Success({ switchId, nextCheckInAt, onDashboard, onCreateAno
       <div className="max-w-2xl mx-auto space-y-6">
         <div className="bg-cream p-6 border-2 border-black text-left">
           <div className="flex items-center justify-between mb-3">
-            <p className="font-mono text-sm font-bold text-gray-600">SWITCH ID</p>
+            <p className="font-mono text-sm font-bold text-gray-600">
+              <Explainer
+                detail="This is your switch's unique identifier. You might need it for support or if you want to recover your switch on a different device."
+                why="Each switch has its own ID so you can have multiple switches for different purposes or different recipients."
+              >
+                SWITCH ID
+              </Explainer>
+            </p>
             <button
               onClick={copyToClipboard}
               className="font-mono text-xs text-black/70 hover:text-orange transition-colors"
@@ -725,7 +757,14 @@ export function Step5Success({ switchId, nextCheckInAt, onDashboard, onCreateAno
         </div>
 
         <div className="bg-blue text-cream p-6 border-2 border-black text-left">
-          <p className="font-mono text-sm font-bold mb-3">FIRST CHECK-IN DUE</p>
+          <p className="font-mono text-sm font-bold mb-3">
+            <Explainer
+              detail="This is your deadline. Check in any time before this to reset the timer. If you don't check in by this time, your message starts its journey to your recipients."
+              why="The timer only matters if you miss it. As long as you check in, nothing happens. Your message stays locked."
+            >
+              FIRST CHECK-IN DUE
+            </Explainer>
+          </p>
           <p className="font-mono text-lg">
             {new Date(nextCheckInAt).toLocaleString('en-US', {
               weekday: 'long',

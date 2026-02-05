@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 import { decryptWithRecoveryPassword } from '@/lib/crypto';
+import Explainer from '@/components/ui/Explainer';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -159,7 +160,14 @@ function RecoveryContent() {
           </svg>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold font-sans tracking-tight">Recover Your Message</h1>
-            <p className="text-gray-700 text-sm">Someone left you an encrypted message</p>
+            <p className="text-gray-700 text-sm">Someone left you a{' '}
+              <Explainer
+                detail="This message was locked until the sender stopped checking in. Now that they have, it's been released to you."
+                why="The sender wanted to make sure you'd receive this if something happened to them. The message was always meant for you."
+              >
+                protected message
+              </Explainer>
+            </p>
           </div>
         </div>
 
@@ -210,13 +218,20 @@ function RecoveryContent() {
               <div className="bg-white border-[3px] border-black p-5 mb-5 shadow-[4px_4px_0_#000]">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                  <span className="text-sm font-bold uppercase tracking-wide">Switch Triggered</span>
+                  <span className="text-sm font-bold uppercase tracking-wide">
+                    <Explainer
+                      detail="The person who wrote this message set up a timer. They needed to check in regularly to keep the message locked. They stopped checking in, so the message was released to you."
+                      why="This is sometimes called a 'dead man's switch' - a way to make sure important information reaches the right people if something happens."
+                    >
+                      Message Released
+                    </Explainer>
+                  </span>
                 </div>
                 {recoveryInfo.title && (
                   <h2 className="text-xl font-bold mb-2">{recoveryInfo.title}</h2>
                 )}
                 <p className="text-sm text-gray-600">
-                  Triggered {new Date(recoveryInfo.triggeredAt).toLocaleString()}
+                  Released {new Date(recoveryInfo.triggeredAt).toLocaleString()}
                 </p>
               </div>
             )}
@@ -225,9 +240,16 @@ function RecoveryContent() {
             {recoveryInfo?.hasPasswordRecovery && (
               <form onSubmit={handlePasswordRecovery}>
                 <div className="bg-white p-5 border-[3px] border-black mb-5 shadow-[4px_4px_0_#000]">
-                  <h2 className="font-bold text-lg mb-3">Enter Recovery Password</h2>
+                  <h2 className="font-bold text-lg mb-3">Enter the Password</h2>
                   <p className="text-sm text-gray-600 mb-4">
-                    The sender should have shared this password with you.
+                    The sender should have{' '}
+                    <Explainer
+                      detail="The password was shared separately from this link - maybe in person, over the phone, or in a text message. It's not in the email you received."
+                      why="Keeping the password separate from the link means even if someone gets into your email, they still can't read the message."
+                    >
+                      shared a password
+                    </Explainer>
+                    {' '}with you.
                   </p>
 
                   <input
@@ -253,10 +275,16 @@ function RecoveryContent() {
             {/* No password recovery available */}
             {recoveryInfo && !recoveryInfo.hasPasswordRecovery && (
               <div className="bg-amber-50 border-[3px] border-amber-400 p-5 mb-5">
-                <h2 className="font-bold mb-2">Password Recovery Not Available</h2>
+                <h2 className="font-bold mb-2">Different Recovery Method Needed</h2>
                 <p className="text-sm">
-                  This switch doesn&apos;t have password recovery enabled.
-                  You&apos;ll need to use the advanced Nostr key recovery method below.
+                  The sender set up a{' '}
+                  <Explainer
+                    detail="Instead of a simple password, the sender used cryptographic keys for extra security. You'll need the special keys they gave you to unlock this message."
+                    why="This method is more secure but requires you to have received specific keys from the sender beforehand."
+                  >
+                    more advanced security method
+                  </Explainer>
+                  . Check the section below if you have the keys they shared with you.
                 </p>
               </div>
             )}
@@ -350,8 +378,13 @@ function RecoveryContent() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
             <div>
-              <strong>Your privacy is protected.</strong> Only you can unlock this message
-              with the password - no one else can read it.
+              <Explainer
+                detail="The message is unlocked right here in your browser. Your password is never sent anywhere - the decryption happens on your device."
+                why="This means no one can intercept your password. Not us, not hackers, not anyone. The math happens locally."
+              >
+                <strong>Your privacy is protected.</strong>
+              </Explainer>
+              {' '}Only you can unlock this message with the password.
             </div>
           </div>
         </div>
