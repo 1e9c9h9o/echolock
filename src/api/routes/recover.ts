@@ -9,17 +9,38 @@
  * @see CLAUDE.md - Security Tiers (Basic: Password Protection)
  */
 
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { query } from '../db/connection.js';
 import { logger } from '../utils/logger.js';
 
 const router = express.Router();
 
 /**
+ * Database row types
+ */
+interface SwitchRecoveryInfoRow {
+  id: string;
+  title: string | null;
+  status: string;
+  triggered_at: Date | null;
+  has_password_recovery: boolean;
+}
+
+interface SwitchRecoveryDataRow {
+  id: string;
+  title: string | null;
+  status: string;
+  recovery_encrypted_ciphertext: string | null;
+  recovery_encrypted_iv: string | null;
+  recovery_encrypted_auth_tag: string | null;
+  recovery_encrypted_salt: string | null;
+}
+
+/**
  * GET /api/recover/:switchId
  * Get recovery info for a switch (check if password recovery is available)
  */
-router.get('/:switchId', async (req, res) => {
+router.get('/:switchId', async (req: Request, res: Response) => {
   try {
     const { switchId } = req.params;
 
@@ -31,7 +52,7 @@ router.get('/:switchId', async (req, res) => {
     }
 
     // Check if switch exists and has recovery encryption
-    const result = await query(
+    const result = await query<SwitchRecoveryInfoRow>(
       `SELECT
         id,
         title,
@@ -88,7 +109,7 @@ router.get('/:switchId', async (req, res) => {
  * Request body: { password: string }
  * Returns encrypted message data that can be decrypted client-side
  */
-router.post('/:switchId', async (req, res) => {
+router.post('/:switchId', async (req: Request, res: Response) => {
   try {
     const { switchId } = req.params;
     const { password } = req.body;
@@ -108,7 +129,7 @@ router.post('/:switchId', async (req, res) => {
     }
 
     // Get switch with recovery encryption data
-    const result = await query(
+    const result = await query<SwitchRecoveryDataRow>(
       `SELECT
         id,
         title,
