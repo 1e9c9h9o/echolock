@@ -90,7 +90,7 @@
   }
 
   .btn-black:hover {
-    @apply bg-white text-black;
+    @apply bg-orange text-black border-orange;
   }
 
   /* Container */
@@ -156,7 +156,7 @@
   }
 
   .spec-label {
-    @apply text-[9px] uppercase opacity-40 mb-2;
+    @apply text-[11px] uppercase opacity-40 mb-2;
     letter-spacing: 0.12em;
   }
 
@@ -235,14 +235,4 @@
     animation: fade-in-up 0.6s ease-out;
   }
 
-  /* Column marker */
-  .column-marker {
-    @apply fixed left-6 top-1/2 -translate-y-1/2 w-2 h-32 z-50;
-  }
-
-  @media (max-width: 1400px) {
-    .column-marker {
-      @apply hidden;
-    }
-  }
 }
