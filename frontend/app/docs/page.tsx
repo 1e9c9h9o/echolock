@@ -118,7 +118,7 @@ export default function DocsPage() {
                     </div>
                     <div className="flex gap-3 items-start">
                       <div className="w-6 h-6 bg-orange text-black text-[11px] flex items-center justify-center flex-shrink-0 font-bold">2</div>
-                      <div className="text-xs"><strong>Fragment</strong> — Encryption key split via Shamir's (3-of-5)</div>
+                      <div className="text-xs"><strong>Fragment</strong> — Encryption key split via Shamir's (configurable M-of-N)</div>
                     </div>
                     <div className="flex gap-3 items-start">
                       <div className="w-6 h-6 bg-yellow text-black text-[11px] flex items-center justify-center flex-shrink-0 font-bold">3</div>

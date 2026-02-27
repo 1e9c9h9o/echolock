@@ -618,7 +618,7 @@ export default function ExplainerPage() {
           }}>
             {simpleMode
               ? "Your message becomes unreadable, gets split into pieces hidden around the world. If you don't check in, it reassembles and delivers itself."
-              : "AES-256-GCM encryption → Shamir 3-of-5 split → Nostr relay distribution → Timer expiry → Fragment collection → Authenticated decryption"
+              : "AES-256-GCM encryption → Shamir M-of-N split → Nostr relay distribution → Timer expiry → Fragment collection → Authenticated decryption"
             }
           </p>
         </div>

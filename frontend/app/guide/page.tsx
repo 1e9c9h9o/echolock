@@ -159,7 +159,7 @@ export default function GuidePage() {
                     </p>
                     <ol className="space-y-2 list-decimal list-inside text-sm">
                       <li>You write a secret (like passwords or a message)</li>
-                      <li>You pick 5 trusted people to help guard it</li>
+                      <li>You pick trusted people to help guard it</li>
                       <li>You agree to check in every few days</li>
                       <li>As long as you check in, nothing happens</li>
                       <li>If you stop checking in, your message gets delivered</li>
@@ -167,7 +167,7 @@ export default function GuidePage() {
                   </div>
                   <p className="text-sm text-black/70">
                     It's like having a trusted friend who says "If I don't hear from you in a week, give this envelope to my family."
-                    Except instead of one friend, you have 5 — and the math makes it impossible for any of them to peek!
+                    Except instead of one friend, you have several — and the math makes it impossible for any of them to peek!
                   </p>
                 </>
               ) : (
@@ -177,7 +177,7 @@ export default function GuidePage() {
                     <div className="space-y-1">
                       <div>1. You write a secret message</div>
                       <div>2. You choose who receives it (recipient)</div>
-                      <div>3. You choose 5 people to watch for you (guardians)</div>
+                      <div>3. You choose guardians to watch for you (3-9 people)</div>
                       <div>4. You set how often you need to check in (1-7 days)</div>
                       <div className="mt-3 text-black/50">// While you're active:</div>
                       <div>- You check in regularly</div>
@@ -223,25 +223,23 @@ export default function GuidePage() {
                   {isEli5 ? <span className="text-lg">🛡️</span> : <Users className="h-5 w-5 text-black" />}
                 </div>
                 <div>
-                  <h3 className="font-bold text-black">{isEli5 ? "Trusted Helpers (5 People You Trust)" : "Guardians (5 Trusted Contacts)"}</h3>
+                  <h3 className="font-bold text-black">{isEli5 ? "Trusted Helpers" : "Guardians"}</h3>
                   <p className="text-sm text-black/70 mt-1">
                     {isEli5
-                      ? "You pick 5 people (or services) to help. Each one holds a \"puzzle piece\" of your secret key. They can be family, friends, your lawyer, or even EchoLock itself. None of them can read your secret alone — they'd need to work together!"
-                      : "Guardians are people or services who hold one piece of your encryption key and watch for your heartbeats. They can be family, friends, professionals (lawyer, accountant), or services like EchoLock."}
+                      ? "You pick a group of people (or services) to help — typically 3 to 9. Each one holds a \"puzzle piece\" of your secret key. They can be family, friends, your lawyer, or even EchoLock itself. None of them can read your secret alone — they'd need to work together!"
+                      : "Guardians are people or services who hold one piece of your encryption key and watch for your heartbeats. You choose how many (3 to 9) and the threshold required. They can be family, friends, professionals, or services like EchoLock."}
                   </p>
                   <div className="mt-3 bg-blue-light border border-black/10 p-3 text-xs">
                     {isEli5 ? (
                       <>
-                        <strong>Why 5 helpers, and why need 3?</strong><br />
-                        It's about balance! If 1 or 2 helpers lose their piece or aren't available, no problem — you only need any 3 of the 5.
-                        But if 2 helpers tried to sneak a peek together, they still couldn't — you need 3 pieces minimum. Safe AND reliable!
+                        <strong>How many helpers do I need?</strong><br />
+                        You choose! The default is 5 helpers where any 3 can unlock your message. Fewer helpers (3) is simpler. More helpers (7 or 9) is more secure. The key idea: you always need MORE than half to unlock, so no small group can cheat.
                       </>
                     ) : (
                       <>
-                        <strong>Why 5 guardians with 3 required?</strong><br />
-                        Your key is split so any 3 pieces can rebuild it, but 2 pieces reveal nothing.
-                        This means: if 2 guardians go offline, recovery still works. If 2 guardians
-                        try to collude, they can't read your secret.
+                        <strong>Configurable thresholds</strong><br />
+                        Presets: 2-of-3 (simple), 3-of-5 (balanced), 4-of-7 (high security), 5-of-9 (enterprise).
+                        The threshold is always more than half, so below-threshold collusion reveals nothing.
                       </>
                     )}
                   </div>
@@ -285,8 +283,8 @@ export default function GuidePage() {
             <div className="space-y-6">
               <p className="text-sm text-black/70">
                 {isEli5
-                  ? "Before you start, think about: What secret do you want to share? Who should get it? Who are your 5 trusted helpers? How often can you check in?"
-                  : "Before you start, you need to decide: what message you want to deliver, who receives it, who your 5 guardians are, and how often you can reliably check in."}
+                  ? "Before you start, think about: What secret do you want to share? Who should get it? Who are your trusted helpers? How often can you check in?"
+                  : "Before you start, you need to decide: what message you want to deliver, who receives it, who your guardians are, your threshold level, and how often you can reliably check in."}
               </p>
 
               <div className="space-y-4">
@@ -317,11 +315,11 @@ export default function GuidePage() {
                 <div className="flex gap-4 items-start">
                   <div className="w-8 h-8 bg-black text-white flex items-center justify-center flex-shrink-0 font-bold">3</div>
                   <div>
-                    <h4 className="font-bold text-black">{isEli5 ? "Pick 5 Trusted Helpers" : "Configure 5 Guardians"}</h4>
+                    <h4 className="font-bold text-black">{isEli5 ? "Pick Your Trusted Helpers" : "Configure Guardians"}</h4>
                     <p className="text-sm text-black/70">
                       {isEli5
-                        ? "Choose 5 people you trust. Good choices: a family member, a close friend, a professional (like your lawyer), another trusted person, and maybe EchoLock as one helper. Mix it up so you don't depend on just one type of person!"
-                        : "For each guardian, provide a name (for your reference) and their Nostr public key. Suggested mix: 1 family member, 1 close friend, 1 professional (lawyer/accountant), 1 other trusted person, and optionally EchoLock service."}
+                        ? "Choose your trusted people — as few as 3 or as many as 9. Good choices: family members, close friends, a professional (like your lawyer), and maybe EchoLock as one helper. Mix it up so you don't depend on just one type of person!"
+                        : "Choose your threshold (default 3-of-5) and configure each guardian with a name and their Nostr public key. Suggested mix: family, friends, professionals (lawyer/accountant), and optionally EchoLock service."}
                     </p>
                   </div>
                 </div>
@@ -344,7 +342,7 @@ export default function GuidePage() {
                     <h4 className="font-bold text-black">{isEli5 ? "Double-Check & Go!" : "Confirm"}</h4>
                     <p className="text-sm text-black/70">
                       {isEli5
-                        ? "Look everything over, then hit confirm. Your secret gets scrambled, the key gets split into 5 pieces, each piece goes to a helper, and your timer starts ticking!"
+                        ? "Look everything over, then hit confirm. Your secret gets scrambled, the key gets split into pieces, each piece goes to a helper, and your timer starts ticking!"
                         : "Review everything, then confirm. Your message gets encrypted, the key gets split, shares go to guardians, and your timer starts."}
                     </p>
                   </div>
@@ -418,7 +416,7 @@ export default function GuidePage() {
                   <h4 className="font-bold text-black">{isEli5 ? "Helpers Notice" : "Detection"}</h4>
                   <p className="text-sm text-black/70">
                     {isEli5
-                      ? "Each of your 5 helpers independently notices that you haven't checked in. They don't need to talk to each other — each one decides on their own."
+                      ? "Each of your helpers independently notices that you haven't checked in. They don't need to talk to each other — each one decides on their own."
                       : "Each guardian independently notices no heartbeat for the configured period. No coordination needed—they each decide on their own."}
                   </p>
                 </div>
@@ -508,7 +506,7 @@ export default function GuidePage() {
             <div className="space-y-6">
               <p className="text-sm text-black/70">
                 {isEli5
-                  ? "If a friend or family member chose you as one of their 5 trusted helpers, here's what that means for you:"
+                  ? "If a friend or family member chose you as one of their trusted helpers, here's what that means for you:"
                   : "If someone chose you as a guardian, here's what that means."}
               </p>
 
@@ -541,7 +539,7 @@ export default function GuidePage() {
                 <h3 className="font-bold text-black mb-2">{isEli5 ? "Can You Peek at the Secret?" : "Manual (Not Recommended)"}</h3>
                 <p className="text-sm text-black/70">
                   {isEli5
-                    ? "Nope! You only have ONE puzzle piece, and you'd need THREE to unlock anything. Even if you teamed up with another helper, two pieces still reveal nothing. The math makes it impossible to cheat. Your friend's secret is safe!"
+                    ? "Nope! You only have ONE puzzle piece, and you'd need to meet the threshold to unlock anything. Fewer pieces than the threshold reveal nothing — the math makes it impossible to cheat. Your friend's secret is safe!"
                     : "If you're a guardian without automation, you'd need to periodically check Nostr for heartbeats and manually publish your share if none arrive. This is error-prone. Automated guardians are strongly recommended."}
                 </p>
               </div>
@@ -559,7 +557,7 @@ export default function GuidePage() {
                     </h3>
                     <ul className="text-sm text-black/70 space-y-2">
                       <li>Your secret is encrypted on your device — the server never sees it</li>
-                      <li>The key is split into 5 pieces — need 3 to unlock</li>
+                      <li>The key is split into pieces — you choose how many are needed to unlock</li>
                       <li>EchoLock cannot read your message — we only see encrypted data</li>
                       <li>If EchoLock disappears, everything still works — it's stored on public networks</li>
                     </ul>
@@ -617,7 +615,7 @@ export default function GuidePage() {
                     <ul className="text-sm text-black/70 space-y-1 ml-4">
                       <li>• Your device isn't compromised</li>
                       <li>• Standard cryptography works (AES-256, Shamir, secp256k1)</li>
-                      <li>• At least 3 of your 5 guardians are honest and available</li>
+                      <li>• Enough guardians to meet your threshold are honest and available</li>
                     </ul>
                     <p className="text-sm text-black/70 mt-3 mb-2">You don't need to trust:</p>
                     <ul className="text-sm text-black/70 space-y-1 ml-4">

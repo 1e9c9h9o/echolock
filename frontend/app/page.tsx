@@ -66,7 +66,7 @@ export default function HomePage() {
           </div>
           <div className="spec">
             <div className="spec-label">Key Splitting</div>
-            <div className="spec-value">Shamir 3-of-5</div>
+            <div className="spec-value">Shamir M-of-N</div>
           </div>
           <div className="spec">
             <div className="spec-label">Protocol</div>
@@ -129,8 +129,8 @@ export default function HomePage() {
               <div>
                 <h3 className="font-bold mb-2">Guardian Network</h3>
                 <p className="text-sm text-black/70">
-                  Your encryption key is split into 5 shares using Shamir's Secret Sharing.
-                  Each share is held by a guardian. Any 3 shares can reconstruct the key.
+                  Your encryption key is split using Shamir's Secret Sharing.
+                  You choose the threshold — from 2-of-3 to 5-of-9. Each share is held by a guardian.
                   No individual guardian can access your message.
                 </p>
               </div>
@@ -155,11 +155,11 @@ export default function HomePage() {
                   <span className="font-bold">Cannot access alone</span>
                 </div>
                 <div className="flex justify-between py-2 border-b border-black/10">
-                  <span className="text-black/70">Any 2 guardians colluding</span>
+                  <span className="text-black/70">Below-threshold collusion</span>
                   <span className="font-bold">Cannot access</span>
                 </div>
                 <div className="flex justify-between py-2">
-                  <span className="text-black/70">Any 3 guardians</span>
+                  <span className="text-black/70">Threshold met (e.g. 3-of-5)</span>
                   <span className="font-bold">Can reconstruct key</span>
                 </div>
               </div>

@@ -290,22 +290,22 @@ export default function PublicDemoPage() {
               <div className="space-y-4">
                 <div>
                   <h3 className="font-bold text-black">
-                    {isEli5 ? "5 Trusted Contacts" : "5 Guardians"}
+                    {isEli5 ? "Trusted Contacts" : "Guardians"}
                   </h3>
                   <p className="text-sm text-black/70 mt-1">
                     {isEli5
                       ? "These are people (or services) who will watch for your check-ins. They could be family members, friends, your lawyer, your accountant - anyone you trust. Each one holds a \"piece of the puzzle\" and can't read your secret alone."
-                      : "Guardians are entities who monitor your heartbeats and hold key shares. They can be individuals (family, friends, attorneys) or services. Each guardian holds one Shamir share - worthless alone, but any 3 can reconstruct."}
+                      : "Guardians are entities who monitor your heartbeats and hold key shares. They can be individuals (family, friends, attorneys) or services. Each guardian holds one Shamir share — worthless alone, but enough shares at your chosen threshold can reconstruct the key."}
                   </p>
                 </div>
                 <div>
                   <h3 className="font-bold text-black">
-                    {isEli5 ? "Why 5 contacts? Why need 3?" : "Why 5 guardians with 3-of-5 threshold?"}
+                    {isEli5 ? "Why multiple contacts?" : "Why configurable thresholds?"}
                   </h3>
                   <p className="text-sm text-black/70 mt-1">
                     {isEli5
-                      ? "This is about safety: If one contact loses their piece or goes missing, you're still okay - you only need ANY 3 of the 5. And if two contacts teamed up to be sneaky, they still can't do anything because you need 3. It's the sweet spot between \"reliable\" and \"secure.\""
-                      : "3-of-5 provides optimal balance: resilient against 2 guardian failures while secure against 2 colluding guardians. You can use friends, family, professionals (lawyers/accountants), or services like EchoLock as one guardian."}
+                      ? "This is about safety: you pick how many people guard your secret and how many are needed to unlock it. More guardians means more redundancy. A higher threshold means more security. The default (3-of-5) is a good balance for most people."
+                      : "You choose the threshold: 2-of-3 for simplicity, 3-of-5 for balance, 4-of-7 or 5-of-9 for higher security. The tradeoff is always redundancy vs. collusion resistance. Guardians can be friends, family, professionals, or services like EchoLock."}
                   </p>
                 </div>
               </div>
@@ -478,12 +478,12 @@ export default function PublicDemoPage() {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-bold text-black">
-                          {isEli5 ? "Step 4: Split the Key into 5 Pieces" : "Step 4: Shamir Secret Sharing (3-of-5)"}
+                          {isEli5 ? "Step 4: Split the Key into Pieces" : "Step 4: Shamir Secret Sharing"}
                         </h3>
                         <p className="text-sm text-black/70 mb-2">
                           {isEli5
-                            ? "The encryption key is broken into 5 puzzle pieces. You need ANY 3 pieces to rebuild it, but 2 pieces tell you nothing."
-                            : "The encryption key is split into 5 shares using Shamir's Secret Sharing. Mathematical property: any 3 shares reconstruct the key, but 2 shares reveal zero information."}
+                            ? "The encryption key is broken into puzzle pieces and split among your guardians. You need a minimum number of pieces to rebuild it — fewer than that reveals nothing."
+                            : "The encryption key is split into shares using Shamir's Secret Sharing at your chosen threshold (default 3-of-5). Below-threshold shares reveal zero information about the key."}
                         </p>
                         {creationStep >= 4 && (
                           <div className="grid grid-cols-5 gap-1 text-xs">
@@ -639,17 +639,17 @@ export default function PublicDemoPage() {
                   <ul className="text-sm text-black/70 space-y-1">
                     {isEli5 ? (
                       <>
-                        <li>• Your 5 trusted contacts are watching for your check-ins</li>
+                        <li>• Your trusted contacts are watching for your check-ins</li>
                         <li>• Each contact has their puzzle piece ready</li>
                         <li>• If you don't check in, they'll share their pieces</li>
                         <li>• Your recipient will then be able to read your secret</li>
                       </>
                     ) : (
                       <>
-                        <li>• All 5 guardians monitoring Nostr relays for your heartbeat</li>
+                        <li>• All guardians monitoring Nostr relays for your heartbeat</li>
                         <li>• Each guardian holds one encrypted share</li>
                         <li>• Missing heartbeat triggers independent share release</li>
-                        <li>• Recipients reconstruct key from 3+ shares</li>
+                        <li>• Recipients reconstruct key once threshold is met</li>
                       </>
                     )}
                   </ul>
@@ -789,8 +789,8 @@ export default function PublicDemoPage() {
                           ))}
                           <div className="text-xs text-black/50 italic mt-2">
                             {isEli5
-                              ? "3 of 5 pieces released - that's enough!"
-                              : "3 of 5 shares released - threshold met"}
+                              ? "Enough pieces released - that's the threshold!"
+                              : "Threshold met - sufficient shares released"}
                           </div>
                         </div>
                       )}
@@ -900,8 +900,8 @@ export default function PublicDemoPage() {
                 <div className="grid grid-cols-2 gap-4 text-sm text-black/70">
                   <div>Check-ins: <strong>{demoSwitch.checkInCount}</strong></div>
                   <div>Total time: <strong>{formatTime(timeElapsed)}</strong></div>
-                  <div>{isEli5 ? "Contacts responded" : "Guardians responded"}: <strong>3 of 5</strong></div>
-                  <div>{isEli5 ? "Pieces used" : "Shares used"}: <strong>3</strong></div>
+                  <div>{isEli5 ? "Contacts responded" : "Guardians responded"}: <strong>3 of {demoSwitch.guardians.length}</strong></div>
+                  <div>{isEli5 ? "Pieces used" : "Shares used"}: <strong>3 (threshold)</strong></div>
                 </div>
               </div>
             </div>
