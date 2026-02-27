@@ -57,7 +57,7 @@ function Section({
   const [isOpen, setIsOpen] = useState(defaultOpen)
 
   return (
-    <div id={id} className="border-b-2 border-black">
+    <div id={id} className="border-b border-black/20">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between p-6 bg-white hover:bg-blue-light transition-colors text-left"
@@ -146,7 +146,7 @@ export default function GuidePage() {
         </div>
 
         {/* Content sections */}
-        <div className="bg-white border-4 border-black">
+        <div className="bg-white border-2 border-black">
 
           {/* How It Works */}
           <Section id="how-it-works" title="How It Works" defaultOpen={true}>
@@ -229,7 +229,7 @@ export default function GuidePage() {
                       ? "You pick 5 people (or services) to help. Each one holds a \"puzzle piece\" of your secret key. They can be family, friends, your lawyer, or even EchoLock itself. None of them can read your secret alone — they'd need to work together!"
                       : "Guardians are people or services who hold one piece of your encryption key and watch for your heartbeats. They can be family, friends, professionals (lawyer, accountant), or services like EchoLock."}
                   </p>
-                  <div className="mt-3 bg-blue-light p-3 text-xs">
+                  <div className="mt-3 bg-blue-light border border-black/10 p-3 text-xs">
                     {isEli5 ? (
                       <>
                         <strong>Why 5 helpers, and why need 3?</strong><br />
@@ -492,7 +492,7 @@ export default function GuidePage() {
                 </ol>
               </div>
 
-              <div className="bg-blue-light p-4">
+              <div className="bg-blue-light border border-black/10 p-4">
                 <h3 className="font-bold text-black mb-2">{isEli5 ? "What If EchoLock Goes Away?" : "If EchoLock Is Down"}</h3>
                 <p className="text-sm text-black/70">
                   {isEli5
@@ -553,7 +553,7 @@ export default function GuidePage() {
             <div className="space-y-6">
               {isEli5 ? (
                 <>
-                  <div className="bg-slate-50 border border-slate-200 p-4">
+                  <div className="bg-blue-light border-2 border-black p-4">
                     <h3 className="font-bold text-black mb-2">
                       What Makes It Secure
                     </h3>
