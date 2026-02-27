@@ -110,7 +110,7 @@ export default function CheckInButton({
     return (
       <button
         disabled
-        className={`w-full px-4 py-3 bg-slate-100 border border-slate-300 text-slate-400 font-bold text-sm uppercase tracking-wider cursor-not-allowed ${className}`}
+        className={`w-full px-4 py-3 bg-blue-light border border-black/20 text-black/50 font-bold text-sm uppercase tracking-wider cursor-not-allowed ${className}`}
       >
         Expired
       </button>
@@ -121,7 +121,7 @@ export default function CheckInButton({
     return (
       <button
         disabled
-        className={`w-full px-4 py-3 bg-slate-100 border border-slate-300 text-slate-400 font-bold text-sm uppercase tracking-wider cursor-not-allowed ${className}`}
+        className={`w-full px-4 py-3 bg-blue-light border border-black/20 text-black/50 font-bold text-sm uppercase tracking-wider cursor-not-allowed ${className}`}
       >
         Cancelled
       </button>
@@ -148,7 +148,7 @@ export default function CheckInButton({
     return (
       <button
         disabled
-        className={`w-full px-4 py-3 bg-slate-200 border border-slate-400 text-slate-600 font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 ${className}`}
+        className={`w-full px-4 py-3 bg-blue border border-black/30 text-black/70 font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 ${className}`}
       >
         <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2} />
         Checking In...
@@ -164,7 +164,7 @@ export default function CheckInButton({
       case 'warning':
         return 'bg-amber-100 border-amber-500 text-amber-700 hover:bg-amber-200'
       default:
-        return 'bg-slate-100 border-slate-400 text-slate-700 hover:bg-slate-200'
+        return 'bg-blue-light border-black/30 text-black/80 hover:bg-blue'
     }
   }
 
@@ -180,7 +180,7 @@ export default function CheckInButton({
       case 'warning':
         return 'text-amber-700'
       default:
-        return 'text-slate-500'
+        return 'text-black/70'
     }
   }
 

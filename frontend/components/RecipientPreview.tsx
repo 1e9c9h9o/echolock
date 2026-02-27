@@ -55,12 +55,12 @@ export default function RecipientPreview({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white border-4 border-black w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-white border-2 border-black w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-black text-white py-3 px-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
-            <span className="text-[10px] uppercase tracking-widest font-bold">
+            <span className="text-[11px] uppercase tracking-widest font-bold">
               Recipient Preview Mode
             </span>
           </div>

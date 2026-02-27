@@ -119,8 +119,8 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
           {/* Form Card */}
-          <div className="bg-white border-4 border-black">
-            <div className="bg-black text-white py-3 px-5 text-[10px] uppercase tracking-widest">
+          <div className="bg-white border-2 border-black">
+            <div className="bg-black text-white py-3 px-5 text-[11px] uppercase tracking-widest">
               <span>User Authentication</span>
             </div>
             <div className="p-8">

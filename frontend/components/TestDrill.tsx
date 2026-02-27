@@ -151,12 +151,12 @@ export default function TestDrill({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white border-4 border-black w-full max-w-lg">
+      <div className="bg-white border-2 border-black w-full max-w-lg">
         {/* Header */}
         <div className="bg-black text-white py-3 px-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Play className="h-5 w-5" />
-            <span className="text-[10px] uppercase tracking-widest font-bold">
+            <span className="text-[11px] uppercase tracking-widest font-bold">
               Test Drill Mode
             </span>
           </div>
@@ -274,13 +274,13 @@ export default function TestDrill({
           {phase === 'complete' && results && (
             <>
               <div className={`text-center mb-6 p-4 border ${
-                results.success ? 'border-slate-200 bg-slate-50' : 'border-orange/50 bg-orange/5'
+                results.success ? 'border-black/10 bg-blue' : 'border-orange/50 bg-orange/5'
               }`}>
                 {results.success ? (
                   <>
-                    <CheckCircle className="h-10 w-10 text-slate-500 mx-auto mb-2" />
+                    <CheckCircle className="h-10 w-10 text-black/70 mx-auto mb-2" />
                     <h2 className="text-xl font-bold">Drill Complete</h2>
-                    <p className="text-sm text-slate-600 mt-1">
+                    <p className="text-sm text-black/70 mt-1">
                       Your switch is properly configured.
                     </p>
                   </>
@@ -288,7 +288,7 @@ export default function TestDrill({
                   <>
                     <AlertTriangle className="h-10 w-10 text-orange mx-auto mb-2" />
                     <h2 className="text-xl font-bold">Drill Complete</h2>
-                    <p className="text-sm text-slate-600 mt-1">
+                    <p className="text-sm text-black/70 mt-1">
                       Review the results below.
                     </p>
                   </>

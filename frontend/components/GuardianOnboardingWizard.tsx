@@ -182,12 +182,12 @@ Best regards`)
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white border-4 border-black w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <div className="bg-white border-2 border-black w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="bg-black text-white py-3 px-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
-            <span className="text-[10px] uppercase tracking-widest font-bold">
+            <span className="text-[11px] uppercase tracking-widest font-bold">
               Add Guardian
             </span>
           </div>
@@ -513,8 +513,8 @@ Best regards`)
           {/* Step 5: Complete */}
           {step === 'complete' && (
             <div className="text-center">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Check className="h-8 w-8 text-slate-500" />
+              <div className="w-16 h-16 bg-blue-light rounded-full flex items-center justify-center mx-auto mb-6">
+                <Check className="h-8 w-8 text-black/70" />
               </div>
 
               <h2 className="text-2xl font-bold mb-2">Guardian Added</h2>

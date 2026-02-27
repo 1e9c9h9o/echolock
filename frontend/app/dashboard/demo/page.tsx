@@ -233,7 +233,7 @@ export default function DemoPage() {
           {/* Explanation Card */}
           <Card variant="info">
             <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">How it works</h3>
-            <div className="font-mono text-xs md:text-sm space-y-2 md:space-y-3 break-words text-slate-600">
+            <div className="font-mono text-xs md:text-sm space-y-2 md:space-y-3 break-words text-black/70">
               <p>Your switch is armed and monitoring for check-ins</p>
               <p>You must check in within 1 minute to reset the timer</p>
               <p>If you don't check in, the switch will trigger</p>
@@ -266,9 +266,9 @@ export default function DemoPage() {
             </div>
 
             <div className="space-y-4 md:space-y-6">
-              <div className="bg-slate-100 p-4 md:p-6 border border-slate-300">
+              <div className="bg-blue-light p-4 md:p-6 border border-black/20">
                 <p className="font-mono text-xs md:text-sm font-bold mb-2">Timer expired</p>
-                <p className="font-mono text-sm md:text-base break-words text-slate-600">
+                <p className="font-mono text-sm md:text-base break-words text-black/70">
                   You didn't check in within the 1-minute window. The switch has been triggered
                   and your secret will be released shortly.
                 </p>
@@ -317,21 +317,21 @@ export default function DemoPage() {
           <Card>
             <div className="flex flex-wrap items-center justify-between gap-2 md:gap-4 mb-4 md:mb-6">
               <h2 className="text-xl md:text-2xl font-bold">Secret Released</h2>
-              <span className="bg-slate-700 text-white px-3 py-1 md:px-4 md:py-2 text-xs font-bold uppercase">
+              <span className="bg-black text-white px-3 py-1 md:px-4 md:py-2 text-xs font-bold uppercase">
                 Complete
               </span>
             </div>
 
             <div className="space-y-4 md:space-y-6">
-              <div className="bg-slate-50 p-4 md:p-6 border border-slate-200">
+              <div className="bg-blue p-4 md:p-6 border border-black/10">
                 <p className="font-mono text-xs md:text-sm font-bold mb-2">Demo complete</p>
-                <p className="font-mono text-sm md:text-base break-words text-slate-600">
+                <p className="font-mono text-sm md:text-base break-words text-black/70">
                   The full lifecycle has completed. In real use, your secret would now be
                   delivered to all recipients.
                 </p>
               </div>
 
-              <div className="bg-white p-4 md:p-6 border border-slate-200">
+              <div className="bg-white p-4 md:p-6 border border-black/10">
                 <p className="font-mono text-xs md:text-sm font-bold mb-3">Secret message (decrypted)</p>
                 <p className="font-mono text-sm md:text-base break-words">
                   {demoSwitch.secret}
@@ -347,7 +347,7 @@ export default function DemoPage() {
 
           <Card variant="info">
             <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Summary</h3>
-            <div className="font-mono text-xs md:text-sm space-y-2 md:space-y-3 break-words text-slate-600">
+            <div className="font-mono text-xs md:text-sm space-y-2 md:space-y-3 break-words text-black/70">
               <p>Switch created and armed</p>
               <p>{demoSwitch.checkInCount > 0 ? `${demoSwitch.checkInCount} check-in(s) performed` : 'No check-ins (expired naturally)'}</p>
               <p>Timer expired and switch triggered</p>

@@ -83,10 +83,10 @@ export default function SystemHealthHeader({ switches }: SystemHealthHeaderProps
 
   const configs = {
     ok: {
-      bg: 'bg-slate-100 border-slate-300',
-      icon: <Circle className="h-6 w-6 text-slate-500 fill-slate-400" strokeWidth={2} />,
+      bg: 'bg-blue-light border-black/20',
+      icon: <Circle className="h-6 w-6 text-black/70 fill-black/50" strokeWidth={2} />,
       label: 'ALL SYSTEMS NOMINAL',
-      labelColor: 'text-slate-600',
+      labelColor: 'text-black/70',
       detail: `${okCount} switch${okCount !== 1 ? 'es' : ''} monitored`
     },
     warning: {
@@ -120,7 +120,7 @@ export default function SystemHealthHeader({ switches }: SystemHealthHeaderProps
           <div className={`font-bold text-sm uppercase ${config.labelColor}`} style={{ letterSpacing: '0.06em' }}>
             {config.label}
           </div>
-          <div className="text-slate-500 text-xs font-mono mt-0.5 opacity-80">
+          <div className="text-black/70 text-xs font-mono mt-0.5 opacity-80">
             {config.detail}
           </div>
         </div>
@@ -139,8 +139,8 @@ export default function SystemHealthHeader({ switches }: SystemHealthHeaderProps
               {warningCount}
             </span>
           )}
-          <span className="flex items-center gap-1 text-slate-500">
-            <Circle className="h-3 w-3 fill-slate-400" strokeWidth={2} />
+          <span className="flex items-center gap-1 text-black/70">
+            <Circle className="h-3 w-3 fill-black/50" strokeWidth={2} />
             {okCount}
           </span>
         </div>

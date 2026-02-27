@@ -86,14 +86,14 @@ function ResetPasswordContent() {
         <AuthHeader />
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="w-full max-w-md">
-            <div className="bg-white border-4 border-black">
-              <div className="bg-black text-white py-3 px-5 text-[10px] uppercase tracking-widest">
+            <div className="bg-white border-2 border-black">
+              <div className="bg-black text-white py-3 px-5 text-[11px] uppercase tracking-widest">
                 <span>Password Reset</span>
               </div>
               <div className="p-8 text-center">
-                <CheckCircle className="w-12 h-12 text-slate-500 mx-auto mb-6" strokeWidth={2} />
+                <CheckCircle className="w-12 h-12 text-black/70 mx-auto mb-6" strokeWidth={2} />
                 <h2 className="text-xl font-bold mb-4">Password Reset</h2>
-                <p className="text-sm text-slate-600 mb-6">
+                <p className="text-sm text-black/70 mb-6">
                   Your password has been reset. You can now log in with your new password.
                 </p>
                 <Button
@@ -122,8 +122,8 @@ function ResetPasswordContent() {
         <AuthHeader />
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="w-full max-w-md">
-            <div className="bg-white border-4 border-black">
-              <div className="bg-black text-white py-3 px-5 text-[10px] uppercase tracking-widest">
+            <div className="bg-white border-2 border-black">
+              <div className="bg-black text-white py-3 px-5 text-[11px] uppercase tracking-widest">
                 <span>Invalid Link</span>
               </div>
               <div className="p-8 text-center">
@@ -160,8 +160,8 @@ function ResetPasswordContent() {
       <AuthHeader />
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
-          <div className="bg-white border-4 border-black">
-            <div className="bg-black text-white py-3 px-5 text-[10px] uppercase tracking-widest">
+          <div className="bg-white border-2 border-black">
+            <div className="bg-black text-white py-3 px-5 text-[11px] uppercase tracking-widest">
               <span>Reset Password</span>
             </div>
             <div className="p-8">
@@ -234,8 +234,8 @@ export default function ResetPasswordPage() {
         <AuthHeader />
         <div className="flex-1 flex items-center justify-center p-6">
           <div className="w-full max-w-md">
-            <div className="bg-white border-4 border-black">
-              <div className="bg-black text-white py-3 px-5 text-[10px] uppercase tracking-widest">
+            <div className="bg-white border-2 border-black">
+              <div className="bg-black text-white py-3 px-5 text-[11px] uppercase tracking-widest">
                 <span>Reset Password</span>
               </div>
               <div className="p-8 text-center">

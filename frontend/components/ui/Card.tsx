@@ -8,9 +8,9 @@ interface CardProps {
 
 export default function Card({ children, className = '', variant = 'default' }: CardProps) {
   const variants = {
-    default: 'bg-white border-4 border-black',
-    urgent: 'bg-orange text-black border-4 border-black',
-    info: 'bg-blue text-black border-4 border-black',
+    default: 'bg-white border-2 border-black',
+    urgent: 'bg-orange text-black border-2 border-black',
+    info: 'bg-blue text-black border-2 border-black',
   }
 
   return (

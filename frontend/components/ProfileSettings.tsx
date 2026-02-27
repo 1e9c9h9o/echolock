@@ -140,7 +140,7 @@ export default function ProfileSettings() {
           type="button"
           onClick={handleAvatarClick}
           disabled={uploadingAvatar}
-          className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-xl font-medium text-slate-500 hover:bg-slate-300 transition-colors relative overflow-hidden group"
+          className="w-20 h-20 rounded-full bg-blue flex items-center justify-center text-xl font-medium text-black/70 hover:bg-blue-dark transition-colors relative overflow-hidden group"
         >
           {avatarUrl ? (
             <img
@@ -165,7 +165,7 @@ export default function ProfileSettings() {
           <button
             type="button"
             onClick={handleRemoveAvatar}
-            className="mt-2 text-xs text-slate-400 hover:text-slate-600"
+            className="mt-2 text-xs text-black/50 hover:text-black/70"
           >
             Remove photo
           </button>
@@ -174,7 +174,7 @@ export default function ProfileSettings() {
 
       {/* Name */}
       <div>
-        <label className="block text-xs text-slate-500 mb-1.5">
+        <label className="block text-xs text-black/70 mb-1.5">
           Name
         </label>
         <input
@@ -182,13 +182,13 @@ export default function ProfileSettings() {
           value={name}
           onChange={(e) => setName(e.target.value.slice(0, 50))}
           placeholder="Your name"
-          className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-400"
+          className="w-full border border-black/10 rounded px-3 py-2 text-sm focus:outline-none focus:border-black/30"
         />
       </div>
 
       {/* About */}
       <div>
-        <label className="block text-xs text-slate-500 mb-1.5">
+        <label className="block text-xs text-black/70 mb-1.5">
           About
         </label>
         <input
@@ -196,7 +196,7 @@ export default function ProfileSettings() {
           value={about}
           onChange={(e) => setAbout(e.target.value.slice(0, 140))}
           placeholder="A few words about yourself"
-          className="w-full border border-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-slate-400"
+          className="w-full border border-black/10 rounded px-3 py-2 text-sm focus:outline-none focus:border-black/30"
         />
       </div>
 
@@ -205,7 +205,7 @@ export default function ProfileSettings() {
       )}
 
       <div className="flex items-center justify-between pt-2">
-        <p className="text-xs text-slate-400">
+        <p className="text-xs text-black/50">
           Visible to your message recipients
         </p>
 
@@ -213,7 +213,7 @@ export default function ProfileSettings() {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="px-4 py-1.5 bg-slate-800 text-white text-sm rounded hover:bg-slate-700 disabled:opacity-50 transition-colors"
+          className="px-4 py-1.5 bg-black text-white text-sm rounded hover:bg-black disabled:opacity-50 transition-colors"
         >
           {saving ? 'Saving...' : saved ? 'Saved' : 'Save'}
         </button>

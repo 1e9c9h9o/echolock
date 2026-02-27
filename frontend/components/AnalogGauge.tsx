@@ -113,7 +113,7 @@ export default function AnalogGauge({
       {/* Gauge container */}
       <div className="relative">
         {/* Background track with color zones */}
-        <div className="relative w-full h-3 bg-slate-200 overflow-hidden">
+        <div className="relative w-full h-3 bg-blue overflow-hidden">
           {/* Color zones (left to right: critical → warning → safe) */}
           <div className="absolute inset-0 flex">
             {/* Critical zone: 0-10% */}
@@ -126,7 +126,7 @@ export default function AnalogGauge({
 
           {/* Marker line */}
           <div
-            className="absolute top-0 bottom-0 w-0.5 bg-slate-800 transition-all duration-500"
+            className="absolute top-0 bottom-0 w-0.5 bg-black transition-all duration-500"
             style={{ left: `${markerPosition}%` }}
           />
         </div>
@@ -140,7 +140,7 @@ export default function AnalogGauge({
         </div>
 
         {/* Scale markers */}
-        <div className="flex justify-between mt-1 text-[8px] font-mono text-slate-400">
+        <div className="flex justify-between mt-1 text-[8px] font-mono text-black/50">
           <span>0%</span>
           <span>50%</span>
           <span>100%</span>
@@ -150,13 +150,13 @@ export default function AnalogGauge({
       {/* Digital time (secondary, for precision) */}
       {showDigital && (
         <div className="mt-2 flex items-center justify-between">
-          <span className="text-xs font-mono text-slate-500">
+          <span className="text-xs font-mono text-black/70">
             Time remaining
           </span>
           <span className={`text-sm font-mono font-bold ${
             urgency === 'critical' ? 'text-red-600' :
             urgency === 'warning' ? 'text-amber-600' :
-            'text-slate-600'
+            'text-black/70'
           }`}>
             {timeString}
           </span>

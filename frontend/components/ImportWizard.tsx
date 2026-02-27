@@ -132,12 +132,12 @@ export default function ImportWizard({ onClose, onImportComplete }: ImportWizard
 
           <Card>
             <div
-              className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center cursor-pointer hover:border-slate-400 hover:bg-slate-50 transition-colors"
+              className="border-2 border-dashed border-black/20 rounded-lg p-8 text-center cursor-pointer hover:border-black/30 hover:bg-blue transition-colors"
               onClick={() => fileInputRef.current?.click()}
             >
-              <Upload className="w-12 h-12 mx-auto text-slate-400 mb-4" />
+              <Upload className="w-12 h-12 mx-auto text-black/50 mb-4" />
               <p className="font-bold">Click to upload backup file</p>
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="text-sm text-black/70 mt-1">
                 or drag and drop your .json backup file
               </p>
               <input
@@ -149,11 +149,11 @@ export default function ImportWizard({ onClose, onImportComplete }: ImportWizard
               />
             </div>
 
-            <div className="mt-4 p-3 bg-slate-50 rounded text-sm text-slate-500">
+            <div className="mt-4 p-3 bg-blue rounded text-sm text-black/70">
               <p className="font-bold mb-1">Looking for your backup?</p>
               <p>
                 Backup files are named like{' '}
-                <code className="bg-slate-200 px-1 rounded">
+                <code className="bg-blue px-1 rounded">
                   echolock-backup-YYYY-MM-DD.json
                 </code>
               </p>
@@ -177,11 +177,11 @@ export default function ImportWizard({ onClose, onImportComplete }: ImportWizard
           </div>
 
           <Card>
-            <div className="flex items-center gap-3 mb-4 p-3 bg-slate-50 rounded">
-              <FileText className="w-5 h-5 text-slate-600" />
+            <div className="flex items-center gap-3 mb-4 p-3 bg-blue rounded">
+              <FileText className="w-5 h-5 text-black/70" />
               <div>
                 <p className="font-bold">{fileName}</p>
-                <p className="text-sm text-slate-500">Selected backup file</p>
+                <p className="text-sm text-black/70">Selected backup file</p>
               </div>
             </div>
 
@@ -199,7 +199,7 @@ export default function ImportWizard({ onClose, onImportComplete }: ImportWizard
                   If data already exists:
                 </label>
                 <div className="space-y-2">
-                  <label className="flex items-center gap-3 p-3 bg-slate-50 rounded cursor-pointer hover:bg-slate-100">
+                  <label className="flex items-center gap-3 p-3 bg-blue rounded cursor-pointer hover:bg-blue-light">
                     <input
                       type="radio"
                       name="conflict"
@@ -209,12 +209,12 @@ export default function ImportWizard({ onClose, onImportComplete }: ImportWizard
                     />
                     <div>
                       <p className="font-bold">Skip duplicates</p>
-                      <p className="text-sm text-slate-500">
+                      <p className="text-sm text-black/70">
                         Keep existing data, only import new items
                       </p>
                     </div>
                   </label>
-                  <label className="flex items-center gap-3 p-3 bg-slate-50 rounded cursor-pointer hover:bg-slate-100">
+                  <label className="flex items-center gap-3 p-3 bg-blue rounded cursor-pointer hover:bg-blue-light">
                     <input
                       type="radio"
                       name="conflict"
@@ -224,7 +224,7 @@ export default function ImportWizard({ onClose, onImportComplete }: ImportWizard
                     />
                     <div>
                       <p className="font-bold">Overwrite existing</p>
-                      <p className="text-sm text-slate-500">
+                      <p className="text-sm text-black/70">
                         Replace existing data with backup data
                       </p>
                     </div>
@@ -279,11 +279,11 @@ export default function ImportWizard({ onClose, onImportComplete }: ImportWizard
               <h4 className="font-bold mb-2">Imported Items</h4>
               <ul className="text-sm space-y-1">
                 <li className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-slate-400" />
+                  <Users className="w-4 h-4 text-black/50" />
                   {importResult.imported.recipientGroups} recipient groups
                 </li>
                 <li className="flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-slate-400" />
+                  <Bell className="w-4 h-4 text-black/50" />
                   {importResult.imported.emergencyContacts} emergency contacts
                 </li>
                 {importResult.imported.skipped > 0 && (

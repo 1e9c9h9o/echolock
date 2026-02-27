@@ -239,7 +239,7 @@ export default function InteractiveDemo() {
               <button
                 disabled
                 className={`
-                  px-8 py-4 bg-green-600 text-white font-bold text-xl border-4 border-black
+                  px-8 py-4 bg-green-600 text-white font-bold text-xl border-2 border-black
                   opacity-80 cursor-not-allowed
                   ${checkInPulse ? 'scale-105 shadow-lg' : 'scale-100'}
                   transition-all duration-300

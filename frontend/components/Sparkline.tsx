@@ -65,7 +65,7 @@ export default function Sparkline({
     return (
       <div className={`flex items-center gap-2 ${className}`}>
         <div
-          className="flex-1 bg-slate-100 flex items-center justify-center text-slate-400 text-[10px] font-mono"
+          className="flex-1 bg-blue-light flex items-center justify-center text-black/50 text-[11px] font-mono"
           style={{ height }}
         >
           No history yet
@@ -98,7 +98,7 @@ export default function Sparkline({
   // Line color based on trend
   const lineColor = trend === 'degrading' ? '#ef4444' : // red
                     trend === 'improving' ? '#10b981' : // green
-                    '#64748b' // slate
+                    '#5B8BB8' // blue-dark
 
   // Fill gradient
   const fillId = `sparkline-fill-${Math.random().toString(36).substr(2, 9)}`
@@ -160,7 +160,7 @@ export default function Sparkline({
             </div>
           )}
           {trend === 'stable' && (
-            <div className="flex items-center gap-1 text-slate-400" title="Stable check-in habit">
+            <div className="flex items-center gap-1 text-black/50" title="Stable check-in habit">
               <Minus className="h-4 w-4" strokeWidth={2} />
             </div>
           )}

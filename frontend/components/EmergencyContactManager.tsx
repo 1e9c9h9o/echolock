@@ -207,7 +207,7 @@ export default function EmergencyContactManager() {
     return (
       <Card>
         <div className="flex items-center justify-center py-8">
-          <div className="animate-pulse text-slate-500">Loading contacts...</div>
+          <div className="animate-pulse text-black/70">Loading contacts...</div>
         </div>
       </Card>
     );
@@ -222,7 +222,7 @@ export default function EmergencyContactManager() {
             <AlertTriangle className="w-5 h-5" />
             Emergency Contacts
           </h3>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-black/70 mt-1">
             People to notify before your switch triggers
           </p>
         </div>
@@ -276,7 +276,7 @@ export default function EmergencyContactManager() {
                 <option value={48}>48 hours</option>
                 <option value={72}>72 hours</option>
               </select>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-black/70 mt-1">
                 This person will be alerted when your switch is about to trigger
               </p>
             </div>
@@ -299,7 +299,7 @@ export default function EmergencyContactManager() {
       {/* Contacts List */}
       {contacts.length === 0 ? (
         <Card>
-          <div className="text-center py-8 text-slate-500">
+          <div className="text-center py-8 text-black/70">
             <Bell className="w-12 h-12 mx-auto mb-3 opacity-50" />
             <p>No emergency contacts configured</p>
             <p className="text-sm mt-1">
@@ -313,7 +313,7 @@ export default function EmergencyContactManager() {
             <Card
               key={contact.id}
               className={`${
-                !contact.is_active ? 'opacity-50 bg-slate-50' : ''
+                !contact.is_active ? 'opacity-50 bg-blue' : ''
               }`}
             >
               <div className="flex items-center gap-3">
@@ -322,21 +322,21 @@ export default function EmergencyContactManager() {
                   <button
                     onClick={() => moveContact(contact.id, 'up')}
                     disabled={index === 0}
-                    className="p-0.5 hover:bg-slate-100 rounded disabled:opacity-30"
+                    className="p-0.5 hover:bg-blue-light rounded disabled:opacity-30"
                   >
                     <ChevronUp className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => moveContact(contact.id, 'down')}
                     disabled={index === contacts.length - 1}
-                    className="p-0.5 hover:bg-slate-100 rounded disabled:opacity-30"
+                    className="p-0.5 hover:bg-blue-light rounded disabled:opacity-30"
                   >
                     <ChevronDown className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* Escalation order badge */}
-                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center font-bold text-sm">
+                <div className="w-8 h-8 rounded-full bg-blue flex items-center justify-center font-bold text-sm">
                   {index + 1}
                 </div>
 
@@ -345,15 +345,15 @@ export default function EmergencyContactManager() {
                   <div className="flex items-center gap-2">
                     <h4 className="font-bold">{contact.name}</h4>
                     {!contact.is_active && (
-                      <span className="text-xs px-1.5 py-0.5 bg-slate-200 rounded">
+                      <span className="text-xs px-1.5 py-0.5 bg-blue rounded">
                         Inactive
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-slate-500 font-mono truncate">
+                  <p className="text-sm text-black/70 font-mono truncate">
                     {contact.email}
                   </p>
-                  <p className="text-xs text-slate-400 flex items-center gap-1 mt-1">
+                  <p className="text-xs text-black/50 flex items-center gap-1 mt-1">
                     <Clock className="w-3 h-3" />
                     Alert {contact.alert_threshold_hours}h before trigger
                   </p>
@@ -368,27 +368,27 @@ export default function EmergencyContactManager() {
                     title="Send test alert"
                   >
                     {sendingTest === contact.id ? (
-                      <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
                     ) : (
                       <Send className="w-4 h-4 text-blue-500" />
                     )}
                   </button>
                   <button
                     onClick={() => toggleActive(contact)}
-                    className="p-2 hover:bg-slate-100 rounded"
+                    className="p-2 hover:bg-blue-light rounded"
                     title={contact.is_active ? 'Deactivate' : 'Activate'}
                   >
                     {contact.is_active ? (
                       <Check className="w-4 h-4 text-emerald-500" />
                     ) : (
-                      <X className="w-4 h-4 text-slate-400" />
+                      <X className="w-4 h-4 text-black/50" />
                     )}
                   </button>
                   <button
                     onClick={() => startEditing(contact)}
-                    className="p-2 hover:bg-slate-100 rounded"
+                    className="p-2 hover:bg-blue-light rounded"
                   >
-                    <Edit2 className="w-4 h-4 text-slate-500" />
+                    <Edit2 className="w-4 h-4 text-black/70" />
                   </button>
                   <button
                     onClick={() => deleteContact(contact.id)}
@@ -404,7 +404,7 @@ export default function EmergencyContactManager() {
       )}
 
       {/* Help text */}
-      <p className="text-xs text-slate-500">
+      <p className="text-xs text-black/70">
         Contacts are notified in order. Drag to reorder escalation chain.
         Maximum 10 contacts.
       </p>

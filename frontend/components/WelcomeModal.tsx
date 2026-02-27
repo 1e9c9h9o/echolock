@@ -46,7 +46,7 @@ export default function WelcomeModal({ onStartTour, onClose }: WelcomeModalProps
       aria-modal="true"
       aria-labelledby="welcome-modal-title"
     >
-      <div className="bg-cream border-4 border-black shadow-[8px_8px_0px_0px_rgba(33,33,33,1)] max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slide-in-up">
+      <div className="bg-cream border-2 border-black shadow-[8px_8px_0px_0px_rgba(33,33,33,1)] max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-slide-in-up">
         {/* Header */}
         <div className="bg-blue text-cream p-6 border-b-4 border-black relative">
           <button
@@ -99,18 +99,18 @@ export default function WelcomeModal({ onStartTour, onClose }: WelcomeModalProps
             />
           </div>
 
-          <div className="bg-slate-100 border border-slate-300 p-4">
-            <p className="font-bold text-sm text-slate-700 mb-2">Before you start</p>
-            <ul className="text-sm text-slate-600 space-y-1 list-disc list-inside">
+          <div className="bg-blue-light border border-black/20 p-4">
+            <p className="font-bold text-sm text-black/80 mb-2">Before you start</p>
+            <ul className="text-sm text-black/70 space-y-1 list-disc list-inside">
               <li>Check in regularly to prevent accidental message releases</li>
               <li>Test with non-sensitive data first</li>
               <li>Store your recovery keys safely - they cannot be recovered</li>
             </ul>
           </div>
 
-          <div className="border border-slate-200 p-4">
-            <p className="font-bold text-sm text-slate-700 mb-2">Getting Started</p>
-            <ol className="text-sm text-slate-600 space-y-1 list-decimal list-inside">
+          <div className="border border-black/10 p-4">
+            <p className="font-bold text-sm text-black/80 mb-2">Getting Started</p>
+            <ol className="text-sm text-black/70 space-y-1 list-decimal list-inside">
               <li>Create your first switch</li>
               <li>Add recipients</li>
               <li>Set a check-in interval</li>

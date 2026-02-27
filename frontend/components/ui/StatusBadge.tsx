@@ -76,9 +76,9 @@ export default function StatusBadge({ status, expiresAt, checkInHours }: StatusB
 
       case 'PAUSED':
         return {
-          bg: 'bg-slate-100 border-slate-400',
-          text: 'text-slate-600',
-          icon: <Pause className="h-3 w-3 text-slate-500" strokeWidth={2} />,
+          bg: 'bg-blue-light border-black/30',
+          text: 'text-black/70',
+          icon: <Pause className="h-3 w-3 text-black/70" strokeWidth={2} />,
           label: 'PAUSED'
         }
 
@@ -94,9 +94,9 @@ export default function StatusBadge({ status, expiresAt, checkInHours }: StatusB
       case 'EXPIRED':
       default:
         return {
-          bg: 'bg-slate-100 border-slate-300',
-          text: 'text-slate-500',
-          icon: <Square className="h-3 w-3 text-slate-400" strokeWidth={2} />,
+          bg: 'bg-blue-light border-black/20',
+          text: 'text-black/70',
+          icon: <Square className="h-3 w-3 text-black/50" strokeWidth={2} />,
           label: normalizedStatus
         }
     }
@@ -106,7 +106,7 @@ export default function StatusBadge({ status, expiresAt, checkInHours }: StatusB
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase border ${config.bg} ${config.text}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-bold uppercase border ${config.bg} ${config.text}`}
       style={{ letterSpacing: '0.08em' }}
     >
       {config.icon}

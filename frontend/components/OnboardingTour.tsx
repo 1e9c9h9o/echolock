@@ -98,9 +98,9 @@ const tourSteps: Step[] = [
     content: (
       <div className="p-2">
         <h2 className="text-2xl font-bold font-heading uppercase mb-3">You&apos;re Ready</h2>
-        <div className="bg-slate-100 border border-slate-300 p-3 mt-2">
+        <div className="bg-blue-light border border-black/20 p-3 mt-2">
           <p className="font-mono text-sm font-bold mb-2">Recommendations:</p>
-          <ul className="list-disc list-inside font-mono text-sm space-y-1 text-slate-600">
+          <ul className="list-disc list-inside font-mono text-sm space-y-1 text-black/70">
             <li>Start with a test message to get comfortable</li>
             <li>Set realistic check-in intervals</li>
             <li>Add multiple recipients for redundancy</li>

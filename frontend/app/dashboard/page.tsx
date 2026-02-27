@@ -47,7 +47,7 @@ function getUrgencyBorderColor(sw: Switch): string {
     case 'critical': return 'border-l-red-500'
     case 'warning': return 'border-l-amber-500'
     case 'safe': return 'border-l-emerald-500'
-    case 'inactive': return 'border-l-slate-300'
+    case 'inactive': return 'border-l-black/20'
   }
 }
 
@@ -112,27 +112,27 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="bg-slate-50 min-h-screen -m-6 p-6">
+    <div className="bg-blue min-h-screen -m-6 p-6">
       {/* Header - Muted structural styling */}
       <div className="mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800 uppercase tracking-wide">
+            <h1 className="text-2xl font-bold text-black uppercase tracking-wide">
               Switch Monitor
             </h1>
-            <p className="text-sm font-mono text-slate-500 mt-1">
+            <p className="text-sm font-mono text-black/70 mt-1">
               System status and check-in management
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
             <Link href="/dashboard/demo">
-              <button className="px-4 py-2 bg-slate-200 border border-slate-300 text-slate-600 font-bold text-sm uppercase tracking-wider hover:bg-slate-300 transition-colors flex items-center gap-2">
+              <button className="px-4 py-2 bg-blue border border-black/20 text-black/70 font-bold text-sm uppercase tracking-wider hover:bg-blue-dark transition-colors flex items-center gap-2">
                 <Sparkles className="h-4 w-4" strokeWidth={2} />
                 Demo
               </button>
             </Link>
             <Link href="/dashboard/create-wizard">
-              <button className="px-4 py-2 bg-slate-800 border border-slate-800 text-white font-bold text-sm uppercase tracking-wider hover:bg-slate-700 transition-colors flex items-center gap-2">
+              <button className="px-4 py-2 bg-black border border-black text-white font-bold text-sm uppercase tracking-wider hover:bg-black transition-colors flex items-center gap-2">
                 <Plus className="h-4 w-4" strokeWidth={2} />
                 New Switch
               </button>
@@ -156,18 +156,18 @@ export default function DashboardPage() {
 
       {/* Empty state - welcoming first-time experience */}
       {switches.length === 0 && !error && (
-        <div className="bg-white border border-slate-200 py-16 px-6">
+        <div className="bg-white border border-black/10 py-16 px-6">
           <div className="max-w-lg mx-auto text-center">
             {/* Icon */}
-            <div className="w-16 h-16 mx-auto mb-6 bg-slate-100 flex items-center justify-center">
-              <Shield className="h-8 w-8 text-slate-400" strokeWidth={1.5} />
+            <div className="w-16 h-16 mx-auto mb-6 bg-blue-light flex items-center justify-center">
+              <Shield className="h-8 w-8 text-black/50" strokeWidth={1.5} />
             </div>
 
             {/* Welcome message */}
-            <h2 className="text-xl font-bold text-slate-800 mb-2">
+            <h2 className="text-xl font-bold text-black mb-2">
               Welcome to EchoLock
             </h2>
-            <p className="text-slate-500 mb-8">
+            <p className="text-black/70 mb-8">
               Create your first dead man's switch to protect important information
               and ensure it reaches the right people at the right time.
             </p>
@@ -175,34 +175,34 @@ export default function DashboardPage() {
             {/* Purpose-driven options */}
             <div className="grid gap-3 mb-8 text-left">
               <Link href="/dashboard/create-wizard">
-                <div className="p-4 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group">
+                <div className="p-4 border border-black/10 hover:bg-blue transition-colors cursor-pointer group">
                   <div className="flex items-start gap-3">
-                    <Heart className="h-5 w-5 text-slate-400 mt-0.5 group-hover:text-slate-600" strokeWidth={1.5} />
+                    <Heart className="h-5 w-5 text-black/50 mt-0.5 group-hover:text-black/70" strokeWidth={1.5} />
                     <div>
-                      <h3 className="font-bold text-sm text-slate-700">Protect Your Family</h3>
-                      <p className="text-xs text-slate-500 mt-1">Share passwords, accounts, or final wishes</p>
+                      <h3 className="font-bold text-sm text-black/80">Protect Your Family</h3>
+                      <p className="text-xs text-black/70 mt-1">Share passwords, accounts, or final wishes</p>
                     </div>
                   </div>
                 </div>
               </Link>
               <Link href="/dashboard/create-wizard">
-                <div className="p-4 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group">
+                <div className="p-4 border border-black/10 hover:bg-blue transition-colors cursor-pointer group">
                   <div className="flex items-start gap-3">
-                    <Briefcase className="h-5 w-5 text-slate-400 mt-0.5 group-hover:text-slate-600" strokeWidth={1.5} />
+                    <Briefcase className="h-5 w-5 text-black/50 mt-0.5 group-hover:text-black/70" strokeWidth={1.5} />
                     <div>
-                      <h3 className="font-bold text-sm text-slate-700">Business Continuity</h3>
-                      <p className="text-xs text-slate-500 mt-1">Ensure critical access is never lost</p>
+                      <h3 className="font-bold text-sm text-black/80">Business Continuity</h3>
+                      <p className="text-xs text-black/70 mt-1">Ensure critical access is never lost</p>
                     </div>
                   </div>
                 </div>
               </Link>
               <Link href="/dashboard/demo">
-                <div className="p-4 border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer group">
+                <div className="p-4 border border-black/10 hover:bg-blue transition-colors cursor-pointer group">
                   <div className="flex items-start gap-3">
-                    <Play className="h-5 w-5 text-slate-400 mt-0.5 group-hover:text-slate-600" strokeWidth={1.5} />
+                    <Play className="h-5 w-5 text-black/50 mt-0.5 group-hover:text-black/70" strokeWidth={1.5} />
                     <div>
-                      <h3 className="font-bold text-sm text-slate-700">Just Exploring</h3>
-                      <p className="text-xs text-slate-500 mt-1">Try the demo first to see how it works</p>
+                      <h3 className="font-bold text-sm text-black/80">Just Exploring</h3>
+                      <p className="text-xs text-black/70 mt-1">Try the demo first to see how it works</p>
                     </div>
                   </div>
                 </div>
@@ -212,12 +212,12 @@ export default function DashboardPage() {
             {/* Actions */}
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link href="/dashboard/create-wizard">
-                <button className="w-full sm:w-auto px-6 py-3 bg-slate-800 text-white font-bold text-sm uppercase tracking-wider hover:bg-slate-700 transition-colors">
+                <button className="w-full sm:w-auto px-6 py-3 bg-black text-white font-bold text-sm uppercase tracking-wider hover:bg-black transition-colors">
                   Create Switch
                 </button>
               </Link>
               <Link href="/dashboard/demo">
-                <button className="w-full sm:w-auto px-6 py-3 bg-slate-100 border border-slate-300 text-slate-600 font-bold text-sm uppercase tracking-wider hover:bg-slate-200 transition-colors">
+                <button className="w-full sm:w-auto px-6 py-3 bg-blue-light border border-black/20 text-black/70 font-bold text-sm uppercase tracking-wider hover:bg-blue transition-colors">
                   Try Demo
                 </button>
               </Link>
@@ -258,9 +258,9 @@ function SummaryBar({ switches }: { switches: Switch[] }) {
   })
 
   return (
-    <div className="mb-4 px-4 py-3 bg-white border border-slate-200 font-mono text-sm text-slate-600 flex items-center gap-2">
+    <div className="mb-4 px-4 py-3 bg-white border border-black/10 font-mono text-sm text-black/70 flex items-center gap-2">
       <span>{active.length} active switch{active.length !== 1 ? 'es' : ''}</span>
-      <span className="text-slate-300">·</span>
+      <span className="text-black/30">·</span>
       {needsAttention.length > 0 ? (
         <span className="text-amber-600 font-bold">
           {needsAttention.length} need{needsAttention.length === 1 ? 's' : ''} check-in soon
@@ -289,11 +289,11 @@ function SwitchCard({
   const sparklineData = generateMockSparklineData(sparklinePatterns[patternIndex])
 
   return (
-    <div className={`bg-white border border-slate-200 border-l-4 ${getUrgencyBorderColor(sw)} flex flex-col`}>
+    <div className={`bg-white border border-black/10 border-l-4 ${getUrgencyBorderColor(sw)} flex flex-col`}>
       {/* Header */}
-      <div className="p-4 border-b border-slate-100">
+      <div className="p-4 border-b border-black/10">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="text-base font-bold text-slate-800 flex-1 break-words">
+          <h3 className="text-base font-bold text-black flex-1 break-words">
             {sw.title}
           </h3>
           <StatusBadge
@@ -307,7 +307,7 @@ function SwitchCard({
       {/* Main content area */}
       <div className="p-4 flex-1 space-y-4">
         {/* Metadata - muted styling */}
-        <div className="flex items-center gap-4 text-xs font-mono text-slate-500">
+        <div className="flex items-center gap-4 text-xs font-mono text-black/70">
           <span className="flex items-center gap-1">
             <Clock className="h-3 w-3" strokeWidth={2} />
             {sw.checkInHours}h interval
@@ -331,8 +331,8 @@ function SwitchCard({
 
         {/* Sparkline - Behavior trend */}
         {sw.status === 'ARMED' && (
-          <div className="pt-2 border-t border-slate-100">
-            <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-2">
+          <div className="pt-2 border-t border-black/10">
+            <div className="text-[11px] font-mono text-black/50 uppercase tracking-wider mb-2">
               Check-in Trend (last 5 cycles)
             </div>
             <Sparkline data={sparklineData} height={28} showTrend={true} />
@@ -340,13 +340,13 @@ function SwitchCard({
         )}
 
         {/* Created date - subtle */}
-        <p className="font-mono text-[10px] text-slate-400">
+        <p className="font-mono text-[11px] text-black/50">
           Created {formatDistanceToNow(new Date(sw.createdAt), { addSuffix: true })}
         </p>
       </div>
 
       {/* Actions */}
-      <div className="p-4 border-t border-slate-100 space-y-2">
+      <div className="p-4 border-t border-black/10 space-y-2">
         {sw.status === 'ARMED' && (
           <CheckInButton
             targetDate={sw.expiresAt}
@@ -356,7 +356,7 @@ function SwitchCard({
           />
         )}
         <Link href={`/dashboard/switches/${sw.id}`} className="block">
-          <button className="w-full px-4 py-2 bg-slate-50 border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-wider hover:bg-slate-100 transition-colors">
+          <button className="w-full px-4 py-2 bg-blue border border-black/10 text-black/70 font-bold text-xs uppercase tracking-wider hover:bg-blue-light transition-colors">
             View Details
           </button>
         </Link>

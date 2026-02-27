@@ -210,9 +210,9 @@ export default function OnboardingChecklist({ className = '' }: OnboardingCheckl
       </div>
 
       {/* Progress Bar */}
-      <div className="bg-slate-200 h-1">
+      <div className="bg-blue h-1">
         <div
-          className="bg-slate-600 h-full"
+          className="bg-black/70 h-full"
           style={{ width: `${progressPercentage}%` }}
           role="progressbar"
           aria-valuenow={progressPercentage}
@@ -229,8 +229,8 @@ export default function OnboardingChecklist({ className = '' }: OnboardingCheckl
           ))}
 
           {isComplete && (
-            <div className="bg-slate-50 border border-slate-200 p-4 mt-4">
-              <p className="text-sm text-slate-600">
+            <div className="bg-blue border border-black/10 p-4 mt-4">
+              <p className="text-sm text-black/70">
                 Setup complete. Remember to check in before your timer expires.
               </p>
             </div>
@@ -251,27 +251,27 @@ function ChecklistItemRow({ item, onMarkComplete }: ChecklistItemRowProps) {
     <div
       className={`flex items-start gap-3 p-3 transition-colors ${
         item.completed
-          ? 'bg-slate-50'
-          : 'bg-white border border-slate-200'
+          ? 'bg-blue'
+          : 'bg-white border border-black/10'
       }`}
     >
       <div className="flex-shrink-0 mt-0.5">
         {item.completed ? (
-          <CheckCircle2 className="w-5 h-5 text-slate-400" aria-label="Completed" />
+          <CheckCircle2 className="w-5 h-5 text-black/50" aria-label="Completed" />
         ) : (
-          <Circle className="w-5 h-5 text-slate-300" aria-label="Not completed" />
+          <Circle className="w-5 h-5 text-black/30" aria-label="Not completed" />
         )}
       </div>
       <div className="flex-1 min-w-0">
         <h4
           className={`font-medium text-sm ${
-            item.completed ? 'text-slate-400' : 'text-slate-700'
+            item.completed ? 'text-black/50' : 'text-black/80'
           }`}
         >
           {item.title}
         </h4>
         {!item.completed && (
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-black/70 mt-0.5">
             {item.description}
           </p>
         )}

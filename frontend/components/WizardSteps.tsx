@@ -643,7 +643,7 @@ export function Step4Confirmation({
         <div className="max-w-2xl mx-auto space-y-8">
           <div className="flex justify-center items-center gap-4">
             <div
-              className={`w-24 h-24 border-4 border-black flex items-center justify-center transition-all ${
+              className={`w-24 h-24 border-2 border-black flex items-center justify-center transition-all ${
                 animationStep >= 0 ? 'bg-blue text-cream' : 'bg-cream'
               }`}
             >
@@ -651,7 +651,7 @@ export function Step4Confirmation({
             </div>
             <div className="w-12 h-1 bg-black"></div>
             <div
-              className={`w-24 h-24 border-4 border-black flex items-center justify-center transition-all ${
+              className={`w-24 h-24 border-2 border-black flex items-center justify-center transition-all ${
                 animationStep >= 1 ? 'bg-blue text-cream' : 'bg-cream'
               }`}
             >
@@ -659,7 +659,7 @@ export function Step4Confirmation({
             </div>
             <div className="w-12 h-1 bg-black"></div>
             <div
-              className={`w-24 h-24 border-4 border-black flex items-center justify-center transition-all ${
+              className={`w-24 h-24 border-2 border-black flex items-center justify-center transition-all ${
                 animationStep >= 2 ? 'bg-blue text-cream' : 'bg-cream'
               }`}
             >

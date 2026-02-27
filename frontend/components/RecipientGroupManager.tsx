@@ -171,7 +171,7 @@ export default function RecipientGroupManager({
     return (
       <Card>
         <div className="flex items-center justify-center py-8">
-          <div className="animate-pulse text-slate-500">Loading groups...</div>
+          <div className="animate-pulse text-black/70">Loading groups...</div>
         </div>
       </Card>
     );
@@ -232,7 +232,7 @@ export default function RecipientGroupManager({
       {/* Groups List */}
       {groups.length === 0 ? (
         <Card>
-          <div className="text-center py-8 text-slate-500">
+          <div className="text-center py-8 text-black/70">
             <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
             <p>No recipient groups yet</p>
             <p className="text-sm mt-1">Create groups to organize recipients for cascade messages</p>
@@ -253,7 +253,7 @@ export default function RecipientGroupManager({
                 className={`transition-all ${
                   selectedGroup?.id === group.id
                     ? 'ring-2 ring-orange-500 bg-orange-50'
-                    : 'hover:bg-slate-50'
+                    : 'hover:bg-blue'
                 }`}
               >
                 {editingGroup === group.id ? (
@@ -284,18 +284,18 @@ export default function RecipientGroupManager({
                     <div>
                       <h4 className="font-bold">{group.name}</h4>
                       {group.description && (
-                        <p className="text-sm text-slate-500">{group.description}</p>
+                        <p className="text-sm text-black/70">{group.description}</p>
                       )}
-                      <p className="text-xs text-slate-400 mt-1">
+                      <p className="text-xs text-black/50 mt-1">
                         {group.recipientCount} recipient{group.recipientCount !== 1 ? 's' : ''}
                       </p>
                     </div>
                     <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => startEditing(group)}
-                        className="p-2 hover:bg-slate-100 rounded"
+                        className="p-2 hover:bg-blue-light rounded"
                       >
-                        <Edit2 className="w-4 h-4 text-slate-500" />
+                        <Edit2 className="w-4 h-4 text-black/70" />
                       </button>
                       <button
                         onClick={() => deleteGroup(group.id)}
@@ -320,9 +320,9 @@ export default function RecipientGroupManager({
             Recipients in "{selectedGroup.name}"
           </h4>
           {loadingRecipients ? (
-            <div className="text-slate-500 py-4">Loading recipients...</div>
+            <div className="text-black/70 py-4">Loading recipients...</div>
           ) : groupRecipients.length === 0 ? (
-            <div className="text-slate-500 py-4 text-center">
+            <div className="text-black/70 py-4 text-center">
               <p>No recipients in this group</p>
               <p className="text-sm mt-1">Add recipients during switch creation</p>
             </div>
@@ -331,15 +331,15 @@ export default function RecipientGroupManager({
               {groupRecipients.map((recipient) => (
                 <div
                   key={recipient.id}
-                  className="flex items-center justify-between p-3 bg-slate-50 rounded border"
+                  className="flex items-center justify-between p-3 bg-blue rounded border"
                 >
                   <div>
                     <p className="font-medium">
                       {recipient.name || recipient.email.split('@')[0]}
                     </p>
-                    <p className="text-sm text-slate-500 font-mono">{recipient.email}</p>
+                    <p className="text-sm text-black/70 font-mono">{recipient.email}</p>
                     {recipient.switch_title && (
-                      <p className="text-xs text-slate-400 mt-1">
+                      <p className="text-xs text-black/50 mt-1">
                         From: {recipient.switch_title}
                       </p>
                     )}

@@ -117,9 +117,9 @@ export default function HealthCheckDashboard({
       case 'fail':
         return <XCircle className="w-5 h-5 text-red-500" />;
       case 'pending':
-        return <Clock className="w-5 h-5 text-slate-400" />;
+        return <Clock className="w-5 h-5 text-black/50" />;
       default:
-        return <CheckCircle2 className="w-5 h-5 text-slate-400" />;
+        return <CheckCircle2 className="w-5 h-5 text-black/50" />;
     }
   };
 
@@ -145,7 +145,7 @@ export default function HealthCheckDashboard({
       case 'critical':
         return 'bg-red-100 border-red-300 text-red-700';
       default:
-        return 'bg-slate-100 border-slate-300 text-slate-700';
+        return 'bg-blue-light border-black/20 text-black/80';
     }
   };
 
@@ -153,8 +153,8 @@ export default function HealthCheckDashboard({
     return (
       <Card>
         <div className="flex items-center justify-center py-8">
-          <RefreshCw className="w-6 h-6 animate-spin text-slate-400" />
-          <span className="ml-2 text-slate-500">Running health checks...</span>
+          <RefreshCw className="w-6 h-6 animate-spin text-black/50" />
+          <span className="ml-2 text-black/70">Running health checks...</span>
         </div>
       </Card>
     );
@@ -163,7 +163,7 @@ export default function HealthCheckDashboard({
   if (!healthData) {
     return (
       <Card>
-        <div className="text-center py-8 text-slate-500">
+        <div className="text-center py-8 text-black/70">
           <XCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>Failed to load health data</p>
           <Button variant="secondary" onClick={fetchHealthData} className="mt-4">
@@ -213,7 +213,7 @@ export default function HealthCheckDashboard({
         {Object.entries(healthData.checks).map(([key, check]) => (
           <Card key={key} className="p-4">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-slate-100 rounded">
+              <div className="p-2 bg-blue-light rounded">
                 {getCheckIcon(key)}
               </div>
               <div className="flex-1 min-w-0">
@@ -223,7 +223,7 @@ export default function HealthCheckDashboard({
                   </h4>
                   {getStatusIcon(check.status)}
                 </div>
-                <p className="text-sm text-slate-500 mt-1">{check.message}</p>
+                <p className="text-sm text-black/70 mt-1">{check.message}</p>
               </div>
             </div>
           </Card>
@@ -238,7 +238,7 @@ export default function HealthCheckDashboard({
               <Download className="w-4 h-4" />
               Proof Document
             </h4>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-black/70 mt-1">
               {healthData.proofDocument.available
                 ? `Generated ${new Date(healthData.proofDocument.generatedAt!).toLocaleDateString()}`
                 : 'Generate a proof document for legal purposes'}
@@ -271,7 +271,7 @@ export default function HealthCheckDashboard({
 
       {/* Auto-refresh indicator */}
       {autoRefresh && lastRefresh && (
-        <p className="text-xs text-slate-400 text-center">
+        <p className="text-xs text-black/50 text-center">
           Auto-refreshing every {refreshInterval / 1000}s
         </p>
       )}

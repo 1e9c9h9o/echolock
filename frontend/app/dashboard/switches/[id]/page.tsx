@@ -156,9 +156,9 @@ export default function SwitchDetailPage() {
 
   if (loading) {
     return (
-      <div className="bg-slate-50 min-h-screen -m-6 p-6">
+      <div className="bg-blue min-h-screen -m-6 p-6">
         <div className="flex items-center justify-center h-64">
-          <div className="text-slate-400 font-mono text-sm">Loading...</div>
+          <div className="text-black/50 font-mono text-sm">Loading...</div>
         </div>
       </div>
     )
@@ -166,18 +166,18 @@ export default function SwitchDetailPage() {
 
   if (error || !switchData) {
     return (
-      <div className="bg-slate-50 min-h-screen -m-6 p-6">
+      <div className="bg-blue min-h-screen -m-6 p-6">
         <Link
           href="/dashboard"
-          className="inline-flex items-center text-slate-500 hover:text-slate-700 text-sm font-medium mb-6"
+          className="inline-flex items-center text-black/70 hover:text-black/80 text-sm font-medium mb-6"
         >
           <ArrowLeft className="h-4 w-4 mr-2" strokeWidth={2} />
           Back to Dashboard
         </Link>
-        <div className="bg-white border border-slate-200 p-12 text-center">
-          <AlertCircle className="h-12 w-12 text-slate-300 mx-auto mb-4" strokeWidth={1.5} />
-          <h3 className="text-lg font-bold text-slate-700 mb-2">Error Loading Switch</h3>
-          <p className="text-slate-500 font-mono text-sm">{error || 'Switch not found'}</p>
+        <div className="bg-white border border-black/10 p-12 text-center">
+          <AlertCircle className="h-12 w-12 text-black/30 mx-auto mb-4" strokeWidth={1.5} />
+          <h3 className="text-lg font-bold text-black/80 mb-2">Error Loading Switch</h3>
+          <p className="text-black/70 font-mono text-sm">{error || 'Switch not found'}</p>
         </div>
       </div>
     )
@@ -187,12 +187,12 @@ export default function SwitchDetailPage() {
   const sparklineData = generateMockSparklineData('stable')
 
   return (
-    <div className="bg-slate-50 min-h-screen -m-6 p-6">
+    <div className="bg-blue min-h-screen -m-6 p-6">
       {/* Header */}
       <div className="max-w-4xl mx-auto mb-6">
         <Link
           href="/dashboard"
-          className="inline-flex items-center text-slate-500 hover:text-slate-700 text-sm font-medium mb-6 transition-colors"
+          className="inline-flex items-center text-black/70 hover:text-black/80 text-sm font-medium mb-6 transition-colors"
         >
           <ArrowLeft className="h-4 w-4 mr-2" strokeWidth={2} />
           Back to Dashboard
@@ -200,19 +200,19 @@ export default function SwitchDetailPage() {
 
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-slate-800 flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 bg-black flex items-center justify-center flex-shrink-0">
               <Shield className="h-6 w-6 text-white" strokeWidth={2} />
             </div>
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-2xl font-bold text-slate-800">{switchData.title}</h1>
+                <h1 className="text-2xl font-bold text-black">{switchData.title}</h1>
                 <StatusBadge
                   status={switchData.status}
                   expiresAt={switchData.expiresAt}
                   checkInHours={switchData.checkInHours}
                 />
               </div>
-              <p className="text-slate-500 text-sm font-mono">
+              <p className="text-black/70 text-sm font-mono">
                 Created {format(new Date(switchData.createdAt), 'PPP')}
               </p>
             </div>
@@ -233,10 +233,10 @@ export default function SwitchDetailPage() {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Timer Status - Primary Focus */}
         {(switchData.status === 'ARMED' || switchData.status === 'active') && (
-          <div className="bg-white border border-slate-200">
-            <div className="p-4 border-b border-slate-100">
-              <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                <Clock className="h-4 w-4 text-slate-400" strokeWidth={2} />
+          <div className="bg-white border border-black/10">
+            <div className="p-4 border-b border-black/10">
+              <h2 className="text-sm font-bold text-black/80 uppercase tracking-wider flex items-center gap-2">
+                <Clock className="h-4 w-4 text-black/50" strokeWidth={2} />
                 Timer Status
               </h2>
             </div>
@@ -247,8 +247,8 @@ export default function SwitchDetailPage() {
                 showDigital={true}
               />
 
-              <div className="mt-6 pt-4 border-t border-slate-100">
-                <div className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-2">
+              <div className="mt-6 pt-4 border-t border-black/10">
+                <div className="text-[11px] font-mono text-black/50 uppercase tracking-wider mb-2">
                   Check-in Behavior (last 5 cycles)
                 </div>
                 <Sparkline data={sparklineData} height={32} showTrend={true} />
@@ -256,12 +256,12 @@ export default function SwitchDetailPage() {
 
               <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-slate-500">Interval:</span>
-                  <span className="ml-2 font-mono text-slate-700">{switchData.checkInHours} hours</span>
+                  <span className="text-black/70">Interval:</span>
+                  <span className="ml-2 font-mono text-black/80">{switchData.checkInHours} hours</span>
                 </div>
                 <div>
-                  <span className="text-slate-500">Last check-in:</span>
-                  <span className="ml-2 font-mono text-slate-700">
+                  <span className="text-black/70">Last check-in:</span>
+                  <span className="ml-2 font-mono text-black/80">
                     {switchData.lastCheckInAt
                       ? formatDistanceToNow(new Date(switchData.lastCheckInAt), { addSuffix: true })
                       : 'Never'}
@@ -273,10 +273,10 @@ export default function SwitchDetailPage() {
         )}
 
         {/* Recipients */}
-        <div className="bg-white border border-slate-200">
-          <div className="p-4 border-b border-slate-100">
-            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-              <Users className="h-4 w-4 text-slate-400" strokeWidth={2} />
+        <div className="bg-white border border-black/10">
+          <div className="p-4 border-b border-black/10">
+            <h2 className="text-sm font-bold text-black/80 uppercase tracking-wider flex items-center gap-2">
+              <Users className="h-4 w-4 text-black/50" strokeWidth={2} />
               Recipients ({switchData.recipients.length})
             </h2>
           </div>
@@ -285,11 +285,11 @@ export default function SwitchDetailPage() {
               {switchData.recipients.map((recipient) => (
                 <div
                   key={recipient.id}
-                  className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100"
+                  className="flex items-center justify-between p-3 bg-blue border border-black/10"
                 >
                   <div>
-                    <p className="font-medium text-slate-700 text-sm">{recipient.name}</p>
-                    <p className="text-xs text-slate-500 font-mono">{recipient.email}</p>
+                    <p className="font-medium text-black/80 text-sm">{recipient.name}</p>
+                    <p className="text-xs text-black/70 font-mono">{recipient.email}</p>
                   </div>
                   <Circle className="h-3 w-3 text-emerald-500 fill-emerald-500" strokeWidth={2} />
                 </div>
@@ -301,57 +301,57 @@ export default function SwitchDetailPage() {
         {/* System Status Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Guardian Network */}
-          <div className="bg-white border border-slate-200">
-            <div className="p-4 border-b border-slate-100">
-              <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                <Shield className="h-4 w-4 text-slate-400" strokeWidth={2} />
+          <div className="bg-white border border-black/10">
+            <div className="p-4 border-b border-black/10">
+              <h2 className="text-sm font-bold text-black/80 uppercase tracking-wider flex items-center gap-2">
+                <Shield className="h-4 w-4 text-black/50" strokeWidth={2} />
                 Guardian Network
               </h2>
             </div>
             <div className="p-4">
               <div className="grid grid-cols-3 gap-3 mb-4">
-                <div className="p-3 bg-slate-50 border border-slate-100 text-center">
-                  <div className="text-xl font-bold text-slate-700">5</div>
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider">Guardians</div>
+                <div className="p-3 bg-blue border border-black/10 text-center">
+                  <div className="text-xl font-bold text-black/80">5</div>
+                  <div className="text-[11px] text-black/70 uppercase tracking-wider">Guardians</div>
                 </div>
-                <div className="p-3 bg-slate-50 border border-slate-100 text-center">
-                  <div className="text-xl font-bold text-slate-700">3</div>
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider">Threshold</div>
+                <div className="p-3 bg-blue border border-black/10 text-center">
+                  <div className="text-xl font-bold text-black/80">3</div>
+                  <div className="text-[11px] text-black/70 uppercase tracking-wider">Threshold</div>
                 </div>
                 <div className="p-3 bg-emerald-50 border border-emerald-200 text-center">
                   <div className="text-xl font-bold text-emerald-600">5</div>
-                  <div className="text-[10px] text-emerald-600 uppercase tracking-wider">Online</div>
+                  <div className="text-[11px] text-emerald-600 uppercase tracking-wider">Online</div>
                 </div>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-black/70">
                 Secret split via Shamir's Secret Sharing. Any 3 guardians can trigger release.
               </p>
             </div>
           </div>
 
           {/* Nostr Heartbeats */}
-          <div className="bg-white border border-slate-200">
-            <div className="p-4 border-b border-slate-100">
-              <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-                <LinkIcon className="h-4 w-4 text-slate-400" strokeWidth={2} />
+          <div className="bg-white border border-black/10">
+            <div className="p-4 border-b border-black/10">
+              <h2 className="text-sm font-bold text-black/80 uppercase tracking-wider flex items-center gap-2">
+                <LinkIcon className="h-4 w-4 text-black/50" strokeWidth={2} />
                 Nostr Heartbeats
               </h2>
             </div>
             <div className="p-4 space-y-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-500">Relays:</span>
-                <span className="font-mono text-slate-700">10 connected</span>
+                <span className="text-black/70">Relays:</span>
+                <span className="font-mono text-black/80">10 connected</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-500">Last heartbeat:</span>
-                <span className="font-mono text-slate-700">
+                <span className="text-black/70">Last heartbeat:</span>
+                <span className="font-mono text-black/80">
                   {switchData.lastCheckInAt
                     ? formatDistanceToNow(new Date(switchData.lastCheckInAt), { addSuffix: true })
                     : 'Never'}
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-500">Signature:</span>
+                <span className="text-black/70">Signature:</span>
                 <span className="font-mono text-emerald-600 text-xs">BIP-340 Schnorr</span>
               </div>
             </div>
@@ -375,33 +375,33 @@ export default function SwitchDetailPage() {
         />
 
         {/* Activity History */}
-        <div className="bg-white border border-slate-200">
-          <div className="p-4 border-b border-slate-100">
-            <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
-              <Activity className="h-4 w-4 text-slate-400" strokeWidth={2} />
+        <div className="bg-white border border-black/10">
+          <div className="p-4 border-b border-black/10">
+            <h2 className="text-sm font-bold text-black/80 uppercase tracking-wider flex items-center gap-2">
+              <Activity className="h-4 w-4 text-black/50" strokeWidth={2} />
               Activity History
             </h2>
           </div>
           <div className="p-4">
             {checkIns.length === 0 ? (
-              <p className="text-slate-400 text-sm font-mono">No check-ins recorded yet</p>
+              <p className="text-black/50 text-sm font-mono">No check-ins recorded yet</p>
             ) : (
               <div className="space-y-2">
                 {checkIns.slice(0, 5).map((checkIn) => (
                   <div
                     key={checkIn.id}
-                    className="flex items-center justify-between p-3 bg-slate-50 border border-slate-100"
+                    className="flex items-center justify-between p-3 bg-blue border border-black/10"
                   >
                     <div className="flex items-center gap-3">
                       <Circle className="h-2 w-2 text-emerald-500 fill-emerald-500" strokeWidth={2} />
                       <div>
-                        <p className="text-sm font-medium text-slate-700">Check-in</p>
-                        <p className="text-xs text-slate-500 font-mono">
+                        <p className="text-sm font-medium text-black/80">Check-in</p>
+                        <p className="text-xs text-black/70 font-mono">
                           {format(new Date(checkIn.timestamp), 'PPpp')}
                         </p>
                       </div>
                     </div>
-                    <span className="text-xs text-slate-400 font-mono">
+                    <span className="text-xs text-black/50 font-mono">
                       {formatDistanceToNow(new Date(checkIn.timestamp), { addSuffix: true })}
                     </span>
                   </div>
@@ -412,10 +412,10 @@ export default function SwitchDetailPage() {
         </div>
 
         {/* Danger Zone (hidden by default) */}
-        <div className="pt-4 border-t border-slate-200">
+        <div className="pt-4 border-t border-black/10">
           <button
             onClick={() => setShowDangerZone(!showDangerZone)}
-            className="text-xs text-slate-400 hover:text-red-500 font-mono transition-colors"
+            className="text-xs text-black/50 hover:text-red-500 font-mono transition-colors"
           >
             {showDangerZone ? 'Hide' : 'Show'} danger zone
           </button>
@@ -430,14 +430,14 @@ export default function SwitchDetailPage() {
               </div>
               <div className="p-4 space-y-4">
                 {(switchData.status === 'ARMED' || switchData.status === 'active') && (
-                  <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+                  <div className="flex items-center justify-between pb-4 border-b border-black/10">
                     <div>
-                      <h3 className="text-sm font-medium text-slate-700">Cancel Switch</h3>
-                      <p className="text-xs text-slate-500">Stop the timer and prevent delivery</p>
+                      <h3 className="text-sm font-medium text-black/80">Cancel Switch</h3>
+                      <p className="text-xs text-black/70">Stop the timer and prevent delivery</p>
                     </div>
                     <button
                       onClick={handleCancel}
-                      className="px-4 py-2 bg-slate-100 border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-wider hover:bg-slate-200 transition-colors"
+                      className="px-4 py-2 bg-blue-light border border-black/10 text-black/70 font-bold text-xs uppercase tracking-wider hover:bg-blue transition-colors"
                     >
                       Cancel
                     </button>
@@ -446,8 +446,8 @@ export default function SwitchDetailPage() {
 
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
-                    <h3 className="text-sm font-medium text-slate-700">Delete Switch</h3>
-                    <p className="text-xs text-slate-500">Permanently delete all data</p>
+                    <h3 className="text-sm font-medium text-black/80">Delete Switch</h3>
+                    <p className="text-xs text-black/70">Permanently delete all data</p>
                   </div>
                   <button
                     onClick={handleDelete}

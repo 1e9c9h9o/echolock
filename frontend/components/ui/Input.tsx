@@ -22,7 +22,7 @@ export default function Input({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-[10px] font-bold uppercase tracking-widest mb-2 text-black">
+        <label className="block text-[11px] font-bold uppercase tracking-widest mb-2 text-black">
           {label}
         </label>
       )}

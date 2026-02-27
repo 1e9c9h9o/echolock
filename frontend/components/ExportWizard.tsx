@@ -119,13 +119,13 @@ export default function ExportWizard({ onClose }: ExportWizardProps) {
           </div>
 
           <Card>
-            <p className="text-sm text-slate-500 mb-4">
+            <p className="text-sm text-black/70 mb-4">
               Select what to include in your backup. All data will be encrypted
               with a password you choose.
             </p>
 
             <div className="space-y-3">
-              <label className="flex items-center gap-3 p-3 bg-slate-50 rounded cursor-pointer hover:bg-slate-100">
+              <label className="flex items-center gap-3 p-3 bg-blue rounded cursor-pointer hover:bg-blue-light">
                 <input
                   type="checkbox"
                   checked={options.includeSwitches}
@@ -134,16 +134,16 @@ export default function ExportWizard({ onClose }: ExportWizardProps) {
                   }
                   className="w-5 h-5"
                 />
-                <FileText className="w-5 h-5 text-slate-600" />
+                <FileText className="w-5 h-5 text-black/70" />
                 <div>
                   <p className="font-bold">Switches</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-black/70">
                     Switch configurations and recipients (not encrypted messages)
                   </p>
                 </div>
               </label>
 
-              <label className="flex items-center gap-3 p-3 bg-slate-50 rounded cursor-pointer hover:bg-slate-100">
+              <label className="flex items-center gap-3 p-3 bg-blue rounded cursor-pointer hover:bg-blue-light">
                 <input
                   type="checkbox"
                   checked={options.includeGroups}
@@ -152,16 +152,16 @@ export default function ExportWizard({ onClose }: ExportWizardProps) {
                   }
                   className="w-5 h-5"
                 />
-                <Users className="w-5 h-5 text-slate-600" />
+                <Users className="w-5 h-5 text-black/70" />
                 <div>
                   <p className="font-bold">Recipient Groups</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-black/70">
                     Groups for organizing recipients
                   </p>
                 </div>
               </label>
 
-              <label className="flex items-center gap-3 p-3 bg-slate-50 rounded cursor-pointer hover:bg-slate-100">
+              <label className="flex items-center gap-3 p-3 bg-blue rounded cursor-pointer hover:bg-blue-light">
                 <input
                   type="checkbox"
                   checked={options.includeContacts}
@@ -170,10 +170,10 @@ export default function ExportWizard({ onClose }: ExportWizardProps) {
                   }
                   className="w-5 h-5"
                 />
-                <Bell className="w-5 h-5 text-slate-600" />
+                <Bell className="w-5 h-5 text-black/70" />
                 <div>
                   <p className="font-bold">Emergency Contacts</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-black/70">
                     Pre-trigger notification contacts
                   </p>
                 </div>
@@ -212,7 +212,7 @@ export default function ExportWizard({ onClose }: ExportWizardProps) {
           </div>
 
           <Card>
-            <p className="text-sm text-slate-500 mb-4">
+            <p className="text-sm text-black/70 mb-4">
               Your backup will be encrypted with AES-256-GCM. Choose a strong
               password and store it safely - you'll need it to restore.
             </p>
@@ -297,21 +297,21 @@ export default function ExportWizard({ onClose }: ExportWizardProps) {
               <h4 className="font-bold mb-2">Backup Contents</h4>
               <ul className="text-sm space-y-1">
                 <li className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-slate-400" />
+                  <FileText className="w-4 h-4 text-black/50" />
                   {exportResult.summary.switches} switches
                 </li>
                 <li className="flex items-center gap-2">
-                  <Users className="w-4 h-4 text-slate-400" />
+                  <Users className="w-4 h-4 text-black/50" />
                   {exportResult.summary.recipientGroups} recipient groups
                 </li>
                 <li className="flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-slate-400" />
+                  <Bell className="w-4 h-4 text-black/50" />
                   {exportResult.summary.emergencyContacts} emergency contacts
                 </li>
               </ul>
 
               <div className="mt-3 pt-3 border-t">
-                <p className="text-xs text-slate-500 font-mono break-all">
+                <p className="text-xs text-black/70 font-mono break-all">
                   Checksum: {exportResult.checksum.substring(0, 32)}...
                 </p>
               </div>

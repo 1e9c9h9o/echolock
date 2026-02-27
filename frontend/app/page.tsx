@@ -144,7 +144,7 @@ export default function HomePage() {
             </div>
 
             <div className="bg-white border-2 border-black p-6">
-              <div className="text-[10px] uppercase tracking-wider text-black/40 mb-4">Trust Model</div>
+              <div className="text-[11px] uppercase tracking-wider text-black/40 mb-4">Trust Model</div>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between py-2 border-b border-black/10">
                   <span className="text-black/70">EchoLock servers</span>
@@ -172,7 +172,7 @@ export default function HomePage() {
       <section className="bg-black text-white py-12">
         <div className="container">
           <div className="max-w-2xl">
-            <div className="text-[10px] uppercase tracking-wider text-white/40 mb-2">Optional</div>
+            <div className="text-[11px] uppercase tracking-wider text-white/40 mb-2">Optional</div>
             <h3 className="font-bold mb-3">Bitcoin Timelock</h3>
             <p className="text-sm text-white/60">
               For additional verification, you can anchor your timer to the Bitcoin blockchain.

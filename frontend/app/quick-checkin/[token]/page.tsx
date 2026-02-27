@@ -107,8 +107,8 @@ export default function QuickCheckInPage() {
       {/* Content */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
-          <div className="bg-white border-4 border-black">
-            <div className="bg-black text-white py-3 px-5 text-[10px] uppercase tracking-widest">
+          <div className="bg-white border-2 border-black">
+            <div className="bg-black text-white py-3 px-5 text-[11px] uppercase tracking-widest">
               <span>Quick Check-In</span>
             </div>
 
@@ -158,12 +158,12 @@ export default function QuickCheckInPage() {
               {/* Success State */}
               {status === 'success' && (
                 <div className="text-center">
-                  <div className="bg-slate-50 border border-slate-200 p-6 mb-6">
-                    <CheckCircle className="w-12 h-12 mx-auto mb-4 text-slate-500" />
+                  <div className="bg-blue border border-black/10 p-6 mb-6">
+                    <CheckCircle className="w-12 h-12 mx-auto mb-4 text-black/70" />
                     <h2 className="text-xl font-bold mb-2">
                       Check-In Complete
                     </h2>
-                    <p className="text-sm text-slate-600">
+                    <p className="text-sm text-black/70">
                       Your switch timer has been reset.
                     </p>
                   </div>

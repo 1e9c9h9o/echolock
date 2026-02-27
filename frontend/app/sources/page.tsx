@@ -59,7 +59,7 @@ export default function SourcesPage() {
           <div className="flex items-center gap-4 mb-6">
             <div className="w-12 h-12 bg-orange" />
             <div>
-              <div className="text-[10px] uppercase tracking-[0.2em] opacity-50 mb-1">Attribution & References</div>
+              <div className="text-[11px] uppercase tracking-[0.2em] opacity-50 mb-1">Attribution & References</div>
               <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-black">Sources</h1>
             </div>
           </div>
@@ -74,15 +74,15 @@ export default function SourcesPage() {
       <section className="bg-black text-white">
         <div className="container py-6">
           <div className="flex flex-wrap gap-4">
-            <a href="#cryptography" className="text-[10px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Cryptography</a>
+            <a href="#cryptography" className="text-[11px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Cryptography</a>
             <span className="opacity-30">|</span>
-            <a href="#libraries" className="text-[10px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Libraries</a>
+            <a href="#libraries" className="text-[11px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Libraries</a>
             <span className="opacity-30">|</span>
-            <a href="#protocols" className="text-[10px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Protocols</a>
+            <a href="#protocols" className="text-[11px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Protocols</a>
             <span className="opacity-30">|</span>
-            <a href="#research" className="text-[10px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Research</a>
+            <a href="#research" className="text-[11px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Research</a>
             <span className="opacity-30">|</span>
-            <a href="#license" className="text-[10px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">License</a>
+            <a href="#license" className="text-[11px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">License</a>
           </div>
         </div>
       </section>
@@ -95,7 +95,7 @@ export default function SourcesPage() {
               <div className="w-10 h-10 bg-orange flex items-center justify-center text-black font-bold">01</div>
               <h2 className="text-[11px] uppercase tracking-[0.2em]">Cryptographic Foundations</h2>
             </div>
-            <div className="text-[10px] opacity-50 tracking-wider">ECHOLOCK-SRC-001</div>
+            <div className="text-[11px] opacity-50 tracking-wider">ECHOLOCK-SRC-001</div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-1 mb-8">
@@ -136,7 +136,7 @@ export default function SourcesPage() {
             <div className="diagram-body">
               <div className="space-y-4">
                 <div className="flex items-start gap-4 pb-4 border-b border-blue">
-                  <div className="w-16 text-[10px] opacity-50 flex-shrink-0">NIST</div>
+                  <div className="w-16 text-[11px] opacity-50 flex-shrink-0">NIST</div>
                   <div className="flex-1">
                     <div className="font-bold text-sm mb-1">FIPS 197: Advanced Encryption Standard (AES)</div>
                     <div className="text-xs opacity-70">
@@ -147,7 +147,7 @@ export default function SourcesPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-4 pb-4 border-b border-blue">
-                  <div className="w-16 text-[10px] opacity-50 flex-shrink-0">NIST</div>
+                  <div className="w-16 text-[11px] opacity-50 flex-shrink-0">NIST</div>
                   <div className="flex-1">
                     <div className="font-bold text-sm mb-1">SP 800-38D: GCM Mode</div>
                     <div className="text-xs opacity-70">
@@ -158,7 +158,7 @@ export default function SourcesPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-4 pb-4 border-b border-blue">
-                  <div className="w-16 text-[10px] opacity-50 flex-shrink-0">ACM</div>
+                  <div className="w-16 text-[11px] opacity-50 flex-shrink-0">ACM</div>
                   <div className="flex-1">
                     <div className="font-bold text-sm mb-1">How to Share a Secret — Adi Shamir (1979)</div>
                     <div className="text-xs opacity-70">
@@ -169,7 +169,7 @@ export default function SourcesPage() {
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
-                  <div className="w-16 text-[10px] opacity-50 flex-shrink-0">IETF</div>
+                  <div className="w-16 text-[11px] opacity-50 flex-shrink-0">IETF</div>
                   <div className="flex-1">
                     <div className="font-bold text-sm mb-1">RFC 8018: PKCS #5 (PBKDF2)</div>
                     <div className="text-xs opacity-70">
@@ -193,7 +193,7 @@ export default function SourcesPage() {
               <div className="w-10 h-10 bg-orange flex items-center justify-center text-black font-bold">02</div>
               <h2 className="text-[11px] uppercase tracking-[0.2em]">Open Source Libraries</h2>
             </div>
-            <div className="text-[10px] opacity-50 tracking-wider">ECHOLOCK-SRC-002</div>
+            <div className="text-[11px] opacity-50 tracking-wider">ECHOLOCK-SRC-002</div>
           </div>
 
           {/* Core Dependencies */}
@@ -343,42 +343,42 @@ export default function SourcesPage() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-blue p-4">
                 <div className="font-bold text-sm mb-1">Next.js</div>
-                <div className="text-[10px] opacity-50 mb-2">v14.2.0</div>
+                <div className="text-[11px] opacity-50 mb-2">v14.2.0</div>
                 <div className="text-xs opacity-70">React framework with App Router</div>
               </div>
               <div className="bg-blue p-4">
                 <div className="font-bold text-sm mb-1">React</div>
-                <div className="text-[10px] opacity-50 mb-2">v18.3.0</div>
+                <div className="text-[11px] opacity-50 mb-2">v18.3.0</div>
                 <div className="text-xs opacity-70">UI component library</div>
               </div>
               <div className="bg-blue p-4">
                 <div className="font-bold text-sm mb-1">Tailwind CSS</div>
-                <div className="text-[10px] opacity-50 mb-2">v3.4.0</div>
+                <div className="text-[11px] opacity-50 mb-2">v3.4.0</div>
                 <div className="text-xs opacity-70">Utility-first CSS framework</div>
               </div>
               <div className="bg-blue p-4">
                 <div className="font-bold text-sm mb-1">TypeScript</div>
-                <div className="text-[10px] opacity-50 mb-2">v5.x</div>
+                <div className="text-[11px] opacity-50 mb-2">v5.x</div>
                 <div className="text-xs opacity-70">Type-safe JavaScript</div>
               </div>
               <div className="bg-blue p-4">
                 <div className="font-bold text-sm mb-1">Zustand</div>
-                <div className="text-[10px] opacity-50 mb-2">v4.x</div>
+                <div className="text-[11px] opacity-50 mb-2">v4.x</div>
                 <div className="text-xs opacity-70">State management</div>
               </div>
               <div className="bg-blue p-4">
                 <div className="font-bold text-sm mb-1">Lucide React</div>
-                <div className="text-[10px] opacity-50 mb-2">v0.x</div>
+                <div className="text-[11px] opacity-50 mb-2">v0.x</div>
                 <div className="text-xs opacity-70">Icon library</div>
               </div>
               <div className="bg-blue p-4">
                 <div className="font-bold text-sm mb-1">react-joyride</div>
-                <div className="text-[10px] opacity-50 mb-2">v2.x</div>
+                <div className="text-[11px] opacity-50 mb-2">v2.x</div>
                 <div className="text-xs opacity-70">Onboarding tours</div>
               </div>
               <div className="bg-blue p-4">
                 <div className="font-bold text-sm mb-1">next-intl</div>
-                <div className="text-[10px] opacity-50 mb-2">v3.x</div>
+                <div className="text-[11px] opacity-50 mb-2">v3.x</div>
                 <div className="text-xs opacity-70">Internationalization</div>
               </div>
             </div>
@@ -394,7 +394,7 @@ export default function SourcesPage() {
               <div className="w-10 h-10 bg-orange flex items-center justify-center text-black font-bold">03</div>
               <h2 className="text-[11px] uppercase tracking-[0.2em]">Protocol Specifications</h2>
             </div>
-            <div className="text-[10px] opacity-50 tracking-wider">ECHOLOCK-SRC-003</div>
+            <div className="text-[11px] opacity-50 tracking-wider">ECHOLOCK-SRC-003</div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -529,12 +529,12 @@ export default function SourcesPage() {
               <div className="w-10 h-10 bg-orange flex items-center justify-center text-black font-bold">04</div>
               <h2 className="text-[11px] uppercase tracking-[0.2em]">Research & Academic Papers</h2>
             </div>
-            <div className="text-[10px] opacity-50 tracking-wider">ECHOLOCK-SRC-004</div>
+            <div className="text-[11px] opacity-50 tracking-wider">ECHOLOCK-SRC-004</div>
           </div>
 
           <div className="space-y-6">
             <div className="bg-blue p-6 border-l-4 border-orange">
-              <div className="text-[10px] opacity-40 mb-2 tracking-wider">1979 • ACM</div>
+              <div className="text-[11px] opacity-40 mb-2 tracking-wider">1979 • ACM</div>
               <h3 className="font-bold text-lg mb-2">How to Share a Secret</h3>
               <p className="text-xs opacity-70 mb-3">
                 Adi Shamir's seminal paper introducing threshold secret sharing. The foundation of
@@ -547,7 +547,7 @@ export default function SourcesPage() {
             </div>
 
             <div className="bg-blue p-6 border-l-4 border-yellow">
-              <div className="text-[10px] opacity-40 mb-2 tracking-wider">2008 • Cryptography</div>
+              <div className="text-[11px] opacity-40 mb-2 tracking-wider">2008 • Cryptography</div>
               <h3 className="font-bold text-lg mb-2">Bitcoin: A Peer-to-Peer Electronic Cash System</h3>
               <p className="text-xs opacity-70 mb-3">
                 Satoshi Nakamoto's whitepaper introducing Bitcoin and blockchain consensus.
@@ -560,7 +560,7 @@ export default function SourcesPage() {
             </div>
 
             <div className="bg-blue p-6 border-l-4 border-black">
-              <div className="text-[10px] opacity-40 mb-2 tracking-wider">2007 • IEEE</div>
+              <div className="text-[11px] opacity-40 mb-2 tracking-wider">2007 • IEEE</div>
               <h3 className="font-bold text-lg mb-2">The Galois/Counter Mode of Operation (GCM)</h3>
               <p className="text-xs opacity-70 mb-3">
                 David McGrew and John Viega's specification of GCM mode, providing authenticated
@@ -583,7 +583,7 @@ export default function SourcesPage() {
               <div className="w-10 h-10 bg-orange flex items-center justify-center text-black font-bold">05</div>
               <h2 className="text-[11px] uppercase tracking-[0.2em]">Security Audit References</h2>
             </div>
-            <div className="text-[10px] opacity-50 tracking-wider">ECHOLOCK-SRC-005</div>
+            <div className="text-[11px] opacity-50 tracking-wider">ECHOLOCK-SRC-005</div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -642,7 +642,7 @@ export default function SourcesPage() {
           </div>
 
           {/* ECHOLOCK Audit Status */}
-          <div className="mt-8 bg-white border-4 border-black">
+          <div className="mt-8 bg-white border-2 border-black">
             <div className="flex items-stretch">
               <div className="w-16 flex-shrink-0 hazard-stripe" />
               <div className="p-6">
@@ -670,7 +670,7 @@ export default function SourcesPage() {
               <div className="w-10 h-10 bg-orange flex items-center justify-center text-black font-bold">06</div>
               <h2 className="text-[11px] uppercase tracking-[0.2em]">License</h2>
             </div>
-            <div className="text-[10px] opacity-50 tracking-wider">ECHOLOCK-SRC-006</div>
+            <div className="text-[11px] opacity-50 tracking-wider">ECHOLOCK-SRC-006</div>
           </div>
 
           <div className="diagram-panel">
@@ -731,7 +731,7 @@ export default function SourcesPage() {
               <div className="w-10 h-10 bg-orange flex items-center justify-center text-black font-bold">07</div>
               <h2 className="text-[11px] uppercase tracking-[0.2em]">Acknowledgments</h2>
             </div>
-            <div className="text-[10px] opacity-50 tracking-wider">ECHOLOCK-SRC-007</div>
+            <div className="text-[11px] opacity-50 tracking-wider">ECHOLOCK-SRC-007</div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -816,7 +816,7 @@ export default function SourcesPage() {
               </div>
             </div>
           </div>
-          <div className="mt-12 pt-6 border-t border-white/10 text-[10px] opacity-40 flex justify-between flex-wrap gap-4 tracking-wider">
+          <div className="mt-12 pt-6 border-t border-white/10 text-[11px] opacity-40 flex justify-between flex-wrap gap-4 tracking-wider">
             <span>ECHOLOCK v1.0</span>
             <span>Network: Bitcoin Mainnet</span>
             <span>AGPL-3.0</span>

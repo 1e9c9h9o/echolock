@@ -136,7 +136,7 @@ export default function RedundancyDashboard({ switchId }: RedundancyDashboardPro
       case 'FAIL':
         return <XCircle className="w-5 h-5 text-red-500" />;
       default:
-        return <Clock className="w-5 h-5 text-slate-400" />;
+        return <Clock className="w-5 h-5 text-black/50" />;
     }
   };
 
@@ -170,7 +170,7 @@ export default function RedundancyDashboard({ switchId }: RedundancyDashboardPro
       case 'CRITICAL':
         return 'bg-red-100 border-red-300 text-red-700';
       default:
-        return 'bg-slate-100 border-slate-300 text-slate-700';
+        return 'bg-blue-light border-black/20 text-black/80';
     }
   };
 
@@ -178,8 +178,8 @@ export default function RedundancyDashboard({ switchId }: RedundancyDashboardPro
     return (
       <Card>
         <div className="flex items-center justify-center py-8">
-          <RefreshCw className="w-6 h-6 animate-spin text-slate-400" />
-          <span className="ml-2 text-slate-500">Running redundancy checks...</span>
+          <RefreshCw className="w-6 h-6 animate-spin text-black/50" />
+          <span className="ml-2 text-black/70">Running redundancy checks...</span>
         </div>
       </Card>
     );
@@ -188,7 +188,7 @@ export default function RedundancyDashboard({ switchId }: RedundancyDashboardPro
   if (!redundancyData) {
     return (
       <Card>
-        <div className="text-center py-8 text-slate-500">
+        <div className="text-center py-8 text-black/70">
           <XCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
           <p>Failed to load redundancy data</p>
           <Button variant="secondary" onClick={fetchRedundancyData} className="mt-4">
@@ -243,7 +243,7 @@ export default function RedundancyDashboard({ switchId }: RedundancyDashboardPro
         {redundancyData.checks.map((check) => (
           <Card key={check.type} className="p-4">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-slate-100 rounded">
+              <div className="p-2 bg-blue-light rounded">
                 {getCheckIcon(check.type)}
               </div>
               <div className="flex-1 min-w-0">
@@ -253,11 +253,11 @@ export default function RedundancyDashboard({ switchId }: RedundancyDashboardPro
                   </h4>
                   {getStatusIcon(check.status)}
                 </div>
-                <p className="text-sm text-slate-500 mt-1">{check.message}</p>
+                <p className="text-sm text-black/70 mt-1">{check.message}</p>
 
                 {/* Show details if available */}
                 {Object.keys(check.details).length > 0 && (
-                  <div className="mt-2 text-xs text-slate-400">
+                  <div className="mt-2 text-xs text-black/50">
                     {check.details.hoursRemaining !== undefined && (
                       <span className="mr-3">
                         {check.details.hoursRemaining}h remaining
@@ -282,12 +282,12 @@ export default function RedundancyDashboard({ switchId }: RedundancyDashboardPro
       </div>
 
       {/* Explanation */}
-      <Card className="bg-slate-50">
+      <Card className="bg-blue">
         <h4 className="font-bold mb-2 flex items-center gap-2">
           <Shield className="w-4 h-4" />
           What is Redundancy?
         </h4>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-black/70">
           Redundancy ensures your switch will trigger even if some components fail.
           We verify multiple independent systems: secondary timers, guardian network
           health, and relay network availability. If all checks pass, your message

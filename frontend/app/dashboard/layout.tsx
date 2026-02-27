@@ -161,7 +161,7 @@ export default function DashboardLayout({
         `}>
           {/* Navigation */}
           <nav className="flex-1 p-4">
-            <div className="text-[9px] uppercase tracking-widest text-black/50 px-4 py-2 mb-2">Navigation</div>
+            <div className="text-[11px] uppercase tracking-widest text-black/50 px-4 py-2 mb-2">Navigation</div>
             <NavLink href="/dashboard" icon={Home} onClick={() => setIsSidebarOpen(false)}>
               Dashboard
             </NavLink>
@@ -175,7 +175,7 @@ export default function DashboardLayout({
 
           {/* Sidebar footer */}
           <div className="p-4 border-t-2 border-black/10">
-            <div className="text-[9px] uppercase tracking-widest text-black/50 mb-2">System Status</div>
+            <div className="text-[11px] uppercase tracking-widest text-black/50 mb-2">System Status</div>
             <div className="flex items-center gap-2 text-xs">
               <div className="w-2 h-2 bg-orange rounded-full animate-pulse" />
               <span>Operational</span>
@@ -190,7 +190,7 @@ export default function DashboardLayout({
 
             {/* Email Verification Banner */}
             {user && !user.email_verified && (
-              <div className="mb-6 bg-yellow border-4 border-black p-4">
+              <div className="mb-6 bg-yellow border-2 border-black p-4">
                 <div className="flex items-start gap-4">
                   <div className="w-10 h-10 bg-black flex items-center justify-center flex-shrink-0">
                     <Mail className="h-5 w-5 text-yellow" strokeWidth={2} />

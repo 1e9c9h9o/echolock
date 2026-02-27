@@ -128,12 +128,12 @@ export default function VacationMode({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white border-4 border-black w-full max-w-md">
+      <div className="bg-white border-2 border-black w-full max-w-md">
         {/* Header */}
         <div className="bg-black text-white py-3 px-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Plane className="h-5 w-5" />
-            <span className="text-[10px] uppercase tracking-widest font-bold">
+            <span className="text-[11px] uppercase tracking-widest font-bold">
               Vacation Mode
             </span>
           </div>

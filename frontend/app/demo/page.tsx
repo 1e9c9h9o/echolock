@@ -246,7 +246,7 @@ export default function PublicDemoPage() {
 
             {/* Use cases */}
             <div className="grid md:grid-cols-3 gap-4">
-              <div className="bg-white border-4 border-black p-6">
+              <div className="bg-white border-2 border-black p-6">
                 <Bitcoin className="h-8 w-8 text-orange mb-4" strokeWidth={2} />
                 <h3 className="font-bold text-black mb-2">
                   {isEli5 ? "Pass On Passwords" : "Digital Inheritance"}
@@ -257,7 +257,7 @@ export default function PublicDemoPage() {
                     : "Pass credentials and wallet seeds to family, accessible only if you don't check in."}
                 </p>
               </div>
-              <div className="bg-white border-4 border-black p-6">
+              <div className="bg-white border-2 border-black p-6">
                 <Shield className="h-8 w-8 text-orange mb-4" strokeWidth={2} />
                 <h3 className="font-bold text-black mb-2">
                   {isEli5 ? "Protection" : "Insurance Policy"}
@@ -268,7 +268,7 @@ export default function PublicDemoPage() {
                     : "Evidence or documents release automatically if you're unable to check in."}
                 </p>
               </div>
-              <div className="bg-white border-4 border-black p-6">
+              <div className="bg-white border-2 border-black p-6">
                 <Key className="h-8 w-8 text-orange mb-4" strokeWidth={2} />
                 <h3 className="font-bold text-black mb-2">
                   {isEli5 ? "Emergency Access" : "Business Continuity"}
@@ -282,7 +282,7 @@ export default function PublicDemoPage() {
             </div>
 
             {/* What you'll need - explaining the trusted contacts requirement */}
-            <div className="bg-white border-4 border-black p-6">
+            <div className="bg-white border-2 border-black p-6">
               <h2 className="font-bold text-black mb-4 flex items-center gap-2">
                 <Info className="h-5 w-5 text-orange" />
                 {isEli5 ? "What You'll Need" : "Requirements"}
@@ -312,7 +312,7 @@ export default function PublicDemoPage() {
             </div>
 
             {/* Choose your demo secret */}
-            <div className="bg-white border-4 border-black p-6">
+            <div className="bg-white border-2 border-black p-6">
               <h2 className="font-bold text-black mb-4">
                 {isEli5 ? "Choose a Practice Secret" : "Select Demo Secret"}
               </h2>
@@ -342,7 +342,7 @@ export default function PublicDemoPage() {
             </div>
 
             {/* Start button */}
-            <div className="bg-orange border-4 border-black p-8 text-center">
+            <div className="bg-orange border-2 border-black p-8 text-center">
               <h2 className="text-2xl font-bold text-black mb-4">
                 {isEli5 ? "Ready to Try It?" : "See It In Action"}
               </h2>
@@ -353,7 +353,7 @@ export default function PublicDemoPage() {
               </p>
               <button
                 onClick={startDemo}
-                className="bg-black text-orange px-8 py-4 font-bold text-lg hover:bg-white hover:text-black transition-colors border-4 border-black"
+                className="bg-black text-orange px-8 py-4 font-bold text-lg hover:bg-white hover:text-black transition-colors border-2 border-black"
               >
                 <Play className="h-5 w-5 inline mr-2" strokeWidth={2} />
                 {isEli5 ? "Start Demo" : "Start Interactive Demo"}
@@ -381,7 +381,7 @@ export default function PublicDemoPage() {
               </p>
             </div>
 
-            <div className="bg-white border-4 border-black">
+            <div className="bg-white border-2 border-black">
               <div className="bg-black text-white px-6 py-3 flex justify-between items-center">
                 <span className="font-bold uppercase tracking-wider text-sm">
                   {isEli5 ? `Step ${Math.min(creationStep + 1, 5)} of 5` : `Setup Step ${Math.min(creationStep + 1, 5)}/5`}
@@ -604,7 +604,7 @@ export default function PublicDemoPage() {
             </div>
 
             {/* Timer card */}
-            <div className="bg-white border-4 border-black">
+            <div className="bg-white border-2 border-black">
               <div className="bg-green-500 text-white px-6 py-3 flex items-center justify-between">
                 <span className="font-bold uppercase tracking-wider text-sm">
                   {isEli5 ? "Timer Running" : "Active - Monitoring"}
@@ -680,14 +680,14 @@ export default function PublicDemoPage() {
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={handleCheckIn}
-                className="flex-1 bg-green-500 text-white px-6 py-4 font-bold hover:bg-green-600 transition-colors border-4 border-black"
+                className="flex-1 bg-green-500 text-white px-6 py-4 font-bold hover:bg-green-600 transition-colors border-2 border-black"
               >
                 <CheckCircle className="h-5 w-5 inline mr-2" strokeWidth={2} />
                 {isEli5 ? "I'm OK! (Check In)" : "Check In"}
               </button>
               <button
                 onClick={resetDemo}
-                className="bg-white text-black px-6 py-4 font-bold hover:bg-black hover:text-white transition-colors border-4 border-black"
+                className="bg-white text-black px-6 py-4 font-bold hover:bg-black hover:text-white transition-colors border-2 border-black"
               >
                 <RotateCcw className="h-5 w-5 inline mr-2" strokeWidth={2} />
                 Reset
@@ -733,7 +733,7 @@ export default function PublicDemoPage() {
               </p>
             </div>
 
-            <div className="bg-white border-4 border-red-500">
+            <div className="bg-white border-2 border-red-500">
               <div className="bg-red-500 text-white px-6 py-3 flex items-center justify-between">
                 <span className="font-bold uppercase tracking-wider text-sm">
                   {isEli5 ? "Releasing..." : "Release In Progress"}
@@ -847,7 +847,7 @@ export default function PublicDemoPage() {
 
             <button
               onClick={resetDemo}
-              className="w-full bg-white text-black px-6 py-4 font-bold hover:bg-black hover:text-white transition-colors border-4 border-black"
+              className="w-full bg-white text-black px-6 py-4 font-bold hover:bg-black hover:text-white transition-colors border-2 border-black"
             >
               <RotateCcw className="h-5 w-5 inline mr-2" strokeWidth={2} />
               Reset Demo
@@ -874,7 +874,7 @@ export default function PublicDemoPage() {
               </p>
             </div>
 
-            <div className="bg-white border-4 border-green-500">
+            <div className="bg-white border-2 border-green-500">
               <div className="bg-green-500 text-white px-6 py-3 flex items-center justify-between">
                 <span className="font-bold uppercase tracking-wider text-sm">
                   {isEli5 ? "Done!" : "Complete"}
@@ -907,7 +907,7 @@ export default function PublicDemoPage() {
             </div>
 
             {/* Key takeaway - This is the money shot for Jack */}
-            <div className="bg-black text-white p-6 border-4 border-orange">
+            <div className="bg-black text-white p-6 border-2 border-orange">
               <h3 className="font-bold text-orange mb-3 text-lg">
                 {isEli5 ? "The Magic: No Company Required" : "No Trusted Third Party"}
               </h3>
@@ -930,14 +930,14 @@ export default function PublicDemoPage() {
             <div className="flex flex-col sm:flex-row gap-4">
               <button
                 onClick={resetDemo}
-                className="flex-1 bg-orange text-black px-6 py-4 font-bold hover:bg-black hover:text-orange transition-colors border-4 border-black"
+                className="flex-1 bg-orange text-black px-6 py-4 font-bold hover:bg-black hover:text-orange transition-colors border-2 border-black"
               >
                 <RotateCcw className="h-5 w-5 inline mr-2" strokeWidth={2} />
                 Try Again
               </button>
               <Link
                 href="/auth/login"
-                className="flex-1 bg-black text-white px-6 py-4 font-bold hover:bg-orange hover:text-black transition-colors border-4 border-black text-center"
+                className="flex-1 bg-black text-white px-6 py-4 font-bold hover:bg-orange hover:text-black transition-colors border-2 border-black text-center"
               >
                 Create Real Switch
               </Link>

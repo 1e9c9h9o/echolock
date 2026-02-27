@@ -46,7 +46,7 @@ export default function DocsPage() {
           <div className="flex items-center gap-4 mb-6">
             <div className="w-12 h-12 bg-orange" />
             <div>
-              <div className="text-[10px] uppercase tracking-[0.2em] opacity-50 mb-1">Reference Manual</div>
+              <div className="text-[11px] uppercase tracking-[0.2em] opacity-50 mb-1">Reference Manual</div>
               <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-black">Documentation</h1>
             </div>
           </div>
@@ -61,17 +61,17 @@ export default function DocsPage() {
       <section className="bg-black text-white">
         <div className="container py-6">
           <div className="flex flex-wrap gap-4">
-            <a href="#overview" className="text-[10px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Overview</a>
+            <a href="#overview" className="text-[11px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Overview</a>
             <span className="opacity-30">|</span>
-            <a href="#architecture" className="text-[10px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Architecture</a>
+            <a href="#architecture" className="text-[11px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Architecture</a>
             <span className="opacity-30">|</span>
-            <a href="#api" className="text-[10px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">API Reference</a>
+            <a href="#api" className="text-[11px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">API Reference</a>
             <span className="opacity-30">|</span>
-            <a href="#cli" className="text-[10px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">CLI Commands</a>
+            <a href="#cli" className="text-[11px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">CLI Commands</a>
             <span className="opacity-30">|</span>
-            <a href="#security" className="text-[10px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Security</a>
+            <a href="#security" className="text-[11px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Security</a>
             <span className="opacity-30">|</span>
-            <a href="#configuration" className="text-[10px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Configuration</a>
+            <a href="#configuration" className="text-[11px] uppercase tracking-wider opacity-60 hover:opacity-100 hover:text-orange transition-all">Configuration</a>
           </div>
         </div>
       </section>
@@ -84,7 +84,7 @@ export default function DocsPage() {
               <div className="w-10 h-10 bg-orange flex items-center justify-center text-black font-bold">01</div>
               <h2 className="text-[11px] uppercase tracking-[0.2em]">System Overview</h2>
             </div>
-            <div className="text-[10px] opacity-50 tracking-wider">ECHOLOCK-DOC-001</div>
+            <div className="text-[11px] opacity-50 tracking-wider">ECHOLOCK-DOC-001</div>
           </div>
 
           <div className="diagram-panel mb-8">
@@ -113,27 +113,27 @@ export default function DocsPage() {
                   <h3 className="font-bold text-lg mb-4">Operation Sequence</h3>
                   <div className="space-y-3">
                     <div className="flex gap-3 items-start">
-                      <div className="w-6 h-6 bg-orange text-black text-[10px] flex items-center justify-center flex-shrink-0 font-bold">1</div>
+                      <div className="w-6 h-6 bg-orange text-black text-[11px] flex items-center justify-center flex-shrink-0 font-bold">1</div>
                       <div className="text-xs"><strong>Encrypt</strong> — Message encrypted with AES-256-GCM</div>
                     </div>
                     <div className="flex gap-3 items-start">
-                      <div className="w-6 h-6 bg-orange text-black text-[10px] flex items-center justify-center flex-shrink-0 font-bold">2</div>
+                      <div className="w-6 h-6 bg-orange text-black text-[11px] flex items-center justify-center flex-shrink-0 font-bold">2</div>
                       <div className="text-xs"><strong>Fragment</strong> — Encryption key split via Shamir's (3-of-5)</div>
                     </div>
                     <div className="flex gap-3 items-start">
-                      <div className="w-6 h-6 bg-yellow text-black text-[10px] flex items-center justify-center flex-shrink-0 font-bold">3</div>
+                      <div className="w-6 h-6 bg-yellow text-black text-[11px] flex items-center justify-center flex-shrink-0 font-bold">3</div>
                       <div className="text-xs"><strong>Distribute</strong> — Fragments sent to 7+ Nostr relays globally</div>
                     </div>
                     <div className="flex gap-3 items-start">
-                      <div className="w-6 h-6 bg-yellow text-black text-[10px] flex items-center justify-center flex-shrink-0 font-bold">4</div>
+                      <div className="w-6 h-6 bg-yellow text-black text-[11px] flex items-center justify-center flex-shrink-0 font-bold">4</div>
                       <div className="text-xs"><strong>Timelock</strong> — Bitcoin OP_CLTV script created on-chain</div>
                     </div>
                     <div className="flex gap-3 items-start">
-                      <div className="w-6 h-6 bg-black text-white text-[10px] flex items-center justify-center flex-shrink-0 font-bold">5</div>
+                      <div className="w-6 h-6 bg-black text-white text-[11px] flex items-center justify-center flex-shrink-0 font-bold">5</div>
                       <div className="text-xs"><strong>Monitor</strong> — User checks in to reset timer</div>
                     </div>
                     <div className="flex gap-3 items-start">
-                      <div className="w-6 h-6 bg-black text-white text-[10px] flex items-center justify-center flex-shrink-0 font-bold">6</div>
+                      <div className="w-6 h-6 bg-black text-white text-[11px] flex items-center justify-center flex-shrink-0 font-bold">6</div>
                       <div className="text-xs"><strong>Release</strong> — On expiry, fragments retrieved & key reconstructed</div>
                     </div>
                   </div>
@@ -145,17 +145,17 @@ export default function DocsPage() {
           {/* Use Cases */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-1">
             <div className="bg-white p-6 border-l-4 border-orange">
-              <div className="text-[10px] opacity-40 mb-3 tracking-wider">USE CASE 001</div>
+              <div className="text-[11px] opacity-40 mb-3 tracking-wider">USE CASE 001</div>
               <div className="font-bold mb-2">Whistleblowing</div>
               <div className="text-xs opacity-70">Ensure evidence release if unable to publish personally. Provides dead man's protection for journalists and activists.</div>
             </div>
             <div className="bg-white p-6 border-l-4 border-yellow">
-              <div className="text-[10px] opacity-40 mb-3 tracking-wider">USE CASE 002</div>
+              <div className="text-[11px] opacity-40 mb-3 tracking-wider">USE CASE 002</div>
               <div className="font-bold mb-2">Digital Inheritance</div>
               <div className="text-xs opacity-70">Pass cryptocurrency keys, passwords, or sensitive documents to heirs without third-party custody.</div>
             </div>
             <div className="bg-white p-6 border-l-4 border-black">
-              <div className="text-[10px] opacity-40 mb-3 tracking-wider">USE CASE 003</div>
+              <div className="text-[11px] opacity-40 mb-3 tracking-wider">USE CASE 003</div>
               <div className="font-bold mb-2">Emergency Protocols</div>
               <div className="text-xs opacity-70">Automatic notification to trusted parties if check-in fails. Serves as a backup communication channel.</div>
             </div>
@@ -171,7 +171,7 @@ export default function DocsPage() {
               <div className="w-10 h-10 bg-orange flex items-center justify-center text-black font-bold">02</div>
               <h2 className="text-[11px] uppercase tracking-[0.2em]">System Architecture</h2>
             </div>
-            <div className="text-[10px] opacity-50 tracking-wider">ECHOLOCK-DOC-002</div>
+            <div className="text-[11px] opacity-50 tracking-wider">ECHOLOCK-DOC-002</div>
           </div>
 
           {/* Cryptographic Layer */}
@@ -399,7 +399,7 @@ export default function DocsPage() {
               <div className="w-10 h-10 bg-orange flex items-center justify-center text-black font-bold">03</div>
               <h2 className="text-[11px] uppercase tracking-[0.2em]">API Reference</h2>
             </div>
-            <div className="text-[10px] opacity-50 tracking-wider">ECHOLOCK-DOC-003</div>
+            <div className="text-[11px] opacity-50 tracking-wider">ECHOLOCK-DOC-003</div>
           </div>
 
           <div className="diagram-panel mb-8">
@@ -410,25 +410,25 @@ export default function DocsPage() {
             <div className="diagram-body p-0">
               {/* Auth endpoints */}
               <div className="border-b-2 border-blue">
-                <div className="bg-black text-white px-6 py-3 text-[10px] uppercase tracking-widest">Authentication</div>
+                <div className="bg-black text-white px-6 py-3 text-[11px] uppercase tracking-widest">Authentication</div>
                 <div className="divide-y divide-blue">
                   <div className="flex items-center px-6 py-4">
-                    <span className="w-20 text-[10px] font-bold text-orange">POST</span>
+                    <span className="w-20 text-[11px] font-bold text-orange">POST</span>
                     <span className="flex-1 font-mono text-sm">/api/auth/signup</span>
                     <span className="text-xs opacity-60">Register new user account</span>
                   </div>
                   <div className="flex items-center px-6 py-4">
-                    <span className="w-20 text-[10px] font-bold text-orange">POST</span>
+                    <span className="w-20 text-[11px] font-bold text-orange">POST</span>
                     <span className="flex-1 font-mono text-sm">/api/auth/login</span>
                     <span className="text-xs opacity-60">Authenticate and receive JWT</span>
                   </div>
                   <div className="flex items-center px-6 py-4">
-                    <span className="w-20 text-[10px] font-bold text-orange">POST</span>
+                    <span className="w-20 text-[11px] font-bold text-orange">POST</span>
                     <span className="flex-1 font-mono text-sm">/api/auth/refresh</span>
                     <span className="text-xs opacity-60">Refresh access token</span>
                   </div>
                   <div className="flex items-center px-6 py-4">
-                    <span className="w-20 text-[10px] font-bold text-orange">POST</span>
+                    <span className="w-20 text-[11px] font-bold text-orange">POST</span>
                     <span className="flex-1 font-mono text-sm">/api/auth/verify-email</span>
                     <span className="text-xs opacity-60">Verify email address</span>
                   </div>
@@ -437,30 +437,30 @@ export default function DocsPage() {
 
               {/* Switch endpoints */}
               <div className="border-b-2 border-blue">
-                <div className="bg-black text-white px-6 py-3 text-[10px] uppercase tracking-widest">Switches</div>
+                <div className="bg-black text-white px-6 py-3 text-[11px] uppercase tracking-widest">Switches</div>
                 <div className="divide-y divide-blue">
                   <div className="flex items-center px-6 py-4">
-                    <span className="w-20 text-[10px] font-bold text-orange">POST</span>
+                    <span className="w-20 text-[11px] font-bold text-orange">POST</span>
                     <span className="flex-1 font-mono text-sm">/api/switches</span>
                     <span className="text-xs opacity-60">Create new dead man's switch</span>
                   </div>
                   <div className="flex items-center px-6 py-4">
-                    <span className="w-20 text-[10px] font-bold text-yellow">GET</span>
+                    <span className="w-20 text-[11px] font-bold text-yellow">GET</span>
                     <span className="flex-1 font-mono text-sm">/api/switches</span>
                     <span className="text-xs opacity-60">List all user switches</span>
                   </div>
                   <div className="flex items-center px-6 py-4">
-                    <span className="w-20 text-[10px] font-bold text-yellow">GET</span>
+                    <span className="w-20 text-[11px] font-bold text-yellow">GET</span>
                     <span className="flex-1 font-mono text-sm">/api/switches/:id</span>
                     <span className="text-xs opacity-60">Get switch status and details</span>
                   </div>
                   <div className="flex items-center px-6 py-4">
-                    <span className="w-20 text-[10px] font-bold text-orange">POST</span>
+                    <span className="w-20 text-[11px] font-bold text-orange">POST</span>
                     <span className="flex-1 font-mono text-sm">/api/switches/:id/checkin</span>
                     <span className="text-xs opacity-60">Reset switch timer (check-in)</span>
                   </div>
                   <div className="flex items-center px-6 py-4">
-                    <span className="w-20 text-[10px] font-bold">DELETE</span>
+                    <span className="w-20 text-[11px] font-bold">DELETE</span>
                     <span className="flex-1 font-mono text-sm">/api/switches/:id</span>
                     <span className="text-xs opacity-60">Delete switch permanently</span>
                   </div>
@@ -469,15 +469,15 @@ export default function DocsPage() {
 
               {/* System endpoints */}
               <div>
-                <div className="bg-black text-white px-6 py-3 text-[10px] uppercase tracking-widest">System</div>
+                <div className="bg-black text-white px-6 py-3 text-[11px] uppercase tracking-widest">System</div>
                 <div className="divide-y divide-blue">
                   <div className="flex items-center px-6 py-4">
-                    <span className="w-20 text-[10px] font-bold text-yellow">GET</span>
+                    <span className="w-20 text-[11px] font-bold text-yellow">GET</span>
                     <span className="flex-1 font-mono text-sm">/health</span>
                     <span className="text-xs opacity-60">API health check</span>
                   </div>
                   <div className="flex items-center px-6 py-4">
-                    <span className="w-20 text-[10px] font-bold text-yellow">WS</span>
+                    <span className="w-20 text-[11px] font-bold text-yellow">WS</span>
                     <span className="flex-1 font-mono text-sm">/ws</span>
                     <span className="text-xs opacity-60">WebSocket for real-time updates</span>
                   </div>
@@ -534,7 +534,7 @@ export default function DocsPage() {
               <div className="w-10 h-10 bg-orange flex items-center justify-center text-black font-bold">04</div>
               <h2 className="text-[11px] uppercase tracking-[0.2em]">CLI Commands</h2>
             </div>
-            <div className="text-[10px] opacity-50 tracking-wider">ECHOLOCK-DOC-004</div>
+            <div className="text-[11px] opacity-50 tracking-wider">ECHOLOCK-DOC-004</div>
           </div>
 
           <div className="diagram-panel">
@@ -622,11 +622,11 @@ export default function DocsPage() {
               <div className="w-10 h-10 bg-orange flex items-center justify-center text-black font-bold">05</div>
               <h2 className="text-[11px] uppercase tracking-[0.2em]">Security Model</h2>
             </div>
-            <div className="text-[10px] opacity-50 tracking-wider">ECHOLOCK-DOC-005</div>
+            <div className="text-[11px] opacity-50 tracking-wider">ECHOLOCK-DOC-005</div>
           </div>
 
           {/* Warning Panel */}
-          <div className="bg-white border-4 border-black mb-8">
+          <div className="bg-white border-2 border-black mb-8">
             <div className="flex items-stretch">
               <div className="w-16 flex-shrink-0 hazard-stripe" />
               <div className="p-6 flex items-center gap-6">
@@ -650,28 +650,28 @@ export default function DocsPage() {
               </div>
               <div className="p-6 space-y-4">
                 <div className="flex gap-3 items-start">
-                  <div className="w-5 h-5 bg-orange flex items-center justify-center text-[10px] font-bold flex-shrink-0">✓</div>
+                  <div className="w-5 h-5 bg-orange flex items-center justify-center text-[11px] font-bold flex-shrink-0">✓</div>
                   <div>
                     <div className="font-bold text-sm">Confidentiality</div>
                     <div className="text-xs opacity-70">AES-256-GCM encryption prevents unauthorized access</div>
                   </div>
                 </div>
                 <div className="flex gap-3 items-start">
-                  <div className="w-5 h-5 bg-orange flex items-center justify-center text-[10px] font-bold flex-shrink-0">✓</div>
+                  <div className="w-5 h-5 bg-orange flex items-center justify-center text-[11px] font-bold flex-shrink-0">✓</div>
                   <div>
                     <div className="font-bold text-sm">Integrity</div>
                     <div className="text-xs opacity-70">Authenticated encryption detects tampering</div>
                   </div>
                 </div>
                 <div className="flex gap-3 items-start">
-                  <div className="w-5 h-5 bg-orange flex items-center justify-center text-[10px] font-bold flex-shrink-0">✓</div>
+                  <div className="w-5 h-5 bg-orange flex items-center justify-center text-[11px] font-bold flex-shrink-0">✓</div>
                   <div>
                     <div className="font-bold text-sm">Threshold Security</div>
                     <div className="text-xs opacity-70">k-1 fragments reveal nothing about the key</div>
                   </div>
                 </div>
                 <div className="flex gap-3 items-start">
-                  <div className="w-5 h-5 bg-orange flex items-center justify-center text-[10px] font-bold flex-shrink-0">✓</div>
+                  <div className="w-5 h-5 bg-orange flex items-center justify-center text-[11px] font-bold flex-shrink-0">✓</div>
                   <div>
                     <div className="font-bold text-sm">Censorship Resistance</div>
                     <div className="text-xs opacity-70">Distributed storage across independent relays</div>
@@ -687,28 +687,28 @@ export default function DocsPage() {
               </div>
               <div className="p-6 space-y-4">
                 <div className="flex gap-3 items-start">
-                  <div className="w-5 h-5 bg-yellow flex items-center justify-center text-[10px] font-bold flex-shrink-0">!</div>
+                  <div className="w-5 h-5 bg-yellow flex items-center justify-center text-[11px] font-bold flex-shrink-0">!</div>
                   <div>
                     <div className="font-bold text-sm">No Audit</div>
                     <div className="text-xs opacity-70">Professional security audit not yet completed</div>
                   </div>
                 </div>
                 <div className="flex gap-3 items-start">
-                  <div className="w-5 h-5 bg-yellow flex items-center justify-center text-[10px] font-bold flex-shrink-0">!</div>
+                  <div className="w-5 h-5 bg-yellow flex items-center justify-center text-[11px] font-bold flex-shrink-0">!</div>
                   <div>
                     <div className="font-bold text-sm">Testnet Only</div>
                     <div className="text-xs opacity-70">Bitcoin operations restricted to testnet</div>
                   </div>
                 </div>
                 <div className="flex gap-3 items-start">
-                  <div className="w-5 h-5 bg-yellow flex items-center justify-center text-[10px] font-bold flex-shrink-0">!</div>
+                  <div className="w-5 h-5 bg-yellow flex items-center justify-center text-[11px] font-bold flex-shrink-0">!</div>
                   <div>
                     <div className="font-bold text-sm">Relay Availability</div>
                     <div className="text-xs opacity-70">Depends on third-party Nostr relay uptime</div>
                   </div>
                 </div>
                 <div className="flex gap-3 items-start">
-                  <div className="w-5 h-5 bg-yellow flex items-center justify-center text-[10px] font-bold flex-shrink-0">!</div>
+                  <div className="w-5 h-5 bg-yellow flex items-center justify-center text-[11px] font-bold flex-shrink-0">!</div>
                   <div>
                     <div className="font-bold text-sm">Client-Side Trust</div>
                     <div className="text-xs opacity-70">Encryption performed in browser/client</div>
@@ -719,7 +719,7 @@ export default function DocsPage() {
           </div>
 
           {/* Reporting */}
-          <div className="mt-8 bg-white p-6 border-4 border-black">
+          <div className="mt-8 bg-white p-6 border-2 border-black">
             <h4 className="font-bold text-sm mb-3">Report Security Issues</h4>
             <p className="text-xs opacity-70 mb-4">
               Found a vulnerability? We encourage responsible disclosure. Please report security issues through:
@@ -746,7 +746,7 @@ export default function DocsPage() {
               <div className="w-10 h-10 bg-orange flex items-center justify-center text-black font-bold">06</div>
               <h2 className="text-[11px] uppercase tracking-[0.2em]">Configuration</h2>
             </div>
-            <div className="text-[10px] opacity-50 tracking-wider">ECHOLOCK-DOC-006</div>
+            <div className="text-[11px] opacity-50 tracking-wider">ECHOLOCK-DOC-006</div>
           </div>
 
           <div className="diagram-panel">
@@ -816,7 +816,7 @@ export default function DocsPage() {
               </div>
             </div>
           </div>
-          <div className="mt-12 pt-6 border-t border-white/10 text-[10px] opacity-40 flex justify-between flex-wrap gap-4 tracking-wider">
+          <div className="mt-12 pt-6 border-t border-white/10 text-[11px] opacity-40 flex justify-between flex-wrap gap-4 tracking-wider">
             <span>ECHOLOCK v1.0</span>
             <span>Network: Bitcoin Testnet</span>
             <span>AGPL-3.0</span>
