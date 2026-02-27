@@ -12,11 +12,31 @@ const tourSteps: Step[] = [
     content: (
       <div className="p-2">
         <h2 className="text-2xl font-bold font-heading uppercase mb-3">Welcome to EchoLock</h2>
-        <p className="mb-3 font-mono">
-          EchoLock is a censorship-resistant dead man's switch that automatically releases encrypted
-          messages if you fail to check in regularly.
+        <p className="mb-3 font-mono text-sm">
+          EchoLock lets you write a message that delivers itself.
         </p>
-        <p className="mb-2 font-mono">This quick tour will show you the key features.</p>
+        <p className="mb-2 font-mono text-sm">
+          You check in regularly. If you stop, your message releases automatically.
+          No one — including EchoLock — can read it until then.
+        </p>
+      </div>
+    ),
+    placement: 'center',
+    disableBeacon: true,
+  },
+  {
+    target: 'body',
+    content: (
+      <div className="p-2">
+        <h3 className="text-lg font-bold font-heading uppercase mb-2">How It Works</h3>
+        <p className="font-mono text-sm mb-2">
+          Your message is encrypted on your device. The encryption key is split into
+          pieces held by independent guardians.
+        </p>
+        <p className="font-mono text-sm">
+          When your check-ins stop, guardians release the pieces. Your recipients
+          collect them and unlock your message.
+        </p>
       </div>
     ),
     placement: 'center',
@@ -28,8 +48,8 @@ const tourSteps: Step[] = [
       <div className="p-2">
         <h3 className="text-lg font-bold font-heading uppercase mb-2">Create a Switch</h3>
         <p className="font-mono text-sm">
-          Click here to create your first dead man's switch. You'll set a check-in interval and add
-          an encrypted message.
+          Start here. You&apos;ll write your message, choose how often to check in,
+          and add your recipients.
         </p>
       </div>
     ),
@@ -41,7 +61,7 @@ const tourSteps: Step[] = [
       <div className="p-2">
         <h3 className="text-lg font-bold font-heading uppercase mb-2">Your Switches</h3>
         <p className="font-mono text-sm">
-          All your active switches appear here. Each shows the countdown timer and status.
+          Your switches appear here. Each shows how much time before your next check-in.
         </p>
       </div>
     ),
@@ -53,8 +73,8 @@ const tourSteps: Step[] = [
       <div className="p-2">
         <h3 className="text-lg font-bold font-heading uppercase mb-2">Check In</h3>
         <p className="font-mono text-sm">
-          Click "Check In" to reset the timer and prevent your message from being released. You'll
-          receive email reminders before expiration.
+          This is the most important button. Click it regularly to keep your message locked.
+          Miss a check-in, and the countdown begins.
         </p>
       </div>
     ),
@@ -62,24 +82,12 @@ const tourSteps: Step[] = [
     spotlightClicks: false,
   },
   {
-    target: '[data-tour="filters"]',
-    content: (
-      <div className="p-2">
-        <h3 className="text-lg font-bold font-heading uppercase mb-2">Filter & Search</h3>
-        <p className="font-mono text-sm">
-          Use these controls to filter switches by status, sort, and search by title.
-        </p>
-      </div>
-    ),
-    placement: 'bottom',
-  },
-  {
     target: '[data-tour="profile-menu"]',
     content: (
       <div className="p-2">
-        <h3 className="text-lg font-bold font-heading uppercase mb-2">Settings & Profile</h3>
+        <h3 className="text-lg font-bold font-heading uppercase mb-2">Settings</h3>
         <p className="font-mono text-sm">
-          Access your account settings, preferences, and logout from here.
+          Manage your profile, emergency contacts, and security options here.
         </p>
       </div>
     ),
@@ -89,16 +97,14 @@ const tourSteps: Step[] = [
     target: 'body',
     content: (
       <div className="p-2">
-        <h2 className="text-2xl font-bold font-heading uppercase mb-3">Setup Complete</h2>
-        <p className="mb-3 font-mono">
-          You can now create a switch. Remember to check in before your timer expires.
-        </p>
-        <div className="bg-slate-100 border border-slate-300 p-3 mt-4">
-          <p className="font-mono text-sm font-bold mb-1">Recommendations:</p>
+        <h2 className="text-2xl font-bold font-heading uppercase mb-3">You&apos;re Ready</h2>
+        <div className="bg-slate-100 border border-slate-300 p-3 mt-2">
+          <p className="font-mono text-sm font-bold mb-2">Recommendations:</p>
           <ul className="list-disc list-inside font-mono text-sm space-y-1 text-slate-600">
+            <li>Start with a test message to get comfortable</li>
             <li>Set realistic check-in intervals</li>
-            <li>Test with non-critical data first</li>
             <li>Add multiple recipients for redundancy</li>
+            <li>Don&apos;t use for sensitive data until you&apos;re comfortable</li>
           </ul>
         </div>
       </div>

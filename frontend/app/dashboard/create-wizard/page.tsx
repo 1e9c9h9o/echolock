@@ -7,6 +7,7 @@ import Link from 'next/link'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
+import Explainer from '@/components/ui/Explainer'
 import {
   Step1EnterSecret,
   Step2SetInterval,
@@ -24,6 +25,7 @@ import {
   encryptWithRecoveryPassword,
   type ThresholdConfig,
 } from '@/lib/crypto'
+import { useUIPreferences } from '@/contexts/UIPreferencesContext'
 
 // Threshold presets matching the security step
 const THRESHOLD_CONFIGS: Record<'simple' | 'balanced' | 'high', ThresholdConfig> = {
@@ -38,12 +40,37 @@ interface Recipient {
   name: string
 }
 
+// Content-based step identifiers
+type StepContent = 'message' | 'interval' | 'password' | 'recipients' | 'recovery' | 'security' | 'confirm' | 'success'
+
+const SIMPLE_STEPS: StepContent[] = ['message', 'interval', 'password', 'recipients', 'confirm', 'success']
+const ADVANCED_STEPS: StepContent[] = ['message', 'interval', 'password', 'recipients', 'recovery', 'security', 'confirm', 'success']
+
+const STEP_LABELS: Record<StepContent, string> = {
+  message: 'Message',
+  interval: 'Interval',
+  password: 'Password',
+  recipients: 'Recipients',
+  recovery: 'Access Key',
+  security: 'Security',
+  confirm: 'Confirm',
+  success: 'Done',
+}
+
 export default function CreateWizardPage() {
   const router = useRouter()
+  const { uiMode, setUIMode } = useUIPreferences()
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState(1)
-  const totalSteps = 8 // 7 wizard steps + 1 success step
+
+  // Get steps based on mode
+  const steps = uiMode === 'simple' ? SIMPLE_STEPS : ADVANCED_STEPS
+  const totalSteps = steps.length
+  const visibleSteps = steps.filter(s => s !== 'success')
+
+  // Get current content based on step number
+  const currentContent = steps[currentStep - 1] || 'message'
 
   // Form data
   const [title, setTitle] = useState('')
@@ -90,6 +117,17 @@ export default function CreateWizardPage() {
     setCurrentStep((prev) => Math.max(prev - 1, 1))
   }
 
+  // Switch to advanced mode mid-wizard
+  const switchToAdvanced = () => {
+    // Map current simple step to the equivalent advanced step
+    const currentContentName = SIMPLE_STEPS[currentStep - 1]
+    setUIMode('advanced')
+    const newIndex = ADVANCED_STEPS.indexOf(currentContentName)
+    if (newIndex >= 0) {
+      setCurrentStep(newIndex + 1)
+    }
+  }
+
   // Submit handler - CLIENT-SIDE ENCRYPTION
   // Keys are generated in the browser and NEVER sent to the server
   // See CLAUDE.md - Phase 1: User-Controlled Keys
@@ -106,9 +144,14 @@ export default function CreateWizardPage() {
         return
       }
 
+      // In simple mode, use defaults for recovery password, threshold, and bitcoin
+      const effectiveThreshold = uiMode === 'simple' ? 'balanced' : threshold
+      const effectiveBitcoin = uiMode === 'simple' ? false : bitcoinEnabled
+      const effectiveRecoveryPassword = uiMode === 'simple' ? '' : recoveryPassword.trim()
+
       // Step 1: Generate encryption key and encrypt message CLIENT-SIDE
       setCryptoProgress('Generating encryption keys...')
-      const thresholdConfig = THRESHOLD_CONFIGS[threshold]
+      const thresholdConfig = THRESHOLD_CONFIGS[effectiveThreshold]
       const encryptedSwitch = await createEncryptedSwitch(
         message.trim(),
         password.trim(),
@@ -122,11 +165,11 @@ export default function CreateWizardPage() {
 
       // Step 3: Encrypt with recovery password for simple recipient access
       let recoveryEncrypted = undefined
-      if (recoveryPassword.trim()) {
+      if (effectiveRecoveryPassword) {
         setCryptoProgress('Creating recovery encryption...')
         recoveryEncrypted = await encryptWithRecoveryPassword(
           message.trim(),
-          recoveryPassword.trim()
+          effectiveRecoveryPassword
         )
       }
 
@@ -138,10 +181,10 @@ export default function CreateWizardPage() {
         parseFloat(checkInHours),
         validRecipients,
         recoveryEncrypted,
-        bitcoinEnabled
+        effectiveBitcoin
       )
 
-      // Step 4: Send to server for distribution
+      // Step 5: Send to server for distribution
       setCryptoProgress('Distributing to network...')
       const response = await switchesAPI.createEncrypted(serverPayload)
 
@@ -200,61 +243,48 @@ export default function CreateWizardPage() {
           Back to Dashboard
         </Link>
         <h1 className="text-5xl font-bold mb-3">CREATE SWITCH</h1>
-        <p className="text-lg font-mono">Follow the steps to configure your dead man's switch</p>
+        <p className="text-lg font-mono">Follow the steps to configure your dead man&apos;s switch</p>
       </div>
 
       {/* Progress indicator */}
-      {currentStep < totalSteps && (
+      {currentContent !== 'success' && (
         <div className="mb-12">
           <div className="flex items-center justify-between mb-4">
             <span className="font-mono text-sm font-bold">
-              STEP {currentStep} OF {totalSteps - 1}
+              STEP {currentStep} OF {visibleSteps.length}
             </span>
             <span className="font-mono text-sm text-gray-600">
-              {Math.round(((currentStep - 1) / (totalSteps - 1)) * 100)}% Complete
+              {Math.round(((currentStep - 1) / (visibleSteps.length)) * 100)}% Complete
             </span>
           </div>
           <div className="w-full h-3 bg-cream border-2 border-black">
             <div
               className="h-full bg-blue transition-all duration-300"
-              style={{ width: `${((currentStep - 1) / (totalSteps - 1)) * 100}%` }}
+              style={{ width: `${((currentStep - 1) / visibleSteps.length) * 100}%` }}
             />
           </div>
 
           {/* Step labels */}
           <div className="flex justify-between mt-4 font-mono text-xs">
-            <span className={currentStep >= 1 ? 'text-blue font-bold' : 'text-gray-500'}>
-              Message
-            </span>
-            <span className={currentStep >= 2 ? 'text-blue font-bold' : 'text-gray-500'}>
-              Interval
-            </span>
-            <span className={currentStep >= 3 ? 'text-blue font-bold' : 'text-gray-500'}>
-              Password
-            </span>
-            <span className={currentStep >= 4 ? 'text-blue font-bold' : 'text-gray-500'}>
-              Recipients
-            </span>
-            <span className={currentStep >= 5 ? 'text-blue font-bold' : 'text-gray-500'}>
-              Recovery
-            </span>
-            <span className={currentStep >= 6 ? 'text-blue font-bold' : 'text-gray-500'}>
-              Security
-            </span>
-            <span className={currentStep >= 7 ? 'text-blue font-bold' : 'text-gray-500'}>
-              Confirm
-            </span>
+            {visibleSteps.map((step, index) => (
+              <span
+                key={step}
+                className={currentStep >= index + 1 ? 'text-blue font-bold' : 'text-gray-500'}
+              >
+                {STEP_LABELS[step]}
+              </span>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Step 1: Enter Secret */}
-      {currentStep === 1 && (
+      {/* Step: Enter Secret */}
+      {currentContent === 'message' && (
         <Step1EnterSecret message={message} onMessageChange={setMessage} onNext={nextStep} />
       )}
 
-      {/* Step 2: Set Interval */}
-      {currentStep === 2 && (
+      {/* Step: Set Interval */}
+      {currentContent === 'interval' && (
         <Step2SetInterval
           checkInHours={checkInHours}
           onCheckInHoursChange={setCheckInHours}
@@ -263,8 +293,8 @@ export default function CreateWizardPage() {
         />
       )}
 
-      {/* Step 3: Set Password */}
-      {currentStep === 3 && (
+      {/* Step: Set Password */}
+      {currentContent === 'password' && (
         <Step3SetPassword
           password={password}
           confirmPassword={confirmPassword}
@@ -275,11 +305,18 @@ export default function CreateWizardPage() {
         />
       )}
 
-      {/* Step 4: Recipients */}
-      {currentStep === 4 && !loading && (
+      {/* Step: Recipients */}
+      {currentContent === 'recipients' && !loading && (
         <Card>
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold">ADD RECIPIENTS</h2>
+            <h2 className="text-3xl font-bold">ADD{' '}
+              <Explainer
+                detail="Recipients receive and read your message. Guardians hold encryption key pieces. The same person can be both."
+                why="Separating roles adds security. Neither role alone can access your message before the switch triggers."
+              >
+                RECIPIENTS
+              </Explainer>
+            </h2>
             <Button type="button" variant="secondary" onClick={addRecipient}>
               <Plus className="h-5 w-5 mr-2" strokeWidth={2} />
               Add Recipient
@@ -333,8 +370,8 @@ export default function CreateWizardPage() {
         </Card>
       )}
 
-      {/* Step 5: Recovery Password */}
-      {currentStep === 5 && (
+      {/* Step: Recovery Password (advanced only) */}
+      {currentContent === 'recovery' && (
         <StepRecoveryPassword
           recoveryPassword={recoveryPassword}
           confirmRecoveryPassword={confirmRecoveryPassword}
@@ -345,8 +382,8 @@ export default function CreateWizardPage() {
         />
       )}
 
-      {/* Step 6: Security Options */}
-      {currentStep === 6 && (
+      {/* Step: Security Options (advanced only) */}
+      {currentContent === 'security' && (
         <StepSecurityOptions
           threshold={threshold}
           onThresholdChange={setThreshold}
@@ -357,8 +394,8 @@ export default function CreateWizardPage() {
         />
       )}
 
-      {/* Step 7: Title and Confirm */}
-      {currentStep === 7 && !loading && (
+      {/* Step: Title and Confirm */}
+      {currentContent === 'confirm' && !loading && (
         <Card>
           <h2 className="text-3xl font-bold mb-8">FINAL DETAILS</h2>
           <div className="space-y-6">
@@ -391,12 +428,22 @@ export default function CreateWizardPage() {
               </div>
             </div>
 
-            <div className="bg-orange/20 p-4 border-2 border-orange">
-              <p className="font-mono text-sm">
-                <strong>Remember:</strong> Share the recovery password with your recipients!
-                They&apos;ll need it to read your message.
-              </p>
-            </div>
+            {uiMode === 'advanced' && recoveryPassword && (
+              <div className="bg-orange/20 p-4 border-2 border-orange">
+                <p className="font-mono text-sm">
+                  <strong>Remember:</strong> Share the recipient access key with your recipients!
+                  They&apos;ll need it to read your message.
+                </p>
+              </div>
+            )}
+
+            {uiMode === 'simple' && (
+              <div className="bg-cream p-4 border-2 border-black">
+                <p className="font-mono text-xs text-gray-600">
+                  Using balanced security defaults (3-of-5 threshold, no Bitcoin proof).
+                </p>
+              </div>
+            )}
 
             <div className="flex justify-between pt-4">
               <Button variant="secondary" onClick={prevStep}>
@@ -411,8 +458,8 @@ export default function CreateWizardPage() {
         </Card>
       )}
 
-      {/* Step 7: Loading state with crypto progress */}
-      {currentStep === 7 && loading && (
+      {/* Confirm step: Loading state with crypto progress */}
+      {currentContent === 'confirm' && loading && (
         <Card>
           <div className="text-center py-12">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-blue/10 rounded-full mb-6">
@@ -432,14 +479,26 @@ export default function CreateWizardPage() {
         </Card>
       )}
 
-      {/* Step 8: Success */}
-      {currentStep === totalSteps && createdSwitch && (
+      {/* Success */}
+      {currentContent === 'success' && createdSwitch && (
         <Step5Success
           switchId={createdSwitch.id}
           nextCheckInAt={createdSwitch.nextCheckInAt}
           onDashboard={() => router.push('/dashboard')}
           onCreateAnother={resetForm}
         />
+      )}
+
+      {/* Simple mode: link to switch to advanced */}
+      {uiMode === 'simple' && currentContent !== 'success' && !loading && (
+        <div className="mt-6 text-center">
+          <button
+            onClick={switchToAdvanced}
+            className="font-mono text-xs text-gray-400 hover:text-blue transition-colors underline underline-offset-4"
+          >
+            Need more control? Switch to advanced mode
+          </button>
+        </div>
       )}
     </div>
   )

@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Check, Loader2, Octagon } from 'lucide-react'
+import { Check, Loader2, Octagon, Triangle } from 'lucide-react'
 import Button from '@/components/ui/Button'
+import { formatTimeRemaining } from '@/lib/timeFormat'
 
 interface CheckInButtonProps {
   targetDate: string // ISO timestamp
@@ -127,6 +128,8 @@ export default function CheckInButton({
     )
   }
 
+  const timeRemaining = formatTimeRemaining(targetDate)
+
   // Success state (briefly shown after check-in)
   if (success) {
     return (
@@ -165,22 +168,47 @@ export default function CheckInButton({
     }
   }
 
+  const getTimeLabel = () => {
+    if (urgency === 'critical') return `URGENT: ${timeRemaining} remaining`
+    return `${timeRemaining} remaining`
+  }
+
+  const getTimeLabelColor = () => {
+    switch (urgency) {
+      case 'critical':
+        return 'text-red-700'
+      case 'warning':
+        return 'text-amber-700'
+      default:
+        return 'text-slate-500'
+    }
+  }
+
   return (
     <button
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
+      aria-label={`Check In - ${timeRemaining}`}
       className={`
         w-full px-4 py-3 border font-bold text-sm uppercase tracking-wider
-        flex items-center justify-center gap-2 transition-colors
+        flex flex-col items-center justify-center gap-1 transition-colors
         ${getButtonStyles()}
         ${shouldPulse ? 'animate-pulse' : ''}
         ${className}
       `}
     >
-      {urgency === 'critical' && (
-        <Octagon className="h-4 w-4" strokeWidth={2} />
-      )}
-      Check In
+      <span className="flex items-center gap-2">
+        {urgency === 'critical' && (
+          <Octagon className="h-4 w-4" strokeWidth={2} />
+        )}
+        {urgency === 'warning' && (
+          <Triangle className="h-4 w-4" strokeWidth={2} />
+        )}
+        Check In
+      </span>
+      <span className={`text-xs font-mono font-normal normal-case ${getTimeLabelColor()}`}>
+        {getTimeLabel()}
+      </span>
     </button>
   )
 }

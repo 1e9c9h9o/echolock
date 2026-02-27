@@ -262,6 +262,14 @@ Best regards`)
                 </div>
               </div>
 
+              <div className="bg-amber-50 p-4 border-2 border-amber-200 mb-6">
+                <p className="text-sm">
+                  <strong>Guardians</strong> hold encryption key pieces and monitor your heartbeat.{' '}
+                  <strong>Recipients</strong> receive and read the decrypted message.{' '}
+                  The same person can be both, but the roles are separate.
+                </p>
+              </div>
+
               <div className="bg-gray-100 p-4 border-2 border-gray-300 mb-6">
                 <div className="flex items-center justify-between">
                   <div>

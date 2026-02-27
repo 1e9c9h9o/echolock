@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, Info, Plus, Shield, Users, Lock, Bitcoin } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Eye, EyeOff, Info, Plus, Shield, Users, Lock, Bitcoin, Copy, Mail } from 'lucide-react'
 import { useState } from 'react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -285,18 +285,27 @@ export function Step3SetPassword({
 
   return (
     <Card>
-      <h2 className="text-3xl font-bold mb-8">SET YOUR PASSWORD</h2>
+      <h2 className="text-3xl font-bold mb-2">ENCRYPT YOUR MESSAGE</h2>
+      <p className="font-mono text-sm text-gray-600 mb-8">
+        This password encrypts your message on your device. No one else will ever see it.
+      </p>
       <div className="space-y-6">
         <div className="bg-blue text-cream p-4 border-2 border-black">
           <p className="font-mono text-sm">
             <strong>This is YOUR password</strong> to{' '}
             <Explainer
-              detail="This password unlocks your encryption keys which are stored safely on this device. Without it, you can't manage your switch or see your own message."
+              detail="Your message is encrypted with AES-256-GCM right here on your device using this password. The encrypted data is then split and distributed. Without this password, no one can manage your switch or see your message."
               why="We don't store your password anywhere. If you forget it, we can't help you recover it - that's what makes it secure."
             >
-              manage your switch
+              lock your message on this device
             </Explainer>
             . Keep it private - don&apos;t share it with anyone.
+          </p>
+        </div>
+
+        <div className="bg-cream p-3 border-2 border-black">
+          <p className="font-mono text-xs text-gray-600">
+            This is different from the recipient access key you&apos;ll set next.
           </p>
         </div>
 
@@ -426,17 +435,39 @@ export function StepRecoveryPassword({
 }: WizardStepRecoveryPasswordProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(recoveryPassword)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleShareEmail = () => {
+    const subject = encodeURIComponent('EchoLock - Your Access Key')
+    const body = encodeURIComponent(
+      `I've set up an EchoLock dead man's switch and you're a recipient.\n\n` +
+      `When the time comes, you'll receive a link to access my message. You'll need this access key to read it:\n\n` +
+      `Access Key: ${recoveryPassword}\n\n` +
+      `Keep this key safe and private. Do not share it with anyone else.\n\n` +
+      `- Sent from EchoLock`
+    )
+    window.open(`mailto:?subject=${subject}&body=${body}`)
+  }
 
   const passwordsMatch = recoveryPassword === confirmRecoveryPassword && recoveryPassword.length > 0
   const isValid = recoveryPassword.length >= 6 && passwordsMatch
 
   return (
     <Card>
-      <h2 className="text-3xl font-bold mb-8">RECOVERY PASSWORD</h2>
+      <h2 className="text-3xl font-bold mb-2">RECIPIENT ACCESS KEY</h2>
+      <p className="font-mono text-sm text-gray-600 mb-8">
+        Share this separately with your recipients so they can read your message.
+      </p>
       <div className="space-y-6">
         <div className="bg-orange text-black p-4 border-2 border-black">
           <p className="font-mono text-sm">
-            <strong>Share this password with your recipients!</strong> They&apos;ll need it to{' '}
+            <strong>Share this key with your recipients!</strong> They&apos;ll need it to{' '}
             <Explainer
               detail="When your switch triggers, your recipients get a link. They enter this password and their browser decrypts the message right there. The password never goes to any server."
               why="This way, even if someone intercepts the email, they can't read your message without the password you gave in person."
@@ -464,7 +495,7 @@ export function StepRecoveryPassword({
         <div>
           <div className="flex items-center justify-between mb-3">
             <label className="block text-sm font-bold uppercase tracking-wider font-sans">
-              Recovery Password
+              Recipient Access Key
             </label>
             <button
               type="button"
@@ -482,7 +513,7 @@ export function StepRecoveryPassword({
             type={showPassword ? 'text' : 'password'}
             value={recoveryPassword}
             onChange={(e) => onRecoveryPasswordChange(e.target.value)}
-            placeholder="Enter a password for your recipients"
+            placeholder="Enter an access key for your recipients"
             className="w-full px-4 py-3 border-2 border-black bg-white focus:outline-none focus:ring-2 focus:ring-blue text-base font-mono"
           />
           <p className="mt-2 font-mono text-xs text-gray-600">
@@ -493,7 +524,7 @@ export function StepRecoveryPassword({
         <div>
           <div className="flex items-center justify-between mb-3">
             <label className="block text-sm font-bold uppercase tracking-wider font-sans">
-              Confirm Recovery Password
+              Confirm Access Key
             </label>
             <button
               type="button"
@@ -524,6 +555,37 @@ export function StepRecoveryPassword({
             </div>
           )}
         </div>
+
+        {/* Share buttons - visible when key is long enough */}
+        {recoveryPassword.length >= 6 && (
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-black bg-cream hover:bg-white transition-colors font-mono text-sm font-bold"
+            >
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4 text-green-600" strokeWidth={2} />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4" strokeWidth={2} />
+                  Copy to Clipboard
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={handleShareEmail}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-black bg-cream hover:bg-white transition-colors font-mono text-sm font-bold"
+            >
+              <Mail className="h-4 w-4" strokeWidth={2} />
+              Share via Email
+            </button>
+          </div>
+        )}
 
         <div className="flex justify-between pt-4">
           <Button variant="secondary" onClick={onBack}>
@@ -783,6 +845,24 @@ export function Step5Success({ switchId, nextCheckInAt, onDashboard, onCreateAno
             calendar so you don&apos;t miss it.
           </p>
         </div>
+
+        <div className="bg-orange/20 p-6 border-2 border-orange text-left">
+          <div className="flex items-start gap-3">
+            <Shield className="h-5 w-5 text-orange flex-shrink-0 mt-0.5" strokeWidth={2} />
+            <div>
+              <p className="font-mono text-sm">
+                <strong>Set up emergency contacts</strong> — people who can remind you to check in
+                before your switch triggers. They&apos;ll receive escalating alerts.
+              </p>
+              <a
+                href="/dashboard/settings#emergency-contacts"
+                className="inline-block mt-2 font-mono text-sm font-bold text-orange hover:text-orange/80 underline underline-offset-4 transition-colors"
+              >
+                Add Emergency Contacts in Settings
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="flex justify-center gap-4 mt-12">
@@ -949,7 +1029,7 @@ export function StepSecurityOptions({
                 <p className="font-mono text-sm text-gray-600 mt-1">
                   {bitcoinEnabled
                     ? 'Your switch timing will be permanently recorded on the Bitcoin blockchain.'
-                    : 'Add an immutable timestamp to the Bitcoin blockchain.'}
+                    : 'Add blockchain proof — a permanent, public record that your timer was set. Recommended for sensitive financial or legal documents.'}
                 </p>
                 {bitcoinEnabled && (
                   <p className="font-mono text-xs text-orange mt-2">

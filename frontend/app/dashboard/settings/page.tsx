@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ArrowLeft, User, Lock, Trash2, Shield, Circle, Clock, Calendar, Key, Mail, Octagon, Monitor, Users, Download, Upload, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, User, Lock, Trash2, Shield, Circle, Clock, Calendar, Key, Mail, Octagon, Monitor, Users, Download, Upload, AlertTriangle, Settings } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import KeyBackup from '@/components/KeyBackup'
@@ -12,6 +12,7 @@ import EmergencyContactManager from '@/components/EmergencyContactManager'
 import EmergencyControls from '@/components/EmergencyControls'
 import ExportWizard from '@/components/ExportWizard'
 import ImportWizard from '@/components/ImportWizard'
+import { useUIPreferences } from '@/contexts/UIPreferencesContext'
 import { useAuthStore, useSwitchStore } from '@/lib/store'
 import { userAPI, switchesAPI } from '@/lib/api'
 import { formatDistanceToNow } from 'date-fns'
@@ -54,6 +55,60 @@ function DataManagementSection() {
           <h4 className="font-bold text-sm">Import Data</h4>
           <p className="text-xs text-slate-500 mt-1">Restore from backup file</p>
         </button>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Display Preferences Section
+ * Allows toggling between Simple and Advanced UI modes
+ */
+function DisplayPreferencesSection() {
+  const { uiMode, setUIMode } = useUIPreferences()
+
+  return (
+    <div className="max-w-2xl mx-auto mb-6">
+      <div className="bg-white border border-slate-200">
+        <div className="p-4 border-b border-slate-100">
+          <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">
+            <Settings className="h-4 w-4 text-slate-400" strokeWidth={2} />
+            Display Preferences
+          </h2>
+        </div>
+        <div className="p-4">
+          <p className="text-sm text-slate-500 mb-4">
+            Choose how much detail you see when creating switches.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={() => setUIMode('simple')}
+              className={`p-4 border text-left transition-colors ${
+                uiMode === 'simple'
+                  ? 'border-slate-800 bg-slate-800 text-white'
+                  : 'border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <h4 className="font-bold text-sm">Simple</h4>
+              <p className={`text-xs mt-1 ${uiMode === 'simple' ? 'text-slate-300' : 'text-slate-500'}`}>
+                Fewer steps when creating switches. Best for most users.
+              </p>
+            </button>
+            <button
+              onClick={() => setUIMode('advanced')}
+              className={`p-4 border text-left transition-colors ${
+                uiMode === 'advanced'
+                  ? 'border-slate-800 bg-slate-800 text-white'
+                  : 'border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <h4 className="font-bold text-sm">Advanced</h4>
+              <p className={`text-xs mt-1 ${uiMode === 'advanced' ? 'text-slate-300' : 'text-slate-500'}`}>
+                Full control: recipient access key, threshold selection, Bitcoin proof.
+              </p>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -232,6 +287,9 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* Display Preferences */}
+      <DisplayPreferencesSection />
+
       {/* Security Status */}
       <div className="max-w-2xl mx-auto mb-6">
         <div className="bg-white border border-slate-200">
@@ -325,7 +383,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Emergency Contacts */}
-      <div className="max-w-2xl mx-auto mb-6">
+      <div id="emergency-contacts" className="max-w-2xl mx-auto mb-6">
         <div className="bg-white border border-slate-200">
           <div className="p-4 border-b border-slate-100">
             <h2 className="text-sm font-bold text-slate-700 uppercase tracking-wider flex items-center gap-2">

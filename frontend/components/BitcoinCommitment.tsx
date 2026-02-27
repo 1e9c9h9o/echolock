@@ -63,11 +63,14 @@ export default function BitcoinCommitment({
   const [verification, setVerification] = useState<VerificationResult | null>(null);
   const [currentBlockHeight, setCurrentBlockHeight] = useState<number | null>(null);
   const [showQR, setShowQR] = useState(false);
+  const [btcPrice, setBtcPrice] = useState<number | null>(null);
   const qrCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     // Fetch current block height on mount
     fetchBlockHeight();
+    // Fetch BTC price
+    fetchBtcPrice();
   }, []);
 
   // Generate QR code when address is available and QR is shown
@@ -113,6 +116,26 @@ export default function BitcoinCommitment({
     } catch {
       // Silently fail - block height is optional
     }
+  };
+
+  const fetchBtcPrice = async () => {
+    try {
+      const response = await fetch('https://mempool.space/api/v1/prices');
+      if (response.ok) {
+        const data = await response.json();
+        setBtcPrice(data.USD);
+      }
+    } catch {
+      // Silent fallback — USD display will use fallback text
+    }
+  };
+
+  const formatUsd = (sats: number): string => {
+    if (btcPrice) {
+      const usd = (sats / 100000000) * btcPrice;
+      return `~$${usd.toFixed(2)} USD`;
+    }
+    return '~$1 USD';
   };
 
   const handleVerify = async () => {
@@ -276,7 +299,7 @@ export default function BitcoinCommitment({
         {/* Cost info */}
         <div className="flex items-center justify-between p-3 bg-gray-100 rounded mb-4">
           <span className="text-sm text-gray-600">One-time cost:</span>
-          <span className="text-sm font-bold">~$1 <span className="font-normal text-gray-500">(1,000 sats)</span></span>
+          <span className="text-sm font-bold">{formatUsd(1000)} <span className="font-normal text-gray-500">(1,000 sats)</span></span>
         </div>
 
         <Button
@@ -366,7 +389,7 @@ export default function BitcoinCommitment({
             <p className="text-xs text-gray-500 mb-1">Amount</p>
             <p className="text-sm font-medium">{commitment.amount.toLocaleString()} sats</p>
             <p className="text-xs text-gray-500">
-              ~${((commitment.amount / 100000000) * 100000).toFixed(2)}
+              {formatUsd(commitment.amount)}
             </p>
           </div>
         </div>
@@ -441,10 +464,12 @@ export default function BitcoinCommitment({
             <Clock className="w-5 h-5 text-yellow-600 flex-shrink-0" />
             <p className="font-bold text-sm text-yellow-800">Awaiting Funding</p>
           </div>
-          <p className="text-sm text-yellow-700 mb-3">
-            Send <strong>{commitment.amount.toLocaleString()} sats</strong> (~$
-            {((commitment.amount / 100000000) * 100000).toFixed(2)}) to the address above
+          <p className="text-sm text-yellow-700 mb-2">
+            Send <strong>{commitment.amount.toLocaleString()} sats</strong> ({formatUsd(commitment.amount)}) to the address above
             to create your on-chain commitment.
+          </p>
+          <p className="text-xs text-yellow-600 mb-3">
+            Estimated confirmation: ~1 hour (6 confirmations)
           </p>
 
           {/* QR Code Toggle */}
@@ -503,10 +528,9 @@ export default function BitcoinCommitment({
           <div className="text-xs text-blue-700">
             <p className="font-bold">What This Proves</p>
             <ul className="list-disc ml-4 mt-1 space-y-1">
-              <li>Timer was set at a specific blockchain height</li>
-              <li>Expires at {formatLocktime(commitment.locktime)}</li>
-              <li>Verifiable by anyone on any block explorer</li>
-              <li>Cannot be faked or backdated</li>
+              <li>Your timer is permanently recorded (expires {formatLocktime(commitment.locktime)})</li>
+              <li>Anyone can verify it on any block explorer</li>
+              <li>Works even if EchoLock disappears</li>
             </ul>
           </div>
         </div>

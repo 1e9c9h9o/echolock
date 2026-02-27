@@ -15,6 +15,42 @@ import { switchesAPI } from '@/lib/api'
 import { useSwitchStore } from '@/lib/store'
 import { showToast } from '@/components/ui/ToastContainer'
 
+type UrgencyLevel = 'critical' | 'warning' | 'safe' | 'inactive'
+
+function getUrgencyLevel(sw: Switch): UrgencyLevel {
+  if (sw.status !== 'ARMED' && sw.status !== 'active') return 'inactive'
+  if (!sw.checkInHours) return 'safe'
+
+  const now = Date.now()
+  const target = new Date(sw.expiresAt).getTime()
+  const hoursRemaining = (target - now) / (1000 * 60 * 60)
+  const percentRemaining = (hoursRemaining / sw.checkInHours) * 100
+
+  if (hoursRemaining <= 0 || percentRemaining < 10) return 'critical'
+  if (percentRemaining < 25) return 'warning'
+  return 'safe'
+}
+
+function getUrgencyScore(sw: Switch): number {
+  const level = getUrgencyLevel(sw)
+  switch (level) {
+    case 'critical': return 0
+    case 'warning': return 1
+    case 'safe': return 2
+    case 'inactive': return 3
+  }
+}
+
+function getUrgencyBorderColor(sw: Switch): string {
+  const level = getUrgencyLevel(sw)
+  switch (level) {
+    case 'critical': return 'border-l-red-500'
+    case 'warning': return 'border-l-amber-500'
+    case 'safe': return 'border-l-emerald-500'
+    case 'inactive': return 'border-l-slate-300'
+  }
+}
+
 interface Switch {
   id: string
   title: string
@@ -190,10 +226,15 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Switch cards grid */}
+      {/* Summary bar */}
+      {switches.length > 0 && (
+        <SummaryBar switches={switches} />
+      )}
+
+      {/* Switch cards grid - sorted by urgency */}
       {switches.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-          {switches.map((sw) => (
+          {[...switches].sort((a, b) => getUrgencyScore(a) - getUrgencyScore(b)).map((sw) => (
             <SwitchCard
               key={sw.id}
               sw={sw}
@@ -201,6 +242,31 @@ export default function DashboardPage() {
             />
           ))}
         </div>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Summary bar showing switch status overview
+ */
+function SummaryBar({ switches }: { switches: Switch[] }) {
+  const active = switches.filter(s => s.status === 'ARMED' || s.status === 'active')
+  const needsAttention = active.filter(s => {
+    const level = getUrgencyLevel(s)
+    return level === 'critical' || level === 'warning'
+  })
+
+  return (
+    <div className="mb-4 px-4 py-3 bg-white border border-slate-200 font-mono text-sm text-slate-600 flex items-center gap-2">
+      <span>{active.length} active switch{active.length !== 1 ? 'es' : ''}</span>
+      <span className="text-slate-300">·</span>
+      {needsAttention.length > 0 ? (
+        <span className="text-amber-600 font-bold">
+          {needsAttention.length} need{needsAttention.length === 1 ? 's' : ''} check-in soon
+        </span>
+      ) : (
+        <span className="text-emerald-600">All switches healthy</span>
       )}
     </div>
   )
@@ -223,7 +289,7 @@ function SwitchCard({
   const sparklineData = generateMockSparklineData(sparklinePatterns[patternIndex])
 
   return (
-    <div className="bg-white border border-slate-200 flex flex-col">
+    <div className={`bg-white border border-slate-200 border-l-4 ${getUrgencyBorderColor(sw)} flex flex-col`}>
       {/* Header */}
       <div className="p-4 border-b border-slate-100">
         <div className="flex items-start justify-between gap-3">

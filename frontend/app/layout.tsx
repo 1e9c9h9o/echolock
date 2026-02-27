@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import ToastContainer from '@/components/ui/ToastContainer'
 import { ThemeProvider } from '@/contexts/ThemeContext'
+import { UIPreferencesProvider } from '@/contexts/UIPreferencesContext'
 import ClientErrorBoundary from '@/components/ClientErrorBoundary'
 
 export const metadata: Metadata = {
@@ -23,10 +24,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="bg-blue">
         <ThemeProvider>
-          <ClientErrorBoundary>
-            {children}
-          </ClientErrorBoundary>
-          <ToastContainer />
+          <UIPreferencesProvider>
+            <ClientErrorBoundary>
+              {children}
+            </ClientErrorBoundary>
+            <ToastContainer />
+          </UIPreferencesProvider>
         </ThemeProvider>
       </body>
     </html>
