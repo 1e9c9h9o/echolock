@@ -155,29 +155,45 @@ export default function GuardianOnboardingWizard({
   }
 
   const sendEmailInvite = () => {
-    const subject = encodeURIComponent(`You've been invited to be an EchoLock Guardian`)
+    const subject = encodeURIComponent('Can you help me with something important?')
     const body = encodeURIComponent(`Hi ${guardianName},
 
-I'd like you to be a guardian for my EchoLock dead man's switch "${switchTitle}".
+I'm using a service called EchoLock to make sure an important message reaches the right people if something ever happens to me. Think of it like a digital safety deposit box that opens automatically if I stop checking in.
 
-As a guardian, you'll hold one piece of an encryption key. If I stop checking in, you and other guardians can release my message to designated recipients.
+I chose you because I trust you. I'd like you to be one of my "guardians" — someone who holds a piece of a digital key. Your piece alone can't unlock anything, and you don't need to do anything day-to-day. The system handles everything automatically.
 
-Click here to accept: ${inviteLink}
+Here's the link to accept: ${inviteLink}
 
-What is a Guardian?
-A guardian monitors for my "heartbeat" check-ins. If I stop checking in (due to incapacitation or death), guardians work together to release my pre-written message.
+It takes about 30 seconds. No account, no cost, nothing to install.
 
-This is a responsibility, but it's simple:
-- You'll receive occasional status updates
-- If the switch triggers, you'll be asked to confirm the release
-- Your piece alone cannot decrypt anything - at least 3 guardians must participate
+If you want to learn more before deciding, here's an explainer page: ${typeof window !== 'undefined' ? window.location.origin : 'https://echolock.xyz'}/guardian/learn
 
-Thank you for being someone I trust with this.
-
-Best regards`)
+Thanks for considering this. It means a lot.`)
 
     window.open(`mailto:${guardianEmail}?subject=${subject}&body=${body}`)
     showToast('Email client opened', 'success')
+  }
+
+  const sendExplainerEmail = () => {
+    const subject = encodeURIComponent('Quick question — can you help me with something?')
+    const body = encodeURIComponent(`Hi ${guardianName},
+
+I'm setting up something called EchoLock — it's a way to make sure important information reaches the right people if something ever happens to me.
+
+I'd love to have you involved, but I wanted to explain what it is first. Here's a short page that covers everything:
+
+${typeof window !== 'undefined' ? window.location.origin : 'https://echolock.xyz'}/guardian/learn
+
+No commitment yet — just wanted you to see what it's about before I send a formal invitation. Let me know what you think!`)
+
+    window.open(`mailto:${guardianEmail}?subject=${subject}&body=${body}`)
+    showToast('Email client opened', 'success')
+  }
+
+  const copyExplainerLink = () => {
+    const link = `${typeof window !== 'undefined' ? window.location.origin : 'https://echolock.xyz'}/guardian/learn`
+    navigator.clipboard.writeText(link)
+    showToast('Explainer link copied', 'success')
   }
 
   return (
@@ -302,6 +318,27 @@ Best regards`)
                     }`}
                     style={{ width: `${Math.min(100, (currentGuardianCount / recommendedCount) * 100)}%` }}
                   />
+                </div>
+              </div>
+
+              <div className="bg-orange/10 border-2 border-orange p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-orange flex-shrink-0" />
+                  <div className="text-sm">
+                    <p className="font-bold mb-1">Talk to your guardian first</p>
+                    <p className="text-black/70 mb-3">
+                      Before sending a formal invitation, it helps to give your guardian context.
+                      Share the explainer page so they know what EchoLock is and what being a
+                      guardian means.
+                    </p>
+                    <button
+                      onClick={copyExplainerLink}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 border-2 border-orange bg-white hover:bg-orange/10 text-sm font-bold transition-colors"
+                    >
+                      <Copy className="h-3 w-3" />
+                      Copy Explainer Link
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -476,17 +513,36 @@ Best regards`)
               </div>
 
               {guardianEmail && (
-                <button
-                  onClick={sendEmailInvite}
-                  className="w-full p-4 border-2 border-gray-200 hover:border-orange transition-colors flex items-center gap-3 mb-4"
-                >
-                  <Mail className="h-5 w-5 text-gray-400" />
-                  <div className="text-left flex-1">
-                    <p className="font-bold text-sm">Send Email Invitation</p>
-                    <p className="text-xs text-gray-500">Opens your email client with a pre-written message</p>
-                  </div>
-                  <ChevronRight className="h-5 w-5 text-gray-400" />
-                </button>
+                <div className="space-y-3 mb-4">
+                  <button
+                    onClick={sendExplainerEmail}
+                    className="w-full p-4 border-2 border-orange bg-orange/5 hover:bg-orange/10 transition-colors flex items-center gap-3"
+                  >
+                    <HelpCircle className="h-5 w-5 text-orange" />
+                    <div className="text-left flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="font-bold text-sm">Send Explainer First</p>
+                        <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold">
+                          RECOMMENDED
+                        </span>
+                      </div>
+                      <p className="text-xs text-black/70">Send a casual intro email with a link to learn about EchoLock</p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-orange" />
+                  </button>
+
+                  <button
+                    onClick={sendEmailInvite}
+                    className="w-full p-4 border-2 border-gray-200 hover:border-orange transition-colors flex items-center gap-3"
+                  >
+                    <Mail className="h-5 w-5 text-gray-400" />
+                    <div className="text-left flex-1">
+                      <p className="font-bold text-sm">Send Formal Invitation</p>
+                      <p className="text-xs text-gray-500">Opens your email client with the invitation link</p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-gray-400" />
+                  </button>
+                </div>
               )}
 
               <div className="bg-blue/10 border-2 border-blue p-4 mb-6">

@@ -242,16 +242,27 @@ async function queryRelayForEvents(
 
 /**
  * Generate a shareable invitation link for a guardian
+ *
+ * Optionally includes inviterName and switchTitle so the acceptance
+ * page can show personalized context without an API call.
  */
 export function generateInvitationLink(
   invitation: GuardianInvitation,
-  baseUrl: string = 'https://echolock.xyz'
+  baseUrl: string = 'https://echolock.xyz',
+  options?: { inviterName?: string; switchTitle?: string }
 ): string {
   const params = new URLSearchParams({
     id: invitation.id,
     switch: invitation.switchId,
     share: invitation.shareIndex.toString(),
   });
+
+  if (options?.inviterName) {
+    params.set('from', options.inviterName);
+  }
+  if (options?.switchTitle) {
+    params.set('title', options.switchTitle);
+  }
 
   return `${baseUrl}/guardian/accept?${params.toString()}`;
 }
